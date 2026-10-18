@@ -1,800 +1,521 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>MAX Sports OS</title>
-
-<style>
-
-:root{
-
---bg:#05070d;
---panel:#0d1320;
---panel2:#151e31;
---sidebar:#080d16;
---text:#ffffff;
---accent:#00ffff;
---success:#31ff8a;
---danger:#ff5757;
---border:rgba(255,255,255,.08);
-
-}
-
-body.light{
-
---bg:#edf2f8;
---panel:#ffffff;
---panel2:#f5f7fb;
---sidebar:#ffffff;
---text:#111827;
---accent:#0066ff;
---border:#d6deeb;
-
-}
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Segoe UI,Arial,sans-serif;
-}
-
-body{
-
-background:var(--bg);
-color:var(--text);
-
-height:100vh;
-
-display:flex;
-flex-direction:column;
-
-transition:.3s;
-
-}
-
-.topbar{
-
-height:70px;
-
-display:flex;
-align-items:center;
-justify-content:space-between;
-
-padding:0 20px;
-
-background:var(--panel);
-
-border-bottom:1px solid var(--border);
-
-}
-
-.logo{
-
-font-size:28px;
-font-weight:800;
-color:var(--accent);
-
-}
-
-.theme-btn{
-
-padding:10px 16px;
-
-border:none;
-border-radius:10px;
-
-background:var(--accent);
-
-cursor:pointer;
-font-weight:bold;
-
-}
-
-.main{
-
-flex:1;
-
-display:grid;
-
-grid-template-columns:
-240px
-1fr
-320px;
-
-overflow:hidden;
-
-}
-
-.sidebar{
-
-background:var(--sidebar);
-
-padding:20px;
-
-overflow:auto;
-
-border-right:1px solid var(--border);
-
-}
-
-.nav-item{
-
-padding:12px;
-
-border-radius:12px;
-
-background:var(--panel);
-
-margin-bottom:10px;
-
-cursor:pointer;
-
-transition:.2s;
-
-}
-
-.nav-item:hover{
-
-transform:translateX(5px);
-
-}
-
-.section-title{
-
-font-size:12px;
-opacity:.5;
-
-margin:20px 0 10px;
-
-letter-spacing:2px;
-
-}
-
-.center{
-
-overflow:auto;
-padding:20px;
-
-}
-
-.hero{
-
-padding:30px;
-
-border-radius:20px;
-
-margin-bottom:20px;
-
-background:
-linear-gradient(
-135deg,
-#071b30,
-#10406f
-);
-
-}
-
-.hero h1{
-
-font-size:48px;
-
-color:white;
-
-}
-
-.hero p{
-
-margin-top:10px;
-opacity:.8;
-
-}
-
-.metrics{
-
-display:grid;
-
-grid-template-columns:
-repeat(4,1fr);
-
-gap:15px;
-
-margin-top:25px;
-
-}
-
-.metric{
-
-background:var(--panel);
-
-padding:18px;
-
-border-radius:14px;
-
-text-align:center;
-
-}
-
-.metric-value{
-
-font-size:28px;
-font-weight:800;
-
-color:var(--accent);
-
-animation:pulse 2s infinite;
-
-}
-
-@keyframes pulse{
-
-50%{
-
-transform:scale(1.07);
-
-}
-
-}
-
-.filters{
-
-display:flex;
-gap:12px;
-flex-wrap:wrap;
-
-margin-bottom:20px;
-
-}
-
-.filters select,
-.filters input{
-
-padding:12px;
-
-border-radius:10px;
-
-border:1px solid var(--border);
-
-background:var(--panel);
-
-color:var(--text);
-
-}
-
-.filters input{
-
-flex:1;
-
-}
-
-.grid{
-
-display:grid;
-
-grid-template-columns:
-1fr
-1fr;
-
-gap:20px;
-
-}
- .card{
-
-background:var(--panel);
-
-padding:20px;
-
-border-radius:20px;
-
-border:1px solid var(--border);
-
-}
-
-.card h3{
-
-margin-bottom:15px;
-
-color:var(--accent);
-
-}
-
-.game{
-
-background:var(--panel2);
-
-padding:12px;
-
-border-radius:10px;
-
-margin-bottom:10px;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-}
-
-.live{
-
-color:var(--danger);
-
-font-size:12px;
-
-font-weight:bold;
-
-animation:blink 1s infinite;
-
-}
-
-@keyframes blink{
-
-50%{
-opacity:.4;
-}
-
-}
-
-.chart{
-
-height:220px;
-
-display:flex;
-
-align-items:flex-end;
-
-gap:10px;
-
-padding-top:20px;
-
-}
-
-.bar{
-
-flex:1;
-
-background:
-linear-gradient(
-180deg,
-var(--accent),
-#005eff
-);
-
-border-radius:8px 8px 0 0;
-
-transition:.5s;
-
-}
-
-.right{
-
-background:var(--sidebar);
-
-padding:20px;
-
-overflow:auto;
-
-border-left:1px solid var(--border);
-
-}
-
-.process{
-
-display:flex;
-
-justify-content:space-between;
-
-padding:12px;
-
-border-radius:10px;
-
-background:var(--panel);
-
-margin-bottom:10px;
-
-}
-
-.running{
-
-color:var(--success);
-
-font-weight:bold;
-
-}
-
-.ipc{
-
-margin-top:10px;
-
-padding
- <section class="filters">
-
-<select id="leagueFilter">
-
-<option value="all">
-All Leagues
-</option>
-
-<option value="NFL">
-NFL
-</option>
-
-<option value="NBA">
-NBA
-</option>
-
-<option value="MLB">
-MLB
-</option>
-
-<option value="NHL">
-NHL
-</option>
-
-</select>
-
-<select id="confidenceFilter">
-
-<option value="all">
-All Confidence
-</option>
-
-<option value="high">
-High Confidence
-</option>
-
-<option value="medium">
-Medium Confidence
-</option>
-
-<option value="low">
-Low Confidence
-</option>
-
-</select>
-
-<input
-id="searchInput"
-type="text"
-placeholder="Search Team..."
->
-
-</section>
-
-<section class="grid">
-
-<div class="card">
-
-<h3>
-LIVE GAMES
-</h3>
-
-<div id="gamesContainer">
-
-</div>
-
-</div>
-
-<div class="card">
-
-<h3>
-WIN PROBABILITY
-</h3>
-
-<div class="chart">
-
-<div
-class="bar"
-style="height:52%">
-</div>
-
-<div
-class="bar"
-style="height:58%">
-</div>
-
-<div
-class="bar"
-style
- <script>
-
-/* -----------------------
-   THEME ENGINE
------------------------- */
-
-function toggleTheme(){
-
-document.body.classList.toggle(
-"light"
-);
-
-}
-
-/* -----------------------
-   SAMPLE GAME DATABASE
------------------------- */
-
-const games = [
-
-{
-league:"NFL",
-confidence:"high",
-home:"Bills",
-away:"Jets",
-score:"24-17"
-},
-
-{
-league:"NFL",
-confidence:"medium",
-home:"Chiefs",
-away:"Ravens",
-score:"31-28"
-},
-
-{
-league:"NBA",
-confidence:"high",
-home:"Knicks",
-away:"Heat",
-score:"112-104"
-},
-
-{
-league:"MLB",
-confidence:"low",
-home:"Yankees",
-away:"Red Sox",
-score:"5-3"
-},
-
-{
-league:"NHL",
-confidence:"medium",
-home:"Rangers",
-away:"Bruins",
-score:"4-2"
-},
-
-{
-league:"NFL",
-confidence:"high",
-home:"Cowboys",
-away:"Eagles",
-score:"27-21"
-}
-
-];
-
-/* -----------------------
-   GAME RENDERER
------------------------- */
-
-const gamesContainer =
-document.getElementById(
-"gamesContainer"
-);
-
-function renderGames(){
-
-const league =
-document.getElementById(
-"leagueFilter"
-).value;
-
-const confidence =
-document
- /* -----------------------
-   FILTER EVENTS
------------------------- */
-
-document
-.getElementById(
-"leagueFilter"
-)
-.addEventListener(
-"change",
-renderGames
-);
-
-document
-.getElementById(
-"confidenceFilter"
-)
-.addEventListener(
-"change",
-renderGames
-);
-
-document
-.getElementById(
-"searchInput"
-)
-.addEventListener(
-"input",
-renderGames
-);
-
-/* -----------------------
-   MONTE CARLO
------------------------- */
-
-function runSimulation(){
-
-const winProb =
-(
-55 +
-Math.random()*25
-)
-.toFixed(1);
-
-const coverProb =
-(
-45 +
-Math.random()*25
-)
-.toFixed(1);
-
-const expectedMargin =
-(
-Math.random()*14
-)
-.toFixed(1);
-
-document
-.getElementById(
-"winProb"
-)
-.innerHTML =
-winProb + "%";
-
-document
-.getElementById(
-"coverRate"
-)
-.innerHTML =
-
-"Spread Cover: "
-+
- /* -----------------------
-   LIVE SCORE UPDATES
------------------------- */
-
-function randomScoreUpdate(){
-
-const gameNodes =
-document.querySelectorAll(
-"#gamesContainer .game"
-);
-
-if(gameNodes.length === 0){
-return;
-}
-
-const game =
-gameNodes[
-Math.floor(
-Math.random() *
-gameNodes.length
-)
-];
-
-game.style.transform =
-"scale(1.02)";
-
-setTimeout(()=>{
-
-game.style.transform =
-"scale(1)";
-
-},300);
-
-}
-
-/* -----------------------
-   BAR ANIMATION LOOP
------------------------- */
-
-setInterval(()=>{
-
-const bars =
-document.querySelectorAll(
-".bar"
-);
-
-bars.forEach(bar=>{
-
-const current =
-parseFloat(
-bar.style.height
-);
-
-const variance =
-(Math.
- /* -----------------------
-   SETTINGS STORAGE
------------------------- */
-
-const SETTINGS_KEY =
-"maxsports.settings";
-
-function loadSettings(){
-
-try{
-
-const saved =
-localStorage.getItem(
-SETTINGS_KEY
-);
-
-if(saved){
-
-return JSON.parse(
-saved
-);
-
-}
-
-}catch(e){
-
-console.error(e);
-
-}
-
-return {
-
-theme:"dark",
-
-league:"all",
-
-confidence:"all",
-
-search:""
-
-};
-
-}
-
-function saveSettings(){
-
-const settings = {
-
-theme:
-document.body.classList.contains(
-"light"
-)
-? "light"
-: "dark",
-
-league:
-document.getElementById(
-"leagueFilter"
-).value,
-
-confidence:
-document.getElementById(
-"confidenceFilter"
-).value,
-
-search:
-document.getElementById(
-"searchInput"
-).value
-
-};
-
-localStorage.setItem(
-
-SETTINGS_KEY,
-
-JSON.stringify(
-settings
-)
-
-);
-
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal-OS1 Edge Hypervisor & MAX-SIM Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-color: #30363d;
+            --border-highlight: #58a6ff;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-green-bright: #7ee787;
+            --accent-purple: #bc8cff;
+            --accent-amber: #d29922;
+            --accent-red: #f85149;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f6f8fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #eaeef2;
+            --border-color: #d0d7de;
+            --border-highlight: #0969da;
+            --text-primary: #24292f;
+            --text-secondary: #57606a;
+            --text-muted: #8c959f;
+            --accent-blue: #0969da;
+            --accent-green: #1a7f37;
+            --accent-green-bright: #2da44e;
+            --accent-purple: #8250df;
+            --accent-amber: #bf8700;
+            --accent-red: #cf222e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-mono);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px;
+            min-height: 100vh;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-title h1 {
+            font-size: 18px;
+            color: var(--accent-green-bright);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .endpoint-tag {
+            color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            word-break: break-all;
+        }
+
+        .badge {
+            background: var(--accent-green);
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .badge-sim { background: var(--accent-purple); color: #fff; }
+        .badge-amber { background: var(--accent-amber); color: #000; }
+        .badge-red { background: var(--accent-red); color: #fff; }
+
+        .controls-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        /* General Controls */
+        button {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        button:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-green { background: var(--accent-green); color: #000; }
+        .btn-purple { background: var(--accent-purple); }
+        .btn-amber { background: var(--accent-amber); color: #000; }
+        .btn-red { background: var(--accent-red); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--border-color); }
+
+        input, select, textarea {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: border-color 0.15s;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--border-highlight); }
+        label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; }
+
+        /* Layout Grids */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 16px; }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            font-size: 12px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Modules Features */
+        .video-box {
+            background: #000000;
+            border: 1px dashed var(--border-color);
+            height: 160px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 11px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; display: none; }
+
+        .filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; }
+
+        /* SVG Offline Charts */
+        .chart-container { width: 100%; height: 100px; margin-top: 10px; background: var(--bg-primary); border-radius: 6px; border: 1px solid var(--border-color); padding: 8px; }
+        .chart-svg { width: 100%; height: 100%; overflow: visible; }
+        .chart-line { fill: none; stroke: var(--accent-green-bright); stroke-width: 2; vector-effect: non-scaling-stroke; }
+        .chart-grid { stroke: var(--border-color); stroke-width: 1; stroke-dasharray: 4; }
+
+        /* Terminal Console */
+        .terminal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .terminal {
+            background: #05070a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 11px;
+            color: var(--accent-blue);
+            height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px dotted rgba(255,255,255,0.05); padding-bottom: 2px; }
+        .log-timestamp { color: var(--text-muted); }
+        .log-success { color: var(--accent-green-bright); }
+        .log-error { color: var(--accent-red); }
+        .log-warn { color: var(--accent-amber); }
+
+        .progress-bar-bg { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; height: 8px; width: 100%; overflow: hidden; margin: 8px 0; }
+        .progress-bar-fill { background: var(--accent-purple); height: 100%; width: 0%; transition: width 0.1s linear; }
+
+        .sports-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .flex-row { display: flex; gap: 8px; align-items: center; }
+        .flex-1 { flex: 1; }
+
+        /* JSON Display Highlighting */
+        .json-key { color: #ff7b72; }
+        .json-string { color: #a5d6ff; }
+        .json-number { color: #79c0ff; }
+        .json-boolean { color: #d2a8ff; }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation / Status -->
+    <header>
+        <div class="header-title">
+            <h1>Portal-OS1 <span class="badge" id="statusBadge">ONLINE</span></h1>
+            <div class="header-sub">
+                Endpoint: <span class="endpoint-tag" id="endpointDisplay">https://portal-os1.maxchaz2.workers.dev</span>
+                | Cost: <span style="color: var(--accent-green-bright);">$0.00/mo</span>
+            </div>
+        </div>
+        <div class="controls-header">
+            <span class="badge badge-sim">MAX-SIM v1.0</span>
+            <span class="badge badge-amber">MAX Sports v1.0</span>
+            <button class="btn-secondary" onclick="toggleTheme()">🌗 Theme</button>
+        </div>
+    </header>
+
+    <!-- Section 1: Core Modules Grid -->
+    <div class="grid-3">
+        
+        <!-- Module 1: Core Hypervisor Process Manager -->
+        <div class="card">
+            <h3>⚙️ Core Process Spawn <span class="badge">IPC Kernel</span></h3>
+            <div>
+                <label>Process ID (PID)</label>
+                <input type="text" id="pidInput" value="pid_core_actor_01">
+            </div>
+            <div class="flex-row">
+                <div class="flex-1">
+                    <label>Priority (1-10)</label>
+                    <input type="number" id="priorityInput" value="5" min="1" max="10">
+                </div>
+                <div class="flex-1">
+                    <label>Heap (MB)</label>
+                    <input type="number" id="memoryInput" value="128" min="16" max="1024">
+                </div>
+            </div>
+            <div>
+                <label>Context Payload (JSON)</label>
+                <input type="text" id="payloadInput" value='{"owner": "max_jur", "mode": "durable_object"}'>
+            </div>
+            <div class="flex-row">
+                <button class="btn-green flex-1" onclick="spawnCoreProcess()">⚡ Spawn Process</button>
+                <button class="btn-red" title="Trigger Rollback" onclick="triggerEpochRollback()">🔄 Rollback</button>
+            </div>
+        </div>
+
+        <!-- Module 2: MAX-SIM Simulation Engine -->
+        <div class="card">
+            <h3>🧪 MAX-SIM Engine <span class="badge badge-sim">100K Loop</span></h3>
+            <div>
+                <label>Simulation Subsystem Mode</label>
+                <select id="simType">
+                    <option value="quantum_state_opt">Quantum State Optimization</option>
+                    <option value="icvs_cognitive_sync">ICVS Cognitive Frame Sync</option>
+                    <option value="neural_stress_test">Neural Lattice Stress Test</option>
+                    <option value="monte_carlo_100k">100K Sports Monte Carlo</option>
+                </select>
+            </div>
+            <div class="flex-row">
+                <div class="flex-1">
+                    <label>Alpha Param</label>
+                    <input type="number" id="vecAlpha" value="0.95" step="0.01">
+                </div>
+                <div class="flex-1">
+                    <label>Beta Param</label>
+                    <input type="number" id="vecBeta" value="1.04" step="0.01">
+                </div>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="simProgress"></div></div>
+            <button class="btn-purple" id="btnSim" style="width:100%;" onclick="run100KSim()">🚀 Execute MAX-SIM (100K)</button>
+        </div>
+
+        <!-- Module 3: Spatial Video Feed Subsystem -->
+        <div class="card">
+            <h3>📹 Spatial Vision <span class="badge badge-amber">WebRTC</span></h3>
+            <div class="video-box" id="videoBox">
+                <span id="videoPlaceholder">Camera Feed Denied / Unavailable</span>
+                <video id="webcam" autoplay playsinline muted></video>
+            </div>
+            <button class="btn-amber" style="width:100%;" onclick="toggleWebcam()">📷 Toggle Local Camera Feed</button>
+        </div>
+
+    </div>
+
+    <!-- Section 2: MAX Sports Analytics & Offline SVG Telemetry -->
+    <div class="card" style="margin-bottom: 16px;">
+        <h3>🏆 MAX Sports Analytics & Telemetry Engine</h3>
+        
+        <div class="filter-bar">
+            <div>
+                <label>Category / League</label>
+                <select id="leagueFilter" onchange="filterData()">
+                    <option value="ALL">All Categories</option>
+                    <option value="HOIST_V4">HOIST V4 (Strength)</option>
+                    <option value="NBA">NBA Basketball</option>
+                    <option value="NFL">NFL Football</option>
+                    <option value="EPL">Premier League</option>
+                </select>
+            </div>
+            <div>
+                <label>Min. Confidence / Load</label>
+                <select id="confidenceFilter" onchange="filterData()">
+                    <option value="0">All Items</option>
+                    <option value="80">&gt; 80% Win/Load</option>
+                    <option value="90">&gt; 90% Win/Load</option>
+                </select>
+            </div>
+            <div>
+                <label>Search Keyword</label>
+                <input type="text" id="searchInput" placeholder="Search team/exercise..." onkeyup="filterData()" style="margin-bottom:0;">
+            </div>
+            <div>
+                <label>HOIST V4 Logger</label>
+                <button class="btn-secondary" style="width:100%;" onclick="logHoistMetric()">💪 Record Training</button>
+            </div>
+        </div>
+
+        <div id="sportsContainer"></div>
+
+        <!-- Module 4: SVG Offline Real-time Visualizer Chart -->
+        <div style="margin-top: 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size: 11px; color: var(--text-secondary);">Real-time Throughput & Telemetry Convergence Stream:</span>
+                <span style="font-size: 10px; color: var(--accent-green-bright);" id="chartPointCount">11 Points Tracked</span>
+            </div>
+            <div class="chart-container">
+                <svg class="chart-svg" viewBox="0 0 500 100" preserveAspectRatio="none">
+                    <line x1="0" y1="20" x2="500" y2="20" class="chart-grid" />
+                    <line x1="0" y1="50" x2="500" y2="50" class="chart-grid" />
+                    <line x1="0" y1="80" x2="500" y2="80" class="chart-grid" />
+                    <polyline id="svgPolyline" class="chart-line" points="0,80 50,70 100,50 150,60 200,30 250,40 300,20 350,50 400,30 450,40 500,10" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Telemetry & JSON-RPC Log Console -->
+    <div class="card">
+        <div class="terminal-header">
+            <h3>📡 Edge Telemetry & Response Log</h3>
+            <button class="btn-secondary" style="padding: 4px 8px; font-size: 10px;" onclick="clearTerminal()">🧹 Clear Log</button>
+        </div>
+        <div class="terminal" id="terminalLog"></div>
+    </div>
+
+    <script>
+        // Core Worker Endpoint Reference
+        const ENDPOINT = "https://portal-os1.maxchaz2.workers.dev";
+        let isFallbackMode = false;
+
+        // Analytics Initial Data
+        let analyticsData = [
+            { category: 'HOIST_V4', title: 'Barbell Deadlift (3x5)', score: 92, info: 'Load Index: 315 lbs', tag: 'STRENGTH' },
+            { category: 'NBA', title: 'Celtics vs Lakers', score: 88, info: 'Q3 04:12 - High Odds', tag: 'GAME' },
+            { category: 'HOIST_V4', title: 'Tactical Drill Sprints', score: 95, info: 'HR Max: 178 BPM', tag: 'CARDIO' },
+            { category: 'NFL', title: 'Chiefs vs Bills', score: 79, info: 'Q2 11:45', tag: 'GAME' },
+            { category: 'EPL', title: 'Arsenal vs Chelsea', score: 94, info: 'FT - Final Prediction', tag: 'MATCH' },
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderData(analyticsData);
+            logTerminal("SYSTEM_INIT", "Portal-OS1 Edge Hypervisor Client Booted. Target: " + ENDPOINT, "success");
+        });
+
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            logTerminal("THEME", `UI Theme updated to [${target.toUpperCase()}] mode.`, "warn");
+        }
+
+        // Animated Log Console Handler
+        function logTerminal(source, message, type = "normal") {
+            const logBox = document.getElementById('terminalLog');
+            const timestamp = new Date().toISOString().split('T')[1].slice(0, 12);
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            let typeClass = "";
+            if (type === "success") typeClass = "log-success";
+            if (type === "error") typeClass = "log-error";
+            if (type === "warn") typeClass = "log-warn";
+
+            let formatted = message;
+            if (typeof message === 'object') {
+                formatted = syntaxHighlightJson(JSON.stringify(message, null, 2));
+            }
+
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> <strong class="${typeClass}">[${source}]</strong>: ${formatted}`;
+            logBox.prepend(entry);
+        }
+
+        function clearTerminal() {
+            document.getElementById('terminalLog').innerHTML = '';
+        }
+
+        function syntaxHighlightJson(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'json-number';
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'json-key' : 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // Robust JSON-RPC 2.0 Dispatcher with Fallback Execution
+        async function sendIpc(method, pid, params) {
+            const envelope = {
+                "jsonrpc": "2.0",
+                "id": "msg_" + Date.now(),
+                "method": method,
+                "params": { pid, timestamp: Date.now(), ...params }
+            };
+
+            logTerminal("IPC_DISPATCH", `Requesting ${method} (PID: ${pid})...`);
+
+            try {
+                const response = await fetch(`${ENDPOINT}/api/kernel/ipc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(envelope)
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                const resData = await response.json();
+                logTerminal("IPC_RESPONSE", resData, "success");
+                updateSvgChart();
+            } catch (err) {
+                logTerminal("EDGE_TELEMETRY", `Communication Error: ${err.message}`, "error");
+                logTerminal("FALLBACK_ENGINE", `[CORS / Offline Protection Active] Generating mock state response...`, "warn");
+                
+                // Demo Fallback Mode
+                setTimeout(() => {
+                    const fallbackResponse = {
+                        "jsonrpc": "2.0",
+                        "id": envelope.id,
+                        "result": {
+                            "status": "ACCEPTED_BY_MOCK_KERNEL",
+                            "pid": pid,
+                            "allocated_memory": params.memory_quota_mb || 128,
+                            "execution_time_ms": (Math.random() * 12 + 2).toFixed(2),
+                            "state": "RUNNING_VIRTUAL"
+                        }
+                    };
+                    logTerminal("MOCK_KERNEL", fallbackResponse, "success");
+                    updateSvgChart();
+                }, 300);
+            }
+        }
+
+        // Action Handlers
+        function spawnCoreProcess() {
+            const pid = document.getElementById('pidInput').value || "pid_" + Date.now();
+            const priority = parseInt(document.getElementById('priorityInput').value, 10);
+            const memory = parseInt(document.getElementById('memoryInput').value, 10);
+            let payload = {};
+            
+            try {
+                payload = JSON.parse(document.getElementById('payloadInput').value);
+            } catch (e) {
+                payload = { raw: document.getElementById('payloadInput').value };
+            }
+
+            sendIpc("kernel.process.spawn", pid, { priority, memory_quota_mb: memory, context: payload });
+        }
+
+        async function run100KSim() {
+            const btn = document.getElementById('btnSim');
+            const progress =
