@@ -1,0 +1,7 @@
+{
+  "name": "compute",
+  "status": "ACTIVE",
+  "nodes": 12,
+  "workers": 48,
+  "ipc_traffic": 12345
+}

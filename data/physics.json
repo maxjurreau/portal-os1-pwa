@@ -1,0 +1,9 @@
+{
+  "name": "physics",
+  "status": "ACTIVE",
+  "fields": {
+    "curvature": 0.0021,
+    "entropy": 12.3,
+    "energy": 42.7
+  }
+}

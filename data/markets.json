@@ -1,0 +1,11 @@
+{
+  "name": "markets",
+  "status": "ACTIVE",
+  "liquidity_index": 78.3,
+  "risk_index": 22.1,
+  "signals": {
+    "quantum": 94,
+    "simulation": 87,
+    "agents": 92
+  }
+}

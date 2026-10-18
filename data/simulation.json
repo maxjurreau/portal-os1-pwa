@@ -1,0 +1,7 @@
+{
+  "name": "simulation",
+  "status": "ACTIVE",
+  "coherence": 97,
+  "agents": 214,
+  "iterations": 1000
+}
