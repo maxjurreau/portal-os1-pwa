@@ -294,8 +294,8 @@ padding: 20px;
 <h2>MAX‑SIM HUD</h2>
 <div id="fallbackView" style="margin-top:6px; font-size:14px; color:#94a3b8;">VIEW: PHYSICS</div>
 <div id="fallbackNetwork" style="margin-top:4px; font-size:12px; color:#22c55e;">STATUS: ONLINE</div>
-<div id="fallbackUpdate" style="margin-top:2px; font-size:12px; color:#94a3b8;">LAST: Never</div>
-<div id="fallbackMessage" style="margin-top:12px;">No video loaded</div>
+<div id="fallbackUpdate" style="margin-top:2px; font-size:12px; color:#94a3b8;">LAST: Waiting...</div>
+<div id="fallbackMessage" style="margin-top:12px;">Waiting For Worker Response</div>
 <button id="playOverlay" style="
 display:none;
 margin-top:15px;
@@ -629,12 +629,24 @@ function updateNetworkState(){
 function updateFallbackStatus(){
   const network = document.getElementById("fallbackNetwork");
   const update = document.getElementById("fallbackUpdate");
+  const msg = document.getElementById("fallbackMessage");
 
   if(network){
     network.innerText = window.PortalState.workerOnline ? "STATUS: ONLINE" : "STATUS: OFFLINE";
   }
   if(update){
-    update.innerText = "LAST: " + (window.PortalState.lastWorkerUpdate || "Never");
+    update.innerText = window.PortalState.lastWorkerUpdate 
+      ? `LAST: ${window.PortalState.lastWorkerUpdate}` 
+      : "LAST: Waiting...";
+  }
+  if(msg){
+    if(window.PortalState.workerOnline){
+      msg.innerText = "Live Worker Connected";
+    } else if(window.PortalState.lastWorkerData){
+      msg.innerText = "Offline • Using Last Known Data";
+    } else {
+      msg.innerText = "Waiting For Worker Response";
+    }
   }
 }
 
@@ -668,12 +680,17 @@ async function pollWorker(){
       throw new Error("HTTP " + response.status);
     }
 
-    let data;
+    let data = null;
+    const text = await response.text();
+
     try{
-      data = await response.json();
+      data = JSON.parse(text);
     }
     catch{
-      throw new Error("Invalid JSON");
+      data = {
+        status: "text-response",
+        raw: text
+      };
     }
 
     window.PortalState.workerOnline = true;
@@ -686,11 +703,14 @@ async function pollWorker(){
       statusEl.style.color = "var(--success)";
     }
 
+    logConsole("[WORKER] HEALTH OK");
     safeSave();
   }
   catch(err){
     window.PortalState.workerOnline = false;
     window.PortalState.lastError = err.message;
+    /* DO NOT CLEAR lastWorkerData to preserve last known good payload */
+    logConsole("[WORKER] OFFLINE");
     console.warn("[WORKER]", err.message);
 
     if(statusEl) {
@@ -761,12 +781,20 @@ function drawHud(){
     ctx.fillText("SEPARATION: " + window.PortalState.telemetry.separation + " yd", 20, 70);
     ctx.fillText("COHERENCE: " + window.PortalState.simulation.coherence + "%", 20, 100);
     ctx.fillText("WIN PROB: " + window.PortalState.simulation.probability + "%", 20, 130);
+    
     ctx.fillText("WORKER: " + (window.PortalState.workerOnline ? "ONLINE" : "OFFLINE"), 20, 160);
     ctx.fillText("LAST UPDATE: " + (window.PortalState.lastWorkerUpdate || "Never"), 20, 190);
 
+    if(window.PortalState.lastWorkerData){
+      const data = window.PortalState.lastWorkerData;
+      ctx.fillText("STATUS: " + (data.status || "UNKNOWN"), 20, 220);
+      ctx.fillText("ENV: " + (data.environment || "n/a"), 20, 250);
+      ctx.fillText("VERSION: " + (data.version || "n/a"), 20, 280);
+    }
+
     if(window.PortalState.lastError){
       ctx.fillStyle = "#ff5555";
-      ctx.fillText("ERROR: " + window.PortalState.lastError, 20, 220);
+      ctx.fillText("ERROR: " + window.PortalState.lastError, 20, 310);
     }
   }
 
@@ -794,7 +822,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await pollWorker();
     setInterval(pollWorker, 10000);
 
-    logConsole("[BOOT] PORTAL-OS READY (FULL RESILIENCE ACTIVE)");
+    logConsole("[BOOT] PORTAL-OS READY (LIVE POLLING & RESILIENCE ACTIVE)");
   } catch(err) {
     console.error("Boot error:", err);
   }
