@@ -270,14 +270,14 @@ z-index:10;
 ========================== */
 window.PortalState = {
   version: "1.0",
-  map: "physics",
+  currentMap: "physics",
   hudEnabled: true,
-  workerOnline: false,
+  workerOnline: navigator.onLine,
   console: ["[BOOT] PORTAL-OS READY"],
   simulation: {
     iterations: 0,
-    probability: 68.2,
-    coherence: 97.4
+    coherence: 97.4,
+    probability: 68.2
   },
   telemetry: {
     armSlot: 64.2,
@@ -322,9 +322,9 @@ const MAPS = {
     title: "MAX‑SIM",
     description: "Simulation systems and propagation engines",
     widgets: [
-      getters => ["Iterations", window.PortalState.simulation.iterations.toLocaleString()],
-      getters => ["Coherence", window.PortalState.simulation.coherence + "%"],
-      getters => ["Probability", window.PortalState.simulation.probability + "%"]
+      ["Iterations", () => window.PortalState.simulation.iterations.toLocaleString()],
+      ["Coherence", () => window.PortalState.simulation.coherence + "%"],
+      ["Probability", () => window.PortalState.simulation.probability + "%"]
     ]
   },
   cognition: {
@@ -342,13 +342,13 @@ const MAPS = {
 function selectMap(name){
   if(!MAPS[name]) name = "physics";
   
-  window.PortalState.map = name;
+  window.PortalState.currentMap = name;
   saveState();
 
-  // Update tab UI active states
   document.querySelectorAll('.map-tab').forEach(tab => {
     tab.classList.remove('active');
-    if(tab.getAttribute('onclick').includes(name)){
+    const attr = tab.getAttribute('onclick') || '';
+    if(attr.includes(name)){
       tab.classList.add('active');
     }
   });
@@ -366,13 +366,12 @@ function selectMap(name){
   map.widgets.forEach(widget => {
     const el = document.createElement('div');
     el.className = 'widget';
-    // Evaluate function widgets dynamically if needed
+    const label = widget[0];
     const val = typeof widget[1] === 'function' ? widget[1]() : widget[1];
-    const label = typeof widget[1] === 'function' ? widget[0]() : widget[0];
     
     el.innerHTML = `
       <div class="widget-title">${label}</div>
-      <div class="widget-value">${typeof widget[1] === 'function' ? val : widget[1]}</div>
+      <div class="widget-value">${val}</div>
     `;
     grid.appendChild(el);
   });
@@ -387,13 +386,10 @@ function router(){
   const route = location.hash.replace("#/", "").trim().toLowerCase();
   if(MAPS[route]){
     selectMap(route);
+  } else if(!location.hash) {
+    location.hash = "/" + window.PortalState.currentMap;
   } else {
-    // Default fallback route
-    if(!location.hash){
-      location.hash = "/" + window.PortalState.map;
-    } else {
-      selectMap("physics");
-    }
+    selectMap("physics");
   }
 }
 
@@ -404,8 +400,10 @@ window.addEventListener("hashchange", router);
 ========================== */
 function logConsole(text){
   const consoleEl = document.getElementById('console');
-  consoleEl.innerHTML += `<br>${text}`;
-  consoleEl.scrollTop = consoleEl.scrollHeight;
+  if(consoleEl){
+    consoleEl.innerHTML += `<br>${text}`;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
 
   window.PortalState.console.push(text);
   if(window.PortalState.console.length > 50){
@@ -416,7 +414,7 @@ function logConsole(text){
 
 function restoreConsoleHistory(){
   const consoleEl = document.getElementById('console');
-  if(window.PortalState.console && window.PortalState.console.length > 0){
+  if(consoleEl && window.PortalState.console && window.PortalState.console.length > 0){
     consoleEl.innerHTML = window.PortalState.console.join("<br>");
     consoleEl.scrollTop = consoleEl.scrollHeight;
   }
@@ -443,7 +441,7 @@ function runSimulation(){
 
       logConsole(`[COMPLETE] Iterations: ${window.PortalState.simulation.iterations.toLocaleString()} | Coherence: ${window.PortalState.simulation.coherence}% | Prob: ${window.PortalState.simulation.probability}%`);
       
-      if(window.PortalState.map === 'simulation'){
+      if(window.PortalState.currentMap === 'simulation'){
         selectMap('simulation');
       }
     }
@@ -541,16 +539,39 @@ function resizeHud(){
 window.addEventListener("resize", resizeHud);
 
 /* ==========================
-   WORKER HEALTH CHECK
+   OFFLINE & WORKER HEALTH MONITORING
 ========================== */
-async function pollWorker(){
+window.addEventListener('online', () => {
+  window.PortalState.workerOnline = true;
+  logConsole("[SYSTEM] Network re-established (ONLINE)");
+  pollWorker();
+});
+
+window.addEventListener('offline', () => {
+  window.PortalState.workerOnline = false;
+  logConsole("[SYSTEM] Network disconnected (OFFLINE)");
   const statusEl = document.getElementById("workerStatus");
+  if(statusEl) {
+    statusEl.innerText = "OFFLINE (LOCAL)";
+    statusEl.style.color = "var(--error)";
+  }
+});
+
+async function pollWorker(){
+  if(!navigator.onLine) return;
+  const statusEl = document.getElementById("workerStatus");
+  if(!statusEl) return;
+  
   try {
     const response = await fetch("https://portal-os1.maxchaz2.workers.dev/api/health", { cache: "no-store" });
-    const data = await response.json();
-    window.PortalState.workerOnline = true;
-    statusEl.innerText = "ONLINE";
-    statusEl.style.color = "var(--success)";
+    if(response.ok) {
+      window.PortalState.workerOnline = true;
+      statusEl.innerText = "ONLINE";
+      statusEl.style.color = "var(--success)";
+    } else {
+      statusEl.innerText = "ERROR (" + response.status + ")";
+      statusEl.style.color = "var(--error)";
+    }
   } catch(e) {
     window.PortalState.workerOnline = false;
     statusEl.innerText = "OFFLINE";
@@ -628,7 +649,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     loadState();
     restoreConsoleHistory();
 
-    // Rehydrate HUD text state based on persistent settings
     const hudStateEl = document.getElementById("hudState");
     if(hudStateEl){
       hudStateEl.innerText = window.PortalState.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
