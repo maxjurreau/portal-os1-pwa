@@ -27,6 +27,16 @@ color:var(--text);
 min-height:100vh;
 padding:20px;
 }
+#offlineBanner{
+display:none;
+background:#dc2626;
+padding:10px;
+text-align:center;
+font-weight:bold;
+color:white;
+margin-bottom:15px;
+border-radius:8px;
+}
 .header{
 display:flex;
 justify-content:space-between;
@@ -190,6 +200,8 @@ z-index:10;
 </style>
 </head>
 <body>
+
+<div id="offlineBanner">OFFLINE MODE</div>
 
 <div class="header">
 <div>
@@ -494,6 +506,11 @@ function loadView(view){
     logConsole(`[VIDEO] Missing asset: ${view}`);
     video.removeAttribute("src");
     video.style.background = "#000";
+    
+    const hudState = document.getElementById("hudState");
+    if(hudState){
+      hudState.innerText = "VIDEO OFFLINE";
+    }
   };
 
   if(files[view]){
@@ -541,14 +558,23 @@ window.addEventListener("resize", resizeHud);
 /* ==========================
    OFFLINE & WORKER HEALTH MONITORING
 ========================== */
+function updateNetworkStatus(){
+  const banner = document.getElementById("offlineBanner");
+  if(banner){
+    banner.style.display = navigator.onLine ? "none" : "block";
+  }
+}
+
 window.addEventListener('online', () => {
   window.PortalState.workerOnline = true;
+  updateNetworkStatus();
   logConsole("[SYSTEM] Network re-established (ONLINE)");
   pollWorker();
 });
 
 window.addEventListener('offline', () => {
   window.PortalState.workerOnline = false;
+  updateNetworkStatus();
   logConsole("[SYSTEM] Network disconnected (OFFLINE)");
   const statusEl = document.getElementById("workerStatus");
   if(statusEl) {
@@ -648,6 +674,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   try {
     loadState();
     restoreConsoleHistory();
+    updateNetworkStatus();
 
     const hudStateEl = document.getElementById("hudState");
     if(hudStateEl){
