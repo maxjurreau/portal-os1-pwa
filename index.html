@@ -715,3 +715,86 @@ bar.style.height
 
 const variance =
 (Math.
+ /* -----------------------
+   SETTINGS STORAGE
+------------------------ */
+
+const SETTINGS_KEY =
+"maxsports.settings";
+
+function loadSettings(){
+
+try{
+
+const saved =
+localStorage.getItem(
+SETTINGS_KEY
+);
+
+if(saved){
+
+return JSON.parse(
+saved
+);
+
+}
+
+}catch(e){
+
+console.error(e);
+
+}
+
+return {
+
+theme:"dark",
+
+league:"all",
+
+confidence:"all",
+
+search:""
+
+};
+
+}
+
+function saveSettings(){
+
+const settings = {
+
+theme:
+document.body.classList.contains(
+"light"
+)
+? "light"
+: "dark",
+
+league:
+document.getElementById(
+"leagueFilter"
+).value,
+
+confidence:
+document.getElementById(
+"confidenceFilter"
+).value,
+
+search:
+document.getElementById(
+"searchInput"
+).value
+
+};
+
+localStorage.setItem(
+
+SETTINGS_KEY,
+
+JSON.stringify(
+settings
+)
+
+);
+
+}
