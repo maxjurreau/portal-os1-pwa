@@ -29,13 +29,16 @@ padding:20px;
 }
 #offlineBanner{
 display:none;
+position:fixed;
+top:0;
+left:0;
+right:0;
+z-index:9999;
 background:#dc2626;
+color:white;
 padding:10px;
 text-align:center;
 font-weight:bold;
-color:white;
-margin-bottom:15px;
-border-radius:8px;
 }
 .header{
 display:flex;
@@ -273,6 +276,39 @@ z-index:10;
 <video id="simVideo" autoplay muted loop playsinline></video>
 <video id="liveVideo" autoplay muted playsinline style="display:none"></video>
 <canvas id="hudCanvas"></canvas>
+
+<!-- SMART VIDEO FALLBACK OVERLAY -->
+<div id="videoFallback" style="
+position:absolute;
+inset:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+background:#050b15;
+color:#00f3ff;
+z-index:5;
+text-align:center;
+padding: 20px;
+">
+<h2>MAX‑SIM HUD</h2>
+<div id="fallbackView" style="margin-top:6px; font-size:14px; color:#94a3b8;">VIEW: PHYSICS</div>
+<div id="fallbackNetwork" style="margin-top:4px; font-size:12px; color:#22c55e;">STATUS: ONLINE</div>
+<div id="fallbackUpdate" style="margin-top:2px; font-size:12px; color:#94a3b8;">LAST: Never</div>
+<div id="fallbackMessage" style="margin-top:12px;">No video loaded</div>
+<button id="playOverlay" style="
+display:none;
+margin-top:15px;
+padding:12px 18px;
+background:#00f3ff;
+color:black;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+">CLICK TO START</button>
+</div>
+
 </div>
 </div>
 
@@ -284,7 +320,10 @@ window.PortalState = {
   version: "1.0",
   currentMap: "physics",
   hudEnabled: true,
-  workerOnline: navigator.onLine,
+  workerOnline: false,
+  lastWorkerUpdate: null,
+  lastWorkerData: null,
+  lastError: null,
   console: ["[BOOT] PORTAL-OS READY"],
   simulation: {
     iterations: 0,
@@ -297,22 +336,24 @@ window.PortalState = {
   }
 };
 
-function saveState(){
-  try {
+function safeSave(){
+  try{
     localStorage.setItem("portal-state", JSON.stringify(window.PortalState));
-  } catch(e) {
-    console.warn("Storage write failed", e);
+  }
+  catch(error){
+    console.warn("Storage unavailable", error);
   }
 }
 
-function loadState(){
-  try {
+function safeLoad(){
+  try{
     const saved = localStorage.getItem("portal-state");
     if(saved){
       Object.assign(window.PortalState, JSON.parse(saved));
     }
-  } catch(e) {
-    console.warn("Storage read failed", e);
+  }
+  catch(error){
+    console.warn("Load failed", error);
   }
 }
 
@@ -355,7 +396,7 @@ function selectMap(name){
   if(!MAPS[name]) name = "physics";
   
   window.PortalState.currentMap = name;
-  saveState();
+  safeSave();
 
   document.querySelectorAll('.map-tab').forEach(tab => {
     tab.classList.remove('active');
@@ -421,7 +462,7 @@ function logConsole(text){
   if(window.PortalState.console.length > 50){
     window.PortalState.console.shift();
   }
-  saveState();
+  safeSave();
 }
 
 function restoreConsoleHistory(){
@@ -449,7 +490,7 @@ function runSimulation(){
       window.PortalState.simulation.coherence = (95 + Math.random()*5).toFixed(1);
       window.PortalState.simulation.probability = (50 + Math.random()*45).toFixed(1);
 
-      saveState();
+      safeSave();
 
       logConsole(`[COMPLETE] Iterations: ${window.PortalState.simulation.iterations.toLocaleString()} | Coherence: ${window.PortalState.simulation.coherence}% | Prob: ${window.PortalState.simulation.probability}%`);
       
@@ -496,28 +537,47 @@ let cameraStream = null;
 
 function loadView(view){
   const video = document.getElementById("simVideo");
+  const viewEl = document.getElementById("fallbackView");
+  if(viewEl){
+    viewEl.innerText = "VIEW: " + view.toUpperCase();
+  }
+
   const files = {
     qb: "/videos/qb.mp4",
     coverage: "/videos/coverage.mp4",
     trench: "/videos/trench.mp4"
   };
 
-  video.onerror = function(){
+  video.onerror = () => {
+    const fallback = document.getElementById("videoFallback");
+    fallback.style.display = "flex";
+    document.getElementById("fallbackMessage").innerText = `Missing Video: ${view}`;
     logConsole(`[VIDEO] Missing asset: ${view}`);
-    video.removeAttribute("src");
-    video.style.background = "#000";
-    
-    const hudState = document.getElementById("hudState");
-    if(hudState){
-      hudState.innerText = "VIDEO OFFLINE";
-    }
+  };
+
+  video.onloadeddata = () => {
+    document.getElementById("videoFallback").style.display = "none";
   };
 
   if(files[view]){
     video.src = files[view];
     video.load();
     video.play().catch(() => {
-      logConsole("[VIDEO] Autoplay restricted");
+      logConsole("[VIDEO] User interaction required");
+      const button = document.getElementById("playOverlay");
+      button.style.display = "inline-block";
+      document.getElementById("videoFallback").style.display = "flex";
+      document.getElementById("fallbackMessage").innerText = "Click to start video playback";
+
+      button.onclick = async () => {
+        try {
+          await video.play();
+          button.style.display = "none";
+          document.getElementById("videoFallback").style.display = "none";
+        } catch(error) {
+          console.error(error);
+        }
+      };
     });
     logConsole("[VIEW] Loaded " + view);
   }
@@ -537,7 +597,7 @@ async function startCamera(){
 
 function toggleHud(){
   window.PortalState.hudEnabled = !window.PortalState.hudEnabled;
-  saveState();
+  safeSave();
   
   const statusEl = document.getElementById("hudState");
   statusEl.innerText = window.PortalState.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
@@ -558,51 +618,88 @@ window.addEventListener("resize", resizeHud);
 /* ==========================
    OFFLINE & WORKER HEALTH MONITORING
 ========================== */
-function updateNetworkStatus(){
+function updateNetworkState(){
   const banner = document.getElementById("offlineBanner");
   if(banner){
     banner.style.display = navigator.onLine ? "none" : "block";
   }
+  updateFallbackStatus();
 }
 
-window.addEventListener('online', () => {
-  window.PortalState.workerOnline = true;
-  updateNetworkStatus();
-  logConsole("[SYSTEM] Network re-established (ONLINE)");
-  pollWorker();
-});
+function updateFallbackStatus(){
+  const network = document.getElementById("fallbackNetwork");
+  const update = document.getElementById("fallbackUpdate");
 
-window.addEventListener('offline', () => {
-  window.PortalState.workerOnline = false;
-  updateNetworkStatus();
-  logConsole("[SYSTEM] Network disconnected (OFFLINE)");
-  const statusEl = document.getElementById("workerStatus");
-  if(statusEl) {
-    statusEl.innerText = "OFFLINE (LOCAL)";
-    statusEl.style.color = "var(--error)";
+  if(network){
+    network.innerText = window.PortalState.workerOnline ? "STATUS: ONLINE" : "STATUS: OFFLINE";
   }
-});
+  if(update){
+    update.innerText = "LAST: " + (window.PortalState.lastWorkerUpdate || "Never");
+  }
+}
+
+window.addEventListener("online", updateNetworkState);
+window.addEventListener("offline", updateNetworkState);
 
 async function pollWorker(){
-  if(!navigator.onLine) return;
+  if(!navigator.onLine){
+    window.PortalState.workerOnline = false;
+    window.PortalState.lastError = "Offline";
+    updateNetworkState();
+    return;
+  }
+
   const statusEl = document.getElementById("workerStatus");
-  if(!statusEl) return;
-  
-  try {
-    const response = await fetch("https://portal-os1.maxchaz2.workers.dev/api/health", { cache: "no-store" });
-    if(response.ok) {
-      window.PortalState.workerOnline = true;
+
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 5000);
+
+    const response = await fetch("https://portal-os1.maxchaz2.workers.dev/api/health", {
+      signal: controller.signal,
+      cache: "no-store"
+    });
+
+    clearTimeout(timeout);
+
+    if(!response.ok){
+      throw new Error("HTTP " + response.status);
+    }
+
+    let data;
+    try{
+      data = await response.json();
+    }
+    catch{
+      throw new Error("Invalid JSON");
+    }
+
+    window.PortalState.workerOnline = true;
+    window.PortalState.lastWorkerData = data;
+    window.PortalState.lastWorkerUpdate = new Date().toLocaleTimeString();
+    window.PortalState.lastError = null;
+
+    if(statusEl) {
       statusEl.innerText = "ONLINE";
       statusEl.style.color = "var(--success)";
-    } else {
-      statusEl.innerText = "ERROR (" + response.status + ")";
+    }
+
+    safeSave();
+  }
+  catch(err){
+    window.PortalState.workerOnline = false;
+    window.PortalState.lastError = err.message;
+    console.warn("[WORKER]", err.message);
+
+    if(statusEl) {
+      statusEl.innerText = "OFFLINE";
       statusEl.style.color = "var(--error)";
     }
-  } catch(e) {
-    window.PortalState.workerOnline = false;
-    statusEl.innerText = "OFFLINE";
-    statusEl.style.color = "var(--error)";
   }
+
+  updateNetworkState();
 }
 
 /* ==========================
@@ -611,13 +708,15 @@ async function pollWorker(){
 setInterval(() => {
   window.PortalState.telemetry.armSlot = (60 + Math.random()*8).toFixed(1);
   window.PortalState.telemetry.separation = (2 + Math.random()*4).toFixed(1);
-  saveState();
+  safeSave();
 }, 1000);
 
 setInterval(() => {
   window.PortalState.simulation.probability = (50 + Math.random()*40).toFixed(1);
   window.PortalState.simulation.coherence = (95 + Math.random()*5).toFixed(1);
 }, 2000);
+
+setInterval(updateFallbackStatus, 1000);
 
 /* ==========================
    HUD DRAW LOOP
@@ -662,6 +761,13 @@ function drawHud(){
     ctx.fillText("SEPARATION: " + window.PortalState.telemetry.separation + " yd", 20, 70);
     ctx.fillText("COHERENCE: " + window.PortalState.simulation.coherence + "%", 20, 100);
     ctx.fillText("WIN PROB: " + window.PortalState.simulation.probability + "%", 20, 130);
+    ctx.fillText("WORKER: " + (window.PortalState.workerOnline ? "ONLINE" : "OFFLINE"), 20, 160);
+    ctx.fillText("LAST UPDATE: " + (window.PortalState.lastWorkerUpdate || "Never"), 20, 190);
+
+    if(window.PortalState.lastError){
+      ctx.fillStyle = "#ff5555";
+      ctx.fillText("ERROR: " + window.PortalState.lastError, 20, 220);
+    }
   }
 
   requestAnimationFrame(drawHud);
@@ -672,9 +778,9 @@ function drawHud(){
 ========================== */
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    loadState();
+    safeLoad();
     restoreConsoleHistory();
-    updateNetworkStatus();
+    updateNetworkState();
 
     const hudStateEl = document.getElementById("hudState");
     if(hudStateEl){
@@ -688,7 +794,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await pollWorker();
     setInterval(pollWorker, 10000);
 
-    logConsole("[BOOT] PORTAL-OS READY");
+    logConsole("[BOOT] PORTAL-OS READY (FULL RESILIENCE ACTIVE)");
   } catch(err) {
     console.error("Boot error:", err);
   }
