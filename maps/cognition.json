@@ -1,0 +1,9 @@
+{
+  "name": "cognition",
+  "description": "Agents, planning, decision models",
+  "widgets": [
+    {"id":"agentAlpha","label":"Agent Alpha"},
+    {"id":"goals","label":"Goals"},
+    {"id":"confidence","label":"Confidence"}
+  ]
+}

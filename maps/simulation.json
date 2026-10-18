@@ -1,0 +1,9 @@
+{
+  "name": "simulation",
+  "description": "MAX-SIM: Sports, agents, markets, scenarios",
+  "widgets": [
+    {"id":"simControl","label":"Run Sim"},
+    {"id":"iterations","label":"Iterations"},
+    {"id":"state","label":"Simulation State"}
+  ]
+}

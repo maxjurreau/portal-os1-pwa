@@ -1,0 +1,9 @@
+{
+  "name": "compute",
+  "description": "IPC, routing, kernel workers",
+  "widgets": [
+    {"id":"processGraph","label":"Process Graph"},
+    {"id":"ipcTraffic","label":"IPC Traffic"},
+    {"id":"latency","label":"Node Latency"}
+  ]
+}

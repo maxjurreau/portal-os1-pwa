@@ -1,0 +1,9 @@
+{
+  "name": "markets",
+  "description": "Markets, liquidity, risk, pricing",
+  "widgets": [
+    {"id":"marketState","label":"Market State"},
+    {"id":"risk","label":"Risk"},
+    {"id":"probability","label":"Probability"}
+  ]
+}

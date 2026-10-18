@@ -1,0 +1,9 @@
+{
+  "name": "physics",
+  "description": "Field models, curvature, thermodynamics",
+  "widgets": [
+    {"id":"curvature","label":"Curvature"},
+    {"id":"entropy","label":"Entropy"},
+    {"id":"energy","label":"Energy"}
+  ]
+}
