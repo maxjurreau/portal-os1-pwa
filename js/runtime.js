@@ -1,10 +1,13 @@
-/* ==========================
-   PORTAL RUNTIME V0.2.2
-========================== */
+/* ==========================================
+   PORTAL RUNTIME v0.2.1 (AUDITED ARCHITECTURE)
+   Operating Layer: Portal-OS
+   Simulation Layer: MAX-SIM
+   Flow: Identity -> Simulation -> Narrative
+========================================== */
 
 const PortalRuntime = (() => {
 
-  const SCHEMA_VERSION = "0.2.0";
+  const SCHEMA_VERSION = "0.2.1";
   const STORAGE_KEY = "portal-state";
 
   const DEFAULT_STATE = {
@@ -48,71 +51,42 @@ const PortalRuntime = (() => {
     }
   };
 
-  /* The state object reference never changes; use replaceState for mutations */
+  /* ==========================================
+     1. PORTAL STATE & IMMUTABLE MUTATION
+  ========================================== */
   const state = structuredClone(DEFAULT_STATE);
 
-  function replaceState(next){
-    Object.keys(state).forEach(key => {
-      delete state[key];
-    });
-    Object.assign(state, next);
+  function replaceState(migrated){
+    Object.keys(state).forEach(k => delete state[k]);
+    Object.assign(state, migrated);
   }
 
-  /* ==========================
-     EVENT BUS
-  ========================== */
+  /* ==========================================
+     2. EVENT BUS (ISOLATED LISTENERS)
+  ========================================== */
   const EventBus = {
     handlers: {},
-    on(event, callback){
+    on(event, fn){
       if(!this.handlers[event]){
         this.handlers[event] = [];
       }
-      this.handlers[event].push(callback);
+      this.handlers[event].push(fn);
     },
     emit(event, payload){
-      (this.handlers[event] || []).forEach(listener => {
-        try{
-          listener(payload);
+      (this.handlers[event] || []).forEach(fn => {
+        try {
+          fn(payload);
         }
-        catch(error){
-          console.error(event, error);
+        catch(err){
+          console.error(`EventBus error on [${event}]:`, err);
         }
       });
     }
   };
 
-  /* ==========================
-     DOM-SAFE EVENT HANDLERS
-  ========================== */
-  EventBus.on("console.message", (message) => {
-    const el = document.getElementById("console");
-    if(!el) return;
-    el.innerHTML += `<br>${message}`;
-    el.scrollTop = el.scrollHeight;
-  });
-
-  function log(message){
-    EventBus.emit("console.message", message);
-  }
-
-  EventBus.on("worker.updated", () => {
-    const status = document.getElementById("workerStatus");
-    if(status){
-      status.innerText = "ONLINE";
-      status.style.color = "#22c55e";
-    }
-  });
-
-  EventBus.on("simulation.progress", (payload) => {
-    const progress = document.getElementById("simProgress");
-    if(progress){
-      progress.innerText = payload.progress + "%";
-    }
-  });
-
-  /* ==========================
-     MIGRATION ENGINE
-  ========================== */
+  /* ==========================================
+     3. SCHEMA MIGRATION
+  ========================================== */
   function migrateState(incoming){
     if(!incoming){
       return structuredClone(DEFAULT_STATE);
@@ -124,7 +98,7 @@ const PortalRuntime = (() => {
         summary: null,
         lastGenerated: null
       };
-      incoming.schemaVersion = "0.2.0";
+      incoming.schemaVersion = "0.2.1";
     }
     return {
       ...structuredClone(DEFAULT_STATE),
@@ -132,21 +106,21 @@ const PortalRuntime = (() => {
     };
   }
 
-  /* ==========================
-     STORAGE
-  ========================== */
+  /* ==========================================
+     4. PERSISTENCE LAYER
+  ========================================== */
   function save(){
-    try{
+    try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       EventBus.emit("state.saved");
     }
     catch(error){
-      console.warn("Save failed", error);
+      console.warn("State save failed", error);
     }
   }
 
   function load(){
-    try{
+    try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if(saved){
         const parsed = JSON.parse(saved);
@@ -160,14 +134,14 @@ const PortalRuntime = (() => {
       EventBus.emit("state.loaded", state);
     }
     catch(error){
-      console.warn("Load failed", error);
+      console.warn("State load failed", error);
       EventBus.emit("state.loaded", state);
     }
   }
 
-  /* ==========================
-     ROUTER
-  ========================== */
+  /* ==========================================
+     5. ROUTER
+  ========================================== */
   function route(){
     const currentRoute = location.hash.replace("#/", "").trim() || "physics";
     state.navigation.currentRoute = "/" + currentRoute;
@@ -176,9 +150,9 @@ const PortalRuntime = (() => {
     EventBus.emit("route.changed", currentRoute);
   }
 
-  /* ==========================
-     SIMULATION ENGINE (FIXED)
-  ========================== */
+  /* ==========================================
+     6. SIMULATION RUNNER (RACE-FREE TIMERS)
+  ========================================== */
   let activeSimulation = null;
   let simulationTimeout = null;
 
@@ -247,9 +221,9 @@ const PortalRuntime = (() => {
     EventBus.emit("simulation.cancelled");
   }
 
-  /* ==========================
-     NARRATIVE ENGINE (FIXED)
-  ========================== */
+  /* ==========================================
+     7. NARRATIVE ENGINE (IDENTITY → SIM → NARRATIVE)
+  ========================================== */
   function generateNarrative(simulation){
     if(state.narrative.state === "generating"){
       return;
@@ -262,11 +236,11 @@ const PortalRuntime = (() => {
     let summary;
 
     if(probability > 80){
-      summary = "High confidence scenario.";
+      summary = "High confidence scenario projection.";
     } else if(probability > 60){
       summary = "Stable projected outcome.";
     } else {
-      summary = "Low confidence scenario.";
+      summary = "Low confidence scenario trajectory.";
     }
 
     state.narrative.state = "generated";
@@ -277,9 +251,13 @@ const PortalRuntime = (() => {
     EventBus.emit("narrative.generated", state.narrative);
   }
 
-  /* ==========================
-     WORKER POLLER (FIXED)
-  ========================== */
+  EventBus.on("simulation.completed", (simulation) => {
+    generateNarrative(simulation);
+  });
+
+  /* ==========================================
+     8. WORKER POLLING (OVERLAP-LOCKED & SAFE JSON)
+  ========================================== */
   let workerPollRunning = false;
 
   async function pollWorker(){
@@ -298,7 +276,7 @@ const PortalRuntime = (() => {
       return;
     }
 
-    try{
+    try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -316,11 +294,14 @@ const PortalRuntime = (() => {
       const raw = await response.text();
       let data;
 
-      try{
+      try {
         data = JSON.parse(raw);
       }
-      catch{
-        data = { raw, status: "text-response" };
+      catch {
+        data = {
+          raw,
+          status: "text-response"
+        };
       }
 
       state.worker.online = true;
@@ -343,16 +324,55 @@ const PortalRuntime = (() => {
     }
   }
 
-  /* ==========================
-     EVENT SUBSCRIBER BINDINGS
-  ========================== */
-  EventBus.on("simulation.completed", (simulation) => {
-    generateNarrative(simulation);
+  /* ==========================================
+     9. DOM-SAFE UI EVENT HANDLERS
+  ========================================== */
+  EventBus.on("console.message", (message) => {
+    const el = document.getElementById("console");
+    if(!el) return;
+    el.innerHTML += `<br>${message}`;
+    el.scrollTop = el.scrollHeight;
   });
 
-  /* ==========================
-     BOOT
-  ========================== */
+  function log(message){
+    EventBus.emit("console.message", message);
+  }
+
+  EventBus.on("worker.updated", () => {
+    const status = document.getElementById("workerStatus");
+    if(!status) return;
+    status.innerText = "ONLINE";
+    status.style.color = "#22c55e";
+  });
+
+  EventBus.on("worker.error", () => {
+    const status = document.getElementById("workerStatus");
+    if(!status) return;
+    status.innerText = "OFFLINE";
+    status.style.color = "#ef4444";
+  });
+
+  EventBus.on("simulation.progress", (payload) => {
+    const progress = document.getElementById("simProgress");
+    if(!progress) return;
+    progress.innerText = payload.progress + "%";
+  });
+
+  EventBus.on("narrative.generated", (narrative) => {
+    const ns = document.getElementById("narrativeStatus");
+    if(ns){
+      ns.innerText = narrative.state;
+    }
+    log(`[NARRATIVE] ${narrative.summary}`);
+  });
+
+  EventBus.on("portal.ready", () => {
+    log("[BOOT] PORTAL RUNTIME v0.2.1 ACTIVE");
+  });
+
+  /* ==========================================
+     10. BOOT SEQUENCE
+  ========================================== */
   function boot(){
     load();
     route();
