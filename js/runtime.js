@@ -1,13 +1,13 @@
 /* ==========================================
-   PORTAL RUNTIME v0.2.1 (AUDITED ARCHITECTURE)
+   PORTAL RUNTIME KERNEL v0.2
    Operating Layer: Portal-OS
-   Simulation Layer: MAX-SIM
-   Flow: Identity -> Simulation -> Narrative
+   Simulation Architecture: MAX-SIM
+   Governance Flow: Identity -> Simulation -> Narrative
 ========================================== */
 
 const PortalRuntime = (() => {
 
-  const SCHEMA_VERSION = "0.2.1";
+  const SCHEMA_VERSION = "0.2.0";
   const STORAGE_KEY = "portal-state";
 
   const DEFAULT_STATE = {
@@ -52,7 +52,7 @@ const PortalRuntime = (() => {
   };
 
   /* ==========================================
-     1. PORTAL STATE & IMMUTABLE MUTATION
+     1. STATE STORE (IMMUTABLE REFERENCE)
   ========================================== */
   const state = structuredClone(DEFAULT_STATE);
 
@@ -62,7 +62,7 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     2. EVENT BUS (ISOLATED LISTENERS)
+     2. EVENT BUS (ISOLATED DISPATCHER)
   ========================================== */
   const EventBus = {
     handlers: {},
@@ -85,21 +85,24 @@ const PortalRuntime = (() => {
   };
 
   /* ==========================================
-     3. SCHEMA MIGRATION
+     3. SCHEMA MIGRATION ENGINE
   ========================================== */
   function migrateState(incoming){
     if(!incoming){
       return structuredClone(DEFAULT_STATE);
     }
     const version = incoming.schemaVersion || "0.1.0";
+    
     if(version === "0.1.0"){
       incoming.narrative = {
         state: "idle",
         summary: null,
         lastGenerated: null
       };
-      incoming.schemaVersion = "0.2.1";
+      incoming.schemaVersion = SCHEMA_VERSION;
+      EventBus.emit("state.migrated", { from: "0.1.0", to: SCHEMA_VERSION });
     }
+
     return {
       ...structuredClone(DEFAULT_STATE),
       ...incoming
@@ -112,7 +115,7 @@ const PortalRuntime = (() => {
   function save(){
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      EventBus.emit("state.saved");
+      EventBus.emit("state.saved", state);
     }
     catch(error){
       console.warn("State save failed", error);
@@ -140,23 +143,36 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     5. ROUTER
+     5. ROUTER & MAP VALIDATION
   ========================================== */
+  const VALID_MAPS = ["physics", "compute", "simulation", "cognition", "markets"];
+
   function route(){
-    const currentRoute = location.hash.replace("#/", "").trim() || "physics";
-    state.navigation.currentRoute = "/" + currentRoute;
-    state.navigation.currentMap = currentRoute;
+    let targetRoute = location.hash.replace("#/", "").trim().toLowerCase();
+    
+    if(!VALID_MAPS.includes(targetRoute)){
+      targetRoute = "physics";
+      if(location.hash !== "#/physics" && location.hash !== "") {
+        location.hash = "/physics";
+      }
+    }
+
+    state.navigation.currentRoute = "/" + targetRoute;
+    state.navigation.currentMap = targetRoute;
     save();
-    EventBus.emit("route.changed", currentRoute);
+
+    EventBus.emit("route.changed", targetRoute);
+    EventBus.emit("map.changed", targetRoute);
   }
 
   /* ==========================================
-     6. SIMULATION RUNNER (RACE-FREE TIMERS)
+     6. SIMULATION RUNNER (CENTRALIZED CLEANUP)
   ========================================== */
   let activeSimulation = null;
   let simulationTimeout = null;
+  const SIM_TIMEOUT_MS = 30000;
 
-  function clearSimulationTimers(){
+  function cleanupSimulation(){
     if(activeSimulation){
       clearInterval(activeSimulation);
       activeSimulation = null;
@@ -182,12 +198,12 @@ const PortalRuntime = (() => {
     simulationTimeout = setTimeout(() => {
       EventBus.emit("simulation.timeout");
       cancelSimulation();
-    }, 30000);
+    }, SIM_TIMEOUT_MS);
 
     activeSimulation = setInterval(() => {
       try {
         if(!state.simulation.running || state.simulation.cancelled){
-          clearSimulationTimers();
+          cleanupSimulation();
           return;
         }
 
@@ -195,7 +211,7 @@ const PortalRuntime = (() => {
         EventBus.emit("simulation.progress", { progress: state.simulation.progress });
 
         if(state.simulation.progress >= 100){
-          clearSimulationTimers();
+          cleanupSimulation();
 
           state.simulation.running = false;
           state.simulation.iterations += iterations;
@@ -207,7 +223,7 @@ const PortalRuntime = (() => {
         }
       }
       catch(error){
-        clearSimulationTimers();
+        cleanupSimulation();
         state.simulation.running = false;
         EventBus.emit("simulation.error", { message: error.message });
       }
@@ -215,7 +231,8 @@ const PortalRuntime = (() => {
   }
 
   function cancelSimulation(){
-    clearSimulationTimers();
+    if(!state.simulation.running && !activeSimulation) return;
+    cleanupSimulation();
     state.simulation.cancelled = true;
     state.simulation.running = false;
     EventBus.emit("simulation.cancelled");
@@ -230,7 +247,7 @@ const PortalRuntime = (() => {
     }
 
     state.narrative.state = "generating";
-    EventBus.emit("narrative.generating");
+    EventBus.emit("narrative.generating", state.narrative);
 
     const probability = Number(simulation.probability);
     let summary;
@@ -256,7 +273,7 @@ const PortalRuntime = (() => {
   });
 
   /* ==========================================
-     8. WORKER POLLING (OVERLAP-LOCKED & SAFE JSON)
+     8. WORKER POLLING (OVERLAP-LOCKED & JSON SAFE)
   ========================================== */
   let workerPollRunning = false;
 
@@ -312,7 +329,6 @@ const PortalRuntime = (() => {
       save();
 
       EventBus.emit("worker.updated", data);
-      EventBus.emit("worker.data.changed", data);
     }
     catch(error){
       state.worker.online = false;
@@ -325,53 +341,7 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     9. DOM-SAFE UI EVENT HANDLERS
-  ========================================== */
-  EventBus.on("console.message", (message) => {
-    const el = document.getElementById("console");
-    if(!el) return;
-    el.innerHTML += `<br>${message}`;
-    el.scrollTop = el.scrollHeight;
-  });
-
-  function log(message){
-    EventBus.emit("console.message", message);
-  }
-
-  EventBus.on("worker.updated", () => {
-    const status = document.getElementById("workerStatus");
-    if(!status) return;
-    status.innerText = "ONLINE";
-    status.style.color = "#22c55e";
-  });
-
-  EventBus.on("worker.error", () => {
-    const status = document.getElementById("workerStatus");
-    if(!status) return;
-    status.innerText = "OFFLINE";
-    status.style.color = "#ef4444";
-  });
-
-  EventBus.on("simulation.progress", (payload) => {
-    const progress = document.getElementById("simProgress");
-    if(!progress) return;
-    progress.innerText = payload.progress + "%";
-  });
-
-  EventBus.on("narrative.generated", (narrative) => {
-    const ns = document.getElementById("narrativeStatus");
-    if(ns){
-      ns.innerText = narrative.state;
-    }
-    log(`[NARRATIVE] ${narrative.summary}`);
-  });
-
-  EventBus.on("portal.ready", () => {
-    log("[BOOT] PORTAL RUNTIME v0.2.1 ACTIVE");
-  });
-
-  /* ==========================================
-     10. BOOT SEQUENCE
+     9. BOOT SEQUENCE
   ========================================== */
   function boot(){
     load();
@@ -381,6 +351,7 @@ const PortalRuntime = (() => {
     pollWorker();
     setInterval(pollWorker, 10000);
 
+    EventBus.emit("portal.boot");
     EventBus.emit("portal.ready");
   }
 
@@ -391,8 +362,7 @@ const PortalRuntime = (() => {
     save,
     load,
     state,
-    EventBus,
-    log
+    EventBus
   };
 
 })();
