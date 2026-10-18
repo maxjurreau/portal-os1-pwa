@@ -1,5 +1,5 @@
 /* ==========================
-   PORTAL RUNTIME V0.2.1
+   PORTAL RUNTIME V0.2.2
 ========================== */
 
 const PortalRuntime = (() => {
@@ -48,7 +48,7 @@ const PortalRuntime = (() => {
     }
   };
 
-  /* The state object reference never changes */
+  /* The state object reference never changes; use replaceState for mutations */
   const state = structuredClone(DEFAULT_STATE);
 
   function replaceState(next){
@@ -80,6 +80,35 @@ const PortalRuntime = (() => {
       });
     }
   };
+
+  /* ==========================
+     DOM-SAFE EVENT HANDLERS
+  ========================== */
+  EventBus.on("console.message", (message) => {
+    const el = document.getElementById("console");
+    if(!el) return;
+    el.innerHTML += `<br>${message}`;
+    el.scrollTop = el.scrollHeight;
+  });
+
+  function log(message){
+    EventBus.emit("console.message", message);
+  }
+
+  EventBus.on("worker.updated", () => {
+    const status = document.getElementById("workerStatus");
+    if(status){
+      status.innerText = "ONLINE";
+      status.style.color = "#22c55e";
+    }
+  });
+
+  EventBus.on("simulation.progress", (payload) => {
+    const progress = document.getElementById("simProgress");
+    if(progress){
+      progress.innerText = payload.progress + "%";
+    }
+  });
 
   /* ==========================
      MIGRATION ENGINE
@@ -121,7 +150,8 @@ const PortalRuntime = (() => {
       const saved = localStorage.getItem(STORAGE_KEY);
       if(saved){
         const parsed = JSON.parse(saved);
-        replaceState(migrateState(parsed));
+        const migrated = migrateState(parsed);
+        replaceState(migrated);
       } else {
         state.session.id = "sess_" + Math.random().toString(36).substring(2, 9);
         state.session.startedAt = Date.now();
@@ -147,10 +177,21 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================
-     SIMULATION ENGINE (ROBUST)
+     SIMULATION ENGINE (FIXED)
   ========================== */
   let activeSimulation = null;
   let simulationTimeout = null;
+
+  function clearSimulationTimers(){
+    if(activeSimulation){
+      clearInterval(activeSimulation);
+      activeSimulation = null;
+    }
+    if(simulationTimeout){
+      clearTimeout(simulationTimeout);
+      simulationTimeout = null;
+    }
+  }
 
   function runSimulation(iterations = 100000){
     if(state.simulation.running){
@@ -171,16 +212,16 @@ const PortalRuntime = (() => {
 
     activeSimulation = setInterval(() => {
       try {
-        if(state.simulation.cancelled){
-          throw new Error("cancelled");
+        if(!state.simulation.running || state.simulation.cancelled){
+          clearSimulationTimers();
+          return;
         }
 
         state.simulation.progress += 10;
         EventBus.emit("simulation.progress", { progress: state.simulation.progress });
 
         if(state.simulation.progress >= 100){
-          clearInterval(activeSimulation);
-          clearTimeout(simulationTimeout);
+          clearSimulationTimers();
 
           state.simulation.running = false;
           state.simulation.iterations += iterations;
@@ -192,8 +233,7 @@ const PortalRuntime = (() => {
         }
       }
       catch(error){
-        clearInterval(activeSimulation);
-        clearTimeout(simulationTimeout);
+        clearSimulationTimers();
         state.simulation.running = false;
         EventBus.emit("simulation.error", { message: error.message });
       }
@@ -201,17 +241,23 @@ const PortalRuntime = (() => {
   }
 
   function cancelSimulation(){
-    clearInterval(activeSimulation);
-    clearTimeout(simulationTimeout);
+    clearSimulationTimers();
     state.simulation.cancelled = true;
     state.simulation.running = false;
     EventBus.emit("simulation.cancelled");
   }
 
   /* ==========================
-     NARRATIVE ENGINE
+     NARRATIVE ENGINE (FIXED)
   ========================== */
   function generateNarrative(simulation){
+    if(state.narrative.state === "generating"){
+      return;
+    }
+
+    state.narrative.state = "generating";
+    EventBus.emit("narrative.generating");
+
     const probability = Number(simulation.probability);
     let summary;
 
@@ -232,15 +278,23 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================
-     WORKER POLLER
+     WORKER POLLER (FIXED)
   ========================== */
+  let workerPollRunning = false;
+
   async function pollWorker(){
+    if(workerPollRunning){
+      return;
+    }
+    workerPollRunning = true;
+
     EventBus.emit("worker.poll.started");
 
     if(!navigator.onLine){
       state.worker.online = false;
       state.worker.lastError = "Offline";
       EventBus.emit("worker.error", new Error("Offline"));
+      workerPollRunning = false;
       return;
     }
 
@@ -277,11 +331,15 @@ const PortalRuntime = (() => {
       save();
 
       EventBus.emit("worker.updated", data);
+      EventBus.emit("worker.data.changed", data);
     }
     catch(error){
       state.worker.online = false;
       state.worker.lastError = error.message;
       EventBus.emit("worker.error", error);
+    }
+    finally {
+      workerPollRunning = false;
     }
   }
 
@@ -290,34 +348,6 @@ const PortalRuntime = (() => {
   ========================== */
   EventBus.on("simulation.completed", (simulation) => {
     generateNarrative(simulation);
-  });
-
-  /* Console Logger Helper */
-  EventBus.on("console.message", (message) => {
-    const el = document.getElementById("console");
-    if(!el) return;
-    el.innerHTML += `<br>${message}`;
-    el.scrollTop = el.scrollHeight;
-  });
-
-  function log(message){
-    EventBus.emit("console.message", message);
-  }
-
-  /* HUD & Status Handlers */
-  EventBus.on("worker.updated", () => {
-    const status = document.getElementById("workerStatus");
-    if(status){
-      status.innerText = "ONLINE";
-      status.style.color = "#22c55e";
-    }
-  });
-
-  EventBus.on("simulation.progress", (payload) => {
-    const progress = document.getElementById("simProgress");
-    if(progress){
-      progress.innerText = payload.progress + "%";
-    }
   });
 
   /* ==========================
