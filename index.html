@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal-OS1 Edge Hypervisor Dashboard</title>
+    <style>
+        body { font-family: monospace; background: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; }
+        header { border-bottom: 1px solid #30363d; padding-bottom: 10px; margin-bottom: 20px; }
+        h1 { color: #58a6ff; font-size: 20px; margin: 0; }
+        .badge { background: #238636; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        button { background: #238636; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-family: monospace; }
+        button:hover { background: #2ea043; }
+        .danger { background: #da3633; }
+        .danger:hover { background: #f85149; }
+        input { background: #0d1117; border: 1px solid #30363d; color: white; padding: 6px; border-radius: 4px; font-family: monospace; margin-right: 10px; }
+        pre { background: #0d1117; padding: 10px; border-radius: 4px; overflow-x: auto; border: 1px solid #30363d; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Portal-OS1 Edge Hypervisor <span class="badge">ONLINE</span></h1>
+        <p style="font-size: 12px; color: #8b949e;">Endpoint: https://portal-os1.maxchaz2.workers.dev | Cost: $0.00/mo</p>
+    </header>
+
+    <div class="card">
+        <h3>Spawn Virtual Process (IPC)</h3>
+        <input type="text" id="pidInput" placeholder="Enter Process ID (e.g., pid_alpha)">
+        <button onclick="spawnProcess()">Spawn Process</button>
+    </div>
+
+    <div class="card">
+        <h3>Active Kernel Response / Telemetry Log</h3>
+        <pre id="outputLog">Ready for commands...</pre>
+    </div>
+
+    <script>
+        const ENDPOINT = "https://portal-os1.maxchaz2.workers.dev";
+
+        async function spawnProcess() {
+            const pid = document.getElementById('pidInput').value || "pid_" + Date.now();
+            const logElement = document.getElementById('outputLog');
+            
+            logElement.innerText = "Dispatching JSON-RPC envelope to edge...";
+
+            const envelope = {
+                "jsonrpc": "2.0",
+                "msg_id": "msg_" + Date.now(),
+                "source_pid": "pwa_browser_client",
+                "target_pid": "kernel_root",
+                "method": "kernel.process.spawn",
+                "params": {
+                    "pid": pid,
+                    "owner_id": "max_jur",
+                    "priority": 5,
+                    "memory_bytes": 1024,
+                    "context": {"origin": "web_dashboard"}
+                },
+                "timestamp": Date.now()
+            };
+
+            try {
+                const response = await fetch(`${ENDPOINT}/api/kernel/ipc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(envelope)
+                });
+
+                const data = await response.json();
+                logElement.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                logElement.innerText = "Error communicating with edge microkernel: " + err;
+            }
+        }
+    </script>
+</body>
+</html>
