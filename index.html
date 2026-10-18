@@ -1,966 +1,739 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-[#030712] text-slate-100 selection:bg-cyan-500 selection:text-black">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal-OS1 Hypervisor & MAX-SIM Dashboard</title>
+    <title>MAX SPORTS // Institutional Quantitative Terminal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#030712',
+                            panel: '#090d16',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            cyan: '#00f3ff',
+                            green: '#00ff66',
+                            crimson: '#ff0055',
+                            gold: '#ffcc00',
+                            purple: '#a855f7'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-color: #07090e;
-            --card-bg: #0f141c;
-            --card-header-bg: #161d2a;
-            --border-color: #1e293b;
-            --border-highlight: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --accent-green: #10b981;
-            --accent-green-hover: #059669;
-            --accent-blue: #3b82f6;
-            --accent-blue-hover: #2563eb;
-            --accent-purple: #8b5cf6;
-            --accent-purple-hover: #7c3aed;
-            --accent-gold: #f59e0b;
-            --accent-gold-hover: #d97706;
-            --accent-red: #ef4444;
-            --accent-cyan: #06b6d4;
-            --code-text: #34d399;
-            --terminal-bg: #030712;
-            --canvas-bg: #020617;
-            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        /* Custom scrollbar for Bloomberg/Terminal aesthetic */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+
+        .glow-cyan { box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
+        .glow-green { box-shadow: 0 0 10px rgba(0, 255, 102, 0.2); }
+        .glow-crimson { box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); }
+        
+        .pulse-subtle {
+            animation: pulse-border 2s infinite;
         }
-
-        .light-theme {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --card-header-bg: #f1f5f9;
-            --border-color: #e2e8f0;
-            --border-highlight: #cbd5e1;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --accent-green: #059669;
-            --accent-green-hover: #047857;
-            --accent-blue: #2563eb;
-            --accent-blue-hover: #1d4ed8;
-            --accent-purple: #7c3aed;
-            --accent-purple-hover: #6d28d9;
-            --accent-gold: #d97706;
-            --accent-gold-hover: #b45309;
-            --accent-red: #dc2626;
-            --accent-cyan: #0891b2;
-            --code-text: #047857;
-            --terminal-bg: #0f172a;
-            --canvas-bg: #000000;
-        }
-
-        * { box-sizing: border-box; }
-        body {
-            font-family: var(--font-mono);
-            background: var(--bg-color);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 12px;
-            font-size: 12px;
-            line-height: 1.4;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        header {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .logo-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        h1 {
-            color: var(--accent-blue);
-            font-size: 16px;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-
-        .badge {
-            background: var(--accent-green);
-            color: #000;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .sim-badge { background: var(--accent-blue); color: #fff; }
-        .sports-badge { background: var(--accent-purple); color: #fff; }
-        .risk-badge { background: var(--accent-gold); color: #000; }
-        .cli-badge { background: var(--accent-cyan); color: #000; }
-
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        button, .btn {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            font-weight: 600;
-            transition: all 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        button:hover { background: var(--accent-blue-hover); }
-        .btn-green { background: var(--accent-green); color: #000; }
-        .btn-green:hover { background: var(--accent-green-hover); }
-        .btn-purple { background: var(--accent-purple); }
-        .btn-purple:hover { background: var(--accent-purple-hover); }
-        .btn-gold { background: var(--accent-gold); color: #000; }
-        .btn-gold:hover { background: var(--accent-gold-hover); }
-        .btn-red { background: var(--accent-red); }
-        .btn-secondary { background: var(--border-color); color: var(--text-primary); }
-        .btn-secondary:hover { background: var(--border-highlight); }
-
-        input, select {
-            background: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            outline: none;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--accent-blue);
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 12px;
-        }
-
-        .col-12 { grid-column: span 12; }
-        .col-8 { grid-column: span 8; }
-        .col-7 { grid-column: span 7; }
-        .col-6 { grid-column: span 6; }
-        .col-5 { grid-column: span 5; }
-        .col-4 { grid-column: span 4; }
-        .col-3 { grid-column: span 3; }
-
-        @media (max-width: 1200px) {
-            .col-8, .col-7, .col-5, .col-4, .col-3 { grid-column: span 12; }
-            .col-6 { grid-column: span 12; }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card-header {
-            background: var(--card-header-bg);
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--text-primary);
-        }
-
-        .card-body {
-            padding: 12px;
-            flex-grow: 1;
-        }
-
-        /* Canvas & Tracking View */
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            height: 380px;
-            background: var(--canvas-bg);
-            border-radius: 4px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .hud-overlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: 10px;
-            color: var(--accent-cyan);
-            background: rgba(2, 6, 23, 0.75);
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-        }
-
-        .canvas-controls {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            display: flex;
-            gap: 6px;
-        }
-
-        /* CLI Terminal */
-        .terminal-box {
-            background: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 10px;
-            font-family: var(--font-mono);
-            height: 200px;
-            overflow-y: auto;
-            color: var(--code-text);
-            font-size: 11px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .terminal-logs {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 8px;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .terminal-input-line {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 6px;
-        }
-
-        .terminal-prompt {
-            color: var(--accent-green);
-            font-weight: bold;
-        }
-
-        .terminal-input {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-            outline: none;
-            padding: 0;
-            font-size: 11px;
-        }
-
-        /* Tables & Matrix */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            text-align: left;
-        }
-
-        .data-table th, .data-table td {
-            padding: 6px 8px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .data-table th {
-            background: var(--card-header-bg);
-            color: var(--text-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 10px;
-        }
-
-        .data-table tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        /* Charts */
-        .histogram-container {
-            display: flex;
-            align-items: flex-end;
-            gap: 3px;
-            height: 120px;
-            padding-top: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .histogram-bar {
-            flex: 1;
-            background: var(--accent-blue);
-            border-radius: 2px 2px 0 0;
-            transition: height 0.3s ease;
-            position: relative;
-        }
-
-        .histogram-bar:hover {
-            background: var(--accent-cyan);
-        }
-
-        /* Stat Metrics */
-        .metric-card {
-            background: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .metric-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--accent-cyan);
-            margin-top: 4px;
-        }
-
-        .metric-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .flex-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bet-slip-item {
-            background: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(0, 243, 255, 0.4); }
+            50% { border-color: rgba(0, 243, 255, 0.8); }
         }
     </style>
 </head>
-<body>
+<body class="h-full flex flex-col font-sans overflow-hidden bg-[#030712] text-slate-200 antialiased">
 
-    <header>
-        <div class="logo-title">
-            <h1>Portal-OS1 Hypervisor</h1>
-            <span class="badge">v4.2-RELEASE</span>
-            <span class="sim-badge badge">MAX-SIM</span>
-            <span class="sports-badge badge">SPORTS-ANALYTICS</span>
-            <span class="risk-badge badge">RISK-DESK</span>
-            <span class="cli-badge badge">CLI</span>
+    <!-- 1. HEADER BAR -->
+    <header class="bg-brand-panel border-b border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between text-xs font-mono shrink-0 select-none z-30">
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-cyan"></span>
+                </span>
+                <span class="font-bold tracking-widest text-brand-cyan text-sm">MAX SPORTS // TERMINAL</span>
+            </div>
+            <span class="text-slate-700">|</span>
+            <div class="text-slate-400">LATENCY: <span id="hdr-latency" class="text-brand-cyan font-semibold">178ms</span></div>
+            <span class="text-slate-700">|</span>
+            <div class="text-slate-400">INGEST: <span class="text-brand-green font-semibold">SAT-FEED-S2-8821</span></div>
+            <span class="text-slate-700">|</span>
+            <div class="text-slate-400 hidden md:block">CORE: <span class="text-brand-purple font-semibold">MAX-QUANTUM (QUBO)</span></div>
         </div>
-        <div class="toolbar">
-            <span style="color: var(--text-secondary); font-size: 11px;">Node: <strong style="color: var(--accent-green);">edge-east-01</strong></span>
-            <button onclick="toggleTheme()" class="btn-secondary" id="themeBtn">Theme: Dark</button>
-            <button onclick="clearLocalStorage()" class="btn-red">Reset Storage</button>
+
+        <div class="flex items-center space-x-4">
+            <div class="hidden lg:block text-slate-400">
+                STATION TIME: <span id="clock" class="text-slate-100 font-mono font-bold">15:19:04 EDT</span>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[11px] text-brand-gold font-bold">
+                EV EXPLOITATION MODE
+            </div>
+            <button onclick="toggleSlipModal()" class="relative bg-brand-cyan/10 hover:bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/40 px-3 py-1 rounded flex items-center space-x-2 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <span class="font-bold">PORTFOLIO SLIP</span>
+                <span id="slip-count" class="bg-brand-cyan text-black text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">0</span>
+            </button>
         </div>
     </header>
 
-    <div class="dashboard-grid">
-        
-        <!-- Left Main Area: Canvas Tracking & Spatial HUD -->
-        <div class="col-8">
-            <div class="card">
-                <div class="card-header">
-                    <span>📹 Spatial Vision & Synthetic Tracking (HTML5 Canvas Engine)</span>
-                    <div class="flex-row">
-                        <label style="font-size: 10px; color: var(--text-secondary);">Cam:</label>
-                        <select id="cameraMode" onchange="switchCameraMode(this.value)">
-                            <option value="tactical">Tactical Overhead (2D)</option>
-                            <option value="kinematic">Kinematic Vector Mesh</option>
-                            <option value="coverage">Coverage Heatmap</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="card-body" style="padding: 0;">
-                    <div class="canvas-container">
-                        <canvas id="trackingCanvas"></canvas>
-                        <div class="hud-overlay">
-                            <div>FRAME: <span id="hudFrame">004921</span> | FPS: <span id="hudFps">60</span></div>
-                            <div>TARGET: <span id="hudTarget">WR1 (Jefferson, J.)</span></div>
-                            <div>VELOCITY: <span id="hudVel">21.4 mph</span> | ARM-SLOT: <span id="hudArm">54.2°</span></div>
-                            <div>COVERAGE SEPARATION: <span id="hudSep" style="color: var(--accent-green);">1.84 yds</span></div>
-                        </div>
-                        <div class="canvas-controls">
-                            <button onclick="toggleCanvasPlay()" class="btn-green" id="canvasPlayBtn">Pause</button>
-                            <button onclick="resetCanvasSim()" class="btn-secondary">Reset Spatial</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MAX-SIM Dynamic Engine Output & Probability Bar -->
-            <div class="card" style="margin-top: 12px;">
-                <div class="card-header">
-                    <span>🧪 MAX-SIM Engine (Monte Carlo Probability Distribution)</span>
-                    <button onclick="runMonteCarlo()" class="btn-purple">Execute 100K Sim Batch</button>
-                </div>
-                <div class="card-body">
-                    <div class="histogram-container" id="histogram">
-                        <!-- Dynamic histogram generated via JS -->
-                    </div>
-                    <div class="grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px;">
-                        <div class="metric-card">
-                            <div class="metric-label">Mean Expected Yds</div>
-                            <div class="metric-value" id="simMean">28.4</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-label">Win Probability</div>
-                            <div class="metric-value" id="simWinProb" style="color: var(--accent-green);">64.2%</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-label">Sharpe Ratio</div>
-                            <div class="metric-value" id="simSharpe">2.18</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-label">Sim Variance</div>
-                            <div class="metric-value" id="simVariance" style="color: var(--accent-gold);">±3.12</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- 2. FILTER & NAVIGATION BAR -->
+    <nav class="bg-slate-950 border-b border-slate-800/80 px-4 py-1.5 flex flex-wrap items-center justify-between text-xs font-mono shrink-0 gap-2">
+        <div class="flex items-center space-x-1 overflow-x-auto py-0.5">
+            <button onclick="switchTab('all')" id="tab-all" class="nav-tab active bg-brand-cyan text-black font-bold px-3 py-1 rounded transition">ALL SLATES</button>
+            <button onclick="switchTab('nfl')" id="tab-nfl" class="nav-tab bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1 rounded transition">NFL WEEK 6</button>
+            <button onclick="switchTab('mlb')" id="tab-mlb" class="nav-tab bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1 rounded transition">MLB ALCS</button>
+            <button onclick="switchTab('telemetry')" id="tab-telemetry" class="nav-tab bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1 rounded transition">LIVE TELEMETRY</button>
+            <button onclick="switchTab('quantum')" id="tab-quantum" class="nav-tab bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1 rounded transition">QUANTUM MATRIX</button>
+            <button onclick="switchTab('parlay')" id="tab-parlay" class="nav-tab bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1 rounded transition">PARLAY MATRIX</button>
         </div>
 
-        <!-- Right Side: Risk Desk & Bet Matrix -->
-        <div class="col-4">
-            <div class="card">
-                <div class="card-header">
-                    <span>📊 Interactive Risk Desk & Parlay Calculator</span>
-                    <span class="risk-badge badge" id="riskStatus">ACTIVE</span>
-                </div>
-                <div class="card-body">
-                    <div style="margin-bottom: 10px;">
-                        <label style="display: block; margin-bottom: 4px; color: var(--text-secondary);">Select Market / Asset:</label>
-                        <select id="marketSelect" style="width: 100%;" onchange="addBetSelection(this.value)">
-                            <option value="">-- Add Market Selection --</option>
-                            <option value="KC -3.5|1.91">KC Chiefs -3.5 (-110)</option>
-                            <option value="MIN WR1 Over 88.5 Yds|1.85">Jefferson Over 88.5 Rec Yds (-118)</option>
-                            <option value="BUF QB Over 1.5 Passing TD|1.75">Allen Over 1.5 Pass TD (-133)</option>
-                            <option value="SF 49ers ML|1.65">SF 49ers Moneyline (-154)</option>
-                        </select>
-                    </div>
-
-                    <div id="betSlipContainer" style="min-height: 120px; max-height: 180px; overflow-y: auto; margin-bottom: 10px;">
-                        <div style="color: var(--text-muted); text-align: center; padding-top: 30px;">No selections added to risk desk.</div>
-                    </div>
-
-                    <div style="border-top: 1px solid var(--border-color); padding-top: 10px;">
-                        <div class="flex-between" style="margin-bottom: 6px;">
-                            <span style="color: var(--text-secondary);">Combined Odds:</span>
-                            <strong id="parlayOdds" style="color: var(--accent-cyan);">1.00</strong>
-                        </div>
-                        <div class="flex-between" style="margin-bottom: 6px;">
-                            <span style="color: var(--text-secondary);">Stake ($):</span>
-                            <input type="number" id="stakeInput" value="100" style="width: 80px; text-align: right;" oninput="calculateParlay()">
-                        </div>
-                        <div class="flex-between" style="margin-bottom: 12px;">
-                            <span style="color: var(--text-secondary);">Payout ($):</span>
-                            <strong id="payoutVal" style="color: var(--accent-green); font-size: 14px;">$0.00</strong>
-                        </div>
-                        <button onclick="executeRiskTrade()" class="btn-green" style="width: 100%; justify-content: center;">Submit Execution Order</button>
-                    </div>
-                </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="filter-search" onkeyup="filterSlate()" placeholder="SEARCH GAMES / METRICS..." class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-cyan">
             </div>
+            <button onclick="clearFilters()" class="text-slate-400 hover:text-slate-200 text-[11px] px-2 py-1 bg-slate-900 rounded border border-slate-800">RESET</button>
+        </div>
+    </nav>
 
-            <!-- Telemetry Matrix -->
-            <div class="card" style="margin-top: 12px;">
-                <div class="card-header">
-                    <span>📡 Live Telemetry Stream</span>
-                    <span class="badge" style="background: var(--accent-blue);">IPC / WS</span>
+    <!-- MAIN TERMINAL DASHBOARD -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 p-3 overflow-hidden">
+        
+        <!-- LEFT 8 COLUMNS: TELEMETRY & QUANTUM RISK DESK & CHART -->
+        <div class="lg:col-span-8 flex flex-col space-y-3 overflow-y-auto pr-1">
+            
+            <!-- SECTION 3: LIVE MULTI-GAME TELEMETRY STREAM -->
+            <section class="bg-brand-panel border border-slate-800 rounded-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-mono font-bold text-brand-cyan uppercase tracking-wider">LIVE MULTI-GAME KINEMATIC STREAM</span>
+                        <span class="text-[10px] font-mono bg-emerald-950 text-brand-green px-2 py-0.5 rounded border border-emerald-800/60 animate-pulse">DIRECT SATELLITE INGEST</span>
+                    </div>
+                    <span class="text-[11px] font-mono text-slate-400">REFRESH: <span class="text-slate-200">120Hz</span></span>
                 </div>
-                <div class="card-body" style="padding: 0;">
-                    <table class="data-table">
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left font-mono text-xs border-collapse">
                         <thead>
-                            <tr>
-                                <th>Subsystem</th>
-                                <th>Latency</th>
-                                <th>Status</th>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-900/60 text-[11px]">
+                                <th class="p-2">MATCHUP / STATUS</th>
+                                <th class="p-2">SCORE</th>
+                                <th class="p-2">KINEMATIC TELEMETRY & FIELD INSIDER</th>
+                                <th class="p-2 text-right">MODEL EV EDGE</th>
                             </tr>
                         </thead>
-                        <tbody id="telemetryRows">
-                            <tr>
-                                <td>MAX-SIM MonteCarlo</td>
-                                <td>1.2 ms</td>
-                                <td style="color: var(--accent-green);">HEALTHY</td>
+                        <tbody id="telemetry-table-body">
+                            <!-- NO vs NYG -->
+                            <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/40 transition">
+                                <td class="p-2">
+                                    <div class="font-bold text-white">NO SAINTS @ NY GIANTS</div>
+                                    <div class="text-[10px] text-slate-400">MetLife Stadium | 1st Qtr 13:41</div>
+                                </td>
+                                <td class="p-2 font-bold text-brand-gold">0 - 0</td>
+                                <td class="p-2 space-y-0.5">
+                                    <div class="text-[11px]"><span class="text-brand-crimson font-bold">• NO CB2:</span> +14ms Directional Reaction Lag</div>
+                                    <div class="text-[10px] text-slate-400">• NYG OT Stance Hinge: <span class="text-brand-green">1.4° (Optimal)</span> | Pocket: <span class="text-brand-cyan">2.52s</span></div>
+                                </td>
+                                <td class="p-2 text-right">
+                                    <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold">+5.1% EV</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td>Spatial Vision Tracking</td>
-                                <td>4.8 ms</td>
-                                <td style="color: var(--accent-green);">SYNCED</td>
+                            <!-- CAR vs PHI -->
+                            <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/40 transition">
+                                <td class="p-2">
+                                    <div class="font-bold text-white">CAR PANTHERS @ PHI EAGLES</div>
+                                    <div class="text-[10px] text-slate-400">Lincoln Financial | 1st Qtr 14:12</div>
+                                </td>
+                                <td class="p-2 font-bold text-brand-gold">0 - 0</td>
+                                <td class="p-2 space-y-0.5">
+                                    <div class="text-[11px]"><span class="text-brand-cyan font-bold">• CAR Secondary:</span> +18ms Reaction Latency</div>
+                                    <div class="text-[10px] text-slate-400">• PHI Pass-Rush Collapse Time: <span class="text-brand-green">2.68s Avg</span></div>
+                                </td>
+                                <td class="p-2 text-right">
+                                    <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold">+6.1% EV</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td>Durable Objects Sync</td>
-                                <td>18.4 ms</td>
-                                <td style="color: var(--accent-gold);">SIMULATED</td>
+                            <!-- TB vs CLE -->
+                            <tr class="game-row slate-mlb border-b border-slate-800/50 hover:bg-slate-900/40 transition">
+                                <td class="p-2">
+                                    <div class="font-bold text-white">TB RAYS @ CLE GUARDIANS</div>
+                                    <div class="text-[10px] text-slate-400">ALCS Game 5 | 5:08 PM ET</div>
+                                </td>
+                                <td class="p-2 text-slate-500 font-bold">PRE-GAME</td>
+                                <td class="p-2 space-y-0.5">
+                                    <div class="text-[11px]"><span class="text-brand-gold font-bold">• CLE Starter:</span> Projected >3.5% Extension Drop (Inn 3-4)</div>
+                                    <div class="text-[10px] text-slate-400">• Release Slot Elevation: <span class="text-brand-cyan">63.8° Base</span> (Tunnel Advantage TB)</div>
+                                </td>
+                                <td class="p-2 text-right">
+                                    <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold text-sm">+8.6% EV</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td>Kernel IPC Router</td>
-                                <td>0.4 ms</td>
-                                <td style="color: var(--accent-green);">ONLINE</td>
+                            <!-- DAL vs GB -->
+                            <tr class="game-row slate-nfl hover:bg-slate-900/40 transition">
+                                <td class="p-2">
+                                    <div class="font-bold text-white">DAL COWBOYS @ GB PACKERS</div>
+                                    <div class="text-[10px] text-slate-400">Lambeau Field | 8:20 PM ET (SNF)</div>
+                                </td>
+                                <td class="p-2 text-slate-500 font-bold">PRE-GAME</td>
+                                <td class="p-2 space-y-0.5">
+                                    <div class="text-[11px]"><span class="text-brand-crimson font-bold">• DAL LT Hinge Decay:</span> Projected >2.5° under cold temp</div>
+                                    <div class="text-[10px] text-slate-400">• QB Rear-Hip Torque Decay Forces Quick Throw Delta</div>
+                                </td>
+                                <td class="p-2 text-right">
+                                    <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold">+7.8% EV</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- CLI Console Row -->
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <span>💻 Portal-OS1 Terminal CLI & Kernel Command Shell</span>
-                    <div class="flex-row">
-                        <button onclick="executeMacro('status')" class="btn-secondary">macro: status</button>
-                        <button onclick="executeMacro('sim')" class="btn-secondary">macro: run-sim</button>
-                        <button onclick="clearConsole()" class="btn-secondary">clear</button>
+            <!-- SECTION 4: MAX-QUANTUM RISK DESK & ODDS MATRIX -->
+            <section class="bg-brand-panel border border-slate-800 rounded-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-mono font-bold text-brand-purple uppercase tracking-wider">MAX-QUANTUM // RISK DESK & ODDS MATRIX</span>
+                        <span class="text-[10px] font-mono bg-purple-950 text-brand-purple px-2 py-0.5 rounded border border-purple-800">QUBO PRICE CALCULATOR</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">CLICK ODDS TO ADD TO PORTFOLIO SLIP</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left font-mono text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-900/80 text-[11px]">
+                                <th class="p-2">EVENT / TARGET</th>
+                                <th class="p-2">COMMERCIAL BOOK</th>
+                                <th class="p-2">QUANTUM TRUE PRICE</th>
+                                <th class="p-2">EV EDGE</th>
+                                <th class="p-2 text-center">ACTION SIGNAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quantum-table-body">
+                            <!-- TB Rays ML -->
+                            <tr class="game-row slate-mlb border-b border-slate-800/50 hover:bg-slate-900/30">
+                                <td class="p-2 font-bold text-slate-200">
+                                    TB Rays Moneyline <span class="text-slate-400 font-normal">(ALCS G5)</span>
+                                </td>
+                                <td class="p-2">
+                                    <button onclick="addWager('TB Rays ML', '-105', 8.6, 'Rays Pitch Tunnel Edge vs CLE starter decay')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                        -105
+                                    </button>
+                                </td>
+                                <td class="p-2 text-brand-green font-bold">-148</td>
+                                <td class="p-2 text-brand-green font-bold">+8.6%</td>
+                                <td class="p-2 text-center">
+                                    <span class="bg-cyan-950 text-brand-cyan border border-cyan-500/40 text-[10px] px-2 py-0.5 rounded font-bold">PRIMARY VALUE BUY</span>
+                                </td>
+                            </tr>
+                            <!-- GB Packers Spread -->
+                            <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/30">
+                                <td class="p-2 font-bold text-slate-200">
+                                    GB Packers -2.5 <span class="text-slate-400 font-normal">(DAL @ GB)</span>
+                                </td>
+                                <td class="p-2">
+                                    <button onclick="addWager('Packers -2.5', '-110', 7.8, 'Packers trench leverage vs DAL LT hinge decay')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                        -110
+                                    </button>
+                                </td>
+                                <td class="p-2 text-brand-green font-bold">-5.5 (-108)</td>
+                                <td class="p-2 text-brand-green font-bold">+7.8%</td>
+                                <td class="p-2 text-center">
+                                    <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold">CORE SPREAD</span>
+                                </td>
+                            </tr>
+                            <!-- DAL @ GB Under -->
+                            <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/30">
+                                <td class="p-2 font-bold text-slate-200">
+                                    DAL @ GB Under 47.5 <span class="text-slate-400 font-normal">(DAL @ GB)</span>
+                                </td>
+                                <td class="p-2">
+                                    <button onclick="addWager('DAL/GB Under 47.5', '-110', 6.4, 'QB rear-hip rotational velocity decay in cold')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                        -110
+                                    </button>
+                                </td>
+                                <td class="p-2 text-brand-green font-bold">True Total 42.0</td>
+                                <td class="p-2 text-brand-green font-bold">+6.4%</td>
+                                <td class="p-2 text-center">
+                                    <span class="bg-purple-950 text-brand-purple border border-purple-500/40 text-[10px] px-2 py-0.5 rounded font-bold">MACRO UNDER</span>
+                                </td>
+                            </tr>
+                            <!-- NY Giants Spread -->
+                            <tr class="game-row slate-nfl hover:bg-slate-900/30">
+                                <td class="p-2 font-bold text-slate-200">
+                                    NY Giants -1.5 <span class="text-slate-400 font-normal">(NO @ NYG)</span>
+                                </td>
+                                <td class="p-2">
+                                    <button onclick="addWager('Giants -1.5', '-110', 5.1, 'Saints CB2 directional hip latency +14ms')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                        -110
+                                    </button>
+                                </td>
+                                <td class="p-2 text-brand-green font-bold">-3.5 (-108)</td>
+                                <td class="p-2 text-brand-green font-bold">+5.1%</td>
+                                <td class="p-2 text-center">
+                                    <span class="bg-amber-950 text-brand-gold border border-amber-500/40 text-[10px] px-2 py-0.5 rounded font-bold">SECONDARY VALUE</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 6: REAL-TIME INTERACTIVE KINEMATIC & LINE MOVEMENT CHART -->
+            <section class="bg-brand-panel border border-slate-800 rounded-lg p-3">
+                <div class="flex flex-wrap items-center justify-between mb-2 gap-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider">QUANTITATIVE TRAJECTORY & METRIC ANALYTICS</span>
+                        <span class="text-[10px] font-mono bg-slate-800 text-slate-300 px-2 py-0.5 rounded">DYNAMIC CANVAS</span>
+                    </div>
+                    <div class="flex space-x-1 font-mono text-[11px]">
+                        <button onclick="setChartMetric('arm')" id="chart-btn-arm" class="chart-tab active bg-brand-cyan text-black font-bold px-2 py-0.5 rounded">ARM-SLOT DECAY</button>
+                        <button onclick="setChartMetric('pocket')" id="chart-btn-pocket" class="chart-tab bg-slate-800 text-slate-300 px-2 py-0.5 rounded">POCKET TIME</button>
+                        <button onclick="setChartMetric('clv')" id="chart-btn-clv" class="chart-tab bg-slate-800 text-slate-300 px-2 py-0.5 rounded">CLV DELTA</button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="terminal-box">
-                        <div class="terminal-logs" id="terminalLogs">Portal-OS1 Kernel Version 4.2.0-RELEASE (x86_64-edge-worker)
-Type 'help' or execute macro shortcuts above.
-Ready.</div>
-                        <div class="terminal-input-line">
-                            <span class="terminal-prompt">root@portal-os1:~#</span>
-                            <input type="text" id="terminalInput" class="terminal-input" placeholder="Enter CLI command (e.g., 'help', 'spawn', 'sim --batch 1000', 'clear')..." onkeydown="handleCliKey(event)">
+
+                <div class="w-full h-48 bg-slate-950 rounded border border-slate-800 p-2 relative">
+                    <canvas id="analytics-canvas" class="w-full h-full block"></canvas>
+                </div>
+                <div id="chart-caption" class="mt-2 text-[11px] font-mono text-slate-400 text-center">
+                    Tracking real-time arm-slot angle variance (deg) across drive attempts.
+                </div>
+            </section>
+
+        </div>
+
+        <!-- RIGHT 4 COLUMNS: INTERACTIVE BET SLIP & TERMINAL CLI -->
+        <div class="lg:col-span-4 flex flex-col space-y-3 overflow-y-auto">
+            
+            <!-- SECTION 5: INTERACTIVE BET SLIP & PORTFOLIO ALLOCATOR -->
+            <section class="bg-brand-panel border border-slate-800 rounded-lg p-3 flex flex-col glow-cyan flex-1">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="text-xs font-mono font-bold text-brand-cyan tracking-wider">PORTFOLIO ALLOCATOR</span>
+                    </div>
+                    <button onclick="clearSlip()" class="text-[10px] font-mono text-slate-500 hover:text-brand-crimson transition">CLEAR ALL</button>
+                </div>
+
+                <!-- Slip Tickets Selection -->
+                <div id="slip-wagers-container" class="space-y-2 mb-3 max-h-56 overflow-y-auto pr-1">
+                    <div id="slip-empty-state" class="text-center py-6 text-slate-600 font-mono text-xs">
+                        No positions selected.<br>Click market odds to stage wagers.
+                    </div>
+                </div>
+
+                <!-- Structured Ticket Presets -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded p-2 mb-3 font-mono text-xs space-y-2">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">QUICK MULTI-LEG STRUCTURES</div>
+                    <div class="grid grid-cols-1 gap-1.5">
+                        <button onclick="loadPreset('ticketA')" class="bg-slate-800/80 hover:bg-slate-800 text-left p-1.5 rounded border border-slate-700/60 flex justify-between items-center transition">
+                            <div>
+                                <div class="font-bold text-brand-cyan">TICKET A: Cross-Sport Core</div>
+                                <div class="text-[10px] text-slate-400">Rays ML + Packers -2.5</div>
+                            </div>
+                            <span class="text-brand-green font-bold">+264</span>
+                        </button>
+                        <button onclick="loadPreset('ticketB')" class="bg-slate-800/80 hover:bg-slate-800 text-left p-1.5 rounded border border-slate-700/60 flex justify-between items-center transition">
+                            <div>
+                                <div class="font-bold text-brand-cyan">TICKET B: Primetime SGP</div>
+                                <div class="text-[10px] text-slate-400">Packers -2.5 + Under 47.5</div>
+                            </div>
+                            <span class="text-brand-green font-bold">+264</span>
+                        </button>
+                        <button onclick="loadPreset('ticketC')" class="bg-slate-800/80 hover:bg-slate-800 text-left p-1.5 rounded border border-slate-700/60 flex justify-between items-center transition">
+                            <div>
+                                <div class="font-bold text-brand-gold">TICKET C: 4-Leg Board Mega</div>
+                                <div class="text-[10px] text-slate-400">Rays ML + Packers -2.5 + Under + Giants</div>
+                            </div>
+                            <span class="text-brand-gold font-bold">+1228</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Unit Input & Payout Summary -->
+                <div class="bg-slate-950 rounded border border-slate-800 p-2.5 font-mono text-xs space-y-2 mt-auto">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">STAKE UNIT:</span>
+                        <div class="flex items-center space-x-1">
+                            <input type="number" id="unit-stake-input" value="1.0" step="0.5" min="0.1" onchange="calculatePayout()" class="w-16 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-right font-bold text-slate-100 focus:outline-none focus:border-brand-cyan">
+                            <span class="text-slate-400">Units</span>
                         </div>
                     </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">TARGET PAYOUT:</span>
+                        <span id="target-payout" class="text-brand-green font-bold">+0.00 Units</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-800/80 pt-1.5">
+                        <span class="text-slate-400">EXPECTED YIELD (EV):</span>
+                        <span id="expected-yield" class="text-brand-cyan font-bold">+0.00%</span>
+                    </div>
+
+                    <button onclick="executeAllocation()" class="w-full mt-2 bg-brand-cyan hover:bg-cyan-400 text-black font-extrabold py-2 rounded shadow-lg transition uppercase tracking-wider text-xs">
+                        EXECUTE CAPITAL ALLOCATION
+                    </button>
                 </div>
-            </div>
+            </section>
+
+            <!-- SECTION 7: TERMINAL CLI & QUICK ACTION BAR -->
+            <section class="bg-brand-panel border border-slate-800 rounded-lg p-3 flex flex-col h-60">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">TERMINAL CLI & COMMAND LOG</span>
+                    <span class="text-[10px] font-mono text-slate-500">SYSTEM INTERACTION</span>
+                </div>
+
+                <!-- Console Output Area -->
+                <div id="cli-output" class="flex-1 bg-black/80 rounded border border-slate-800/80 p-2 font-mono text-[11px] overflow-y-auto space-y-1 text-slate-300">
+                    <div class="text-brand-cyan">MAX SPORTS Terminal v4.1 initialized...</div>
+                    <div class="text-slate-500">Type 'HELP' for available macro commands.</div>
+                </div>
+
+                <!-- CLI Input Line -->
+                <form onsubmit="handleCliSubmit(event)" class="mt-2 flex items-center space-x-1">
+                    <span class="font-mono text-brand-cyan text-xs font-bold">&gt;</span>
+                    <input type="text" id="cli-input" placeholder="Type command (e.g. TRENCH CHECK, CAPTURE CLV)..." class="flex-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 font-mono text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-cyan">
+                    <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 font-mono text-xs rounded border border-slate-700">RUN</button>
+                </form>
+
+                <!-- Macro Quick Action Bar -->
+                <div class="grid grid-cols-3 gap-1 mt-2 text-[10px] font-mono">
+                    <button onclick="runMacro('TRENCH CHECK')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 py-1 rounded text-center truncate">TRENCH CHECK</button>
+                    <button onclick="runMacro('QB TELEMETRY')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 py-1 rounded text-center truncate">QB TELEMETRY</button>
+                    <button onclick="runMacro('CAPTURE CLV')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 py-1 rounded text-center truncate">CAPTURE CLV</button>
+                </div>
+            </section>
+
         </div>
+    </main>
 
-    </div>
-
+    <!-- SCRIPT & DASHBOARD LOGIC -->
     <script>
-        /* Global State & Persistence */
-        const APP_STATE_KEY = "PORTAL_OS1_STATE_V1";
-        
-        let state = {
-            theme: 'dark',
-            selections: [],
-            cameraMode: 'tactical',
-            simRunning: true,
-            logs: []
-        };
+        // State Variables
+        let stagedWagers = [];
+        let currentChartMetric = 'arm';
+        let chartAnimationId = null;
 
-        // Event Bus Implementation
-        class EventBus {
-            constructor() { this.listeners = {}; }
-            on(event, callback) {
-                if (!this.listeners[event]) this.listeners[event] = [];
-                this.listeners[event].push(callback);
+        // Initialize Live Clock & Dynamic Latency
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0] + ' EDT';
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        setInterval(() => {
+            const lat = Math.floor(170 + Math.random() * 20);
+            document.getElementById('hdr-latency').innerText = lat + 'ms';
+        }, 3000);
+
+        // Tab Switching & Filtering
+        function switchTab(tabKey) {
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active', 'bg-brand-cyan', 'text-black', 'font-bold');
+                btn.classList.add('bg-slate-900', 'text-slate-300');
+            });
+            const selected = document.getElementById('tab-' + tabKey);
+            if (selected) {
+                selected.classList.add('active', 'bg-brand-cyan', 'text-black', 'font-bold');
+                selected.classList.remove('bg-slate-900', 'text-slate-300');
             }
-            emit(event, data) {
-                if (this.listeners[event]) {
-                    this.listeners[event].forEach(cb => cb(data));
+
+            const rows = document.querySelectorAll('.game-row');
+            rows.forEach(row => {
+                if (tabKey === 'all' || tabKey === 'quantum' || tabKey === 'telemetry' || tabKey === 'parlay') {
+                    row.style.display = '';
+                } else if (tabKey === 'nfl') {
+                    row.style.display = row.classList.contains('slate-nfl') ? '' : 'none';
+                } else if (tabKey === 'mlb') {
+                    row.style.display = row.classList.contains('slate-mlb') ? '' : 'none';
                 }
+            });
+
+            logToCli(`Switched view mode to [${tabKey.toUpperCase()}].`);
+        }
+
+        function filterSlate() {
+            const query = document.getElementById('filter-search').value.toLowerCase();
+            const rows = document.querySelectorAll('.game-row');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-search').value = '';
+            switchTab('all');
+        }
+
+        // Wager Staging & Slip Calculation
+        function addWager(selection, odds, ev, reason) {
+            const existing = stagedWagers.find(w => w.selection === selection);
+            if (!existing) {
+                stagedWagers.push({ selection, odds, ev, reason });
+                logToCli(`Staged position: ${selection} (${odds})`);
+            } else {
+                stagedWagers = stagedWagers.filter(w => w.selection !== selection);
+                logToCli(`Removed position: ${selection}`);
             }
+            renderSlip();
         }
-        const bus = new EventBus();
 
-        /* LocalStorage Sync */
-        function loadSavedState() {
-            const saved = localStorage.getItem(APP_STATE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    state = { ...state, ...parsed };
-                } catch(e) { console.error("Failed loading local state", e); }
+        function renderSlip() {
+            const container = document.getElementById('slip-wagers-container');
+            const badge = document.getElementById('slip-count');
+            badge.innerText = stagedWagers.length;
+
+            if (stagedWagers.length === 0) {
+                container.innerHTML = `
+                    <div id="slip-empty-state" class="text-center py-6 text-slate-600 font-mono text-xs">
+                        No positions selected.<br>Click market odds to stage wagers.
+                    </div>`;
+                calculatePayout();
+                return;
             }
-            if (state.theme === 'light') {
-                document.body.classList.add('light-theme');
-                document.getElementById('themeBtn').innerText = "Theme: Light";
+
+            let html = '';
+            stagedWagers.forEach((wager, index) => {
+                html += `
+                    <div class="bg-slate-900 border border-slate-800 rounded p-2 text-xs font-mono relative group">
+                        <div class="flex justify-between items-start">
+                            <span class="font-bold text-brand-cyan">${wager.selection}</span>
+                            <span class="font-bold text-brand-green">${wager.odds}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${wager.reason}</div>
+                        <div class="flex justify-between items-center mt-1 text-[10px]">
+                            <span class="text-brand-green font-bold">+${wager.ev}% EV Edge</span>
+                            <button onclick="removeWager(${index})" class="text-brand-crimson hover:underline">Remove</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+            calculatePayout();
+        }
+
+        function removeWager(index) {
+            stagedWagers.splice(index, 1);
+            renderSlip();
+        }
+
+        function clearSlip() {
+            stagedWagers = [];
+            renderSlip();
+            logToCli('Cleared all staged positions in portfolio slip.');
+        }
+
+        function loadPreset(ticketType) {
+            stagedWagers = [];
+            if (ticketType === 'ticketA') {
+                stagedWagers.push({ selection: 'TB Rays ML', odds: '-105', ev: 8.6, reason: 'Rays Pitch Tunnel Edge vs CLE starter decay' });
+                stagedWagers.push({ selection: 'Packers -2.5', odds: '-110', ev: 7.8, reason: 'Packers trench leverage vs DAL LT hinge decay' });
+                logToCli('Loaded Preset: TICKET A (2-Leg Cross-Sport Core)');
+            } else if (ticketType === 'ticketB') {
+                stagedWagers.push({ selection: 'Packers -2.5', odds: '-110', ev: 7.8, reason: 'Packers trench leverage vs DAL LT hinge decay' });
+                stagedWagers.push({ selection: 'DAL/GB Under 47.5', odds: '-110', ev: 6.4, reason: 'QB rear-hip rotational velocity decay in cold' });
+                logToCli('Loaded Preset: TICKET B (Primetime Same-Game Parlay)');
+            } else if (ticketType === 'ticketC') {
+                stagedWagers.push({ selection: 'TB Rays ML', odds: '-105', ev: 8.6, reason: 'Rays Pitch Tunnel Edge vs CLE starter decay' });
+                stagedWagers.push({ selection: 'Packers -2.5', odds: '-110', ev: 7.8, reason: 'Packers trench leverage vs DAL LT hinge decay' });
+                stagedWagers.push({ selection: 'DAL/GB Under 47.5', odds: '-110', ev: 6.4, reason: 'QB rear-hip rotational velocity decay in cold' });
+                stagedWagers.push({ selection: 'Giants -1.5', odds: '-110', ev: 5.1, reason: 'Saints CB2 directional hip latency +14ms' });
+                logToCli('Loaded Preset: TICKET C (4-Leg Board Mega)');
             }
+            renderSlip();
         }
 
-        function saveState() {
-            localStorage.setItem(APP_STATE_KEY, JSON.stringify({
-                theme: state.theme,
-                selections: state.selections,
-                cameraMode: state.cameraMode
-            }));
+        function calculatePayout() {
+            const stake = parseFloat(document.getElementById('unit-stake-input').value) || 1.0;
+            if (stagedWagers.length === 0) {
+                document.getElementById('target-payout').innerText = '+0.00 Units';
+                document.getElementById('expected-yield').innerText = '+0.00%';
+                return;
+            }
+
+            // Estimate multiplier
+            let multiplier = 1.0;
+            let combinedEv = 0;
+            stagedWagers.forEach(w => {
+                multiplier *= 1.91; // ~American -110 average payout
+                combinedEv += wagerEvToDecimal(w.ev);
+            });
+
+            const payout = (stake * (multiplier - 1)).toFixed(2);
+            const avgEv = (combinedEv / stagedWagers.length).toFixed(1);
+
+            document.getElementById('target-payout').innerText = `+${payout} Units`;
+            document.getElementById('expected-yield').innerText = `+${avgEv}%`;
         }
 
-        function clearLocalStorage() {
-            localStorage.removeItem(APP_STATE_KEY);
-            location.reload();
+        function wagerEvToDecimal(ev) {
+            return parseFloat(ev) || 5.0;
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            state.theme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
-            document.getElementById('themeBtn').innerText = state.theme === 'light' ? "Theme: Light" : "Theme: Dark";
-            saveState();
+        function executeAllocation() {
+            if (stagedWagers.length === 0) {
+                logToCli('EXECUTION FAILED: Slip is empty.');
+                return;
+            }
+            const stake = document.getElementById('unit-stake-input').value;
+            logToCli(`[EXECUTION SUCCESS]: Allocated ${stake} Units across ${stagedWagers.length} position(s).`);
+            alert(`Allocation Executed!\n\nPositions: ${stagedWagers.length}\nRisk Unit: ${stake}\nTarget Yield: ${document.getElementById('target-payout').innerText}`);
+            clearSlip();
         }
 
-        /* HTML5 Canvas Tracking Engine */
-        let canvas, ctx;
-        let animFrameId;
-        let frameCounter = 4921;
-        let isPlaying = true;
+        // Analytics Canvas Drawing Engine
+        function setChartMetric(metric) {
+            currentChartMetric = metric;
+            document.querySelectorAll('.chart-tab').forEach(b => {
+                b.classList.remove('active', 'bg-brand-cyan', 'text-black', 'font-bold');
+                b.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            const activeBtn = document.getElementById('chart-btn-' + metric);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'bg-brand-cyan', 'text-black', 'font-bold');
+                activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+            }
 
-        // Players tracking mock data
-        let players = [
-            { id: 'WR1', x: 100, y: 150, vx: 2.2, vy: 0.5, color: '#10b981', name: 'Jefferson (WR1)' },
-            { id: 'CB1', x: 115, y: 155, vx: 2.1, vy: 0.48, color: '#ef4444', name: 'Ramsey (CB1)' },
-            { id: 'QB1', x: 40, y: 180, vx: 0.2, vy: -0.1, color: '#3b82f6', name: 'Allen (QB1)' }
-        ];
-
-        function initCanvas() {
-            canvas = document.getElementById('trackingCanvas');
-            ctx = canvas.getContext('2d');
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            requestAnimationFrame(renderCanvasLoop);
+            const caption = document.getElementById('chart-caption');
+            if (metric === 'arm') {
+                caption.innerText = 'Tracking real-time throwing arm-slot elevation angle variance (deg) across drive attempts.';
+            } else if (metric === 'pocket') {
+                caption.innerText = 'Tracking pocket duration protection stability (seconds) vs pass-rush torque.';
+            } else if (metric === 'clv') {
+                caption.innerText = 'Tracking commercial closing line movement vs MAX-QUANTUM True Price delta.';
+            }
+            drawAnalyticsChart();
         }
 
-        function resizeCanvas() {
+        function drawAnalyticsChart() {
+            const canvas = document.getElementById('analytics-canvas');
             if (!canvas) return;
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
+            const ctx = canvas.getContext('2d');
+            
+            // Handle DPI resizing
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            const w = canvas.width;
+            const h = canvas.height;
 
-        function switchCameraMode(mode) {
-            state.cameraMode = mode;
-            logToConsole(`Spatial camera mode switched to: [${mode.toUpperCase()}]`);
-            saveState();
-        }
+            ctx.clearRect(0, 0, w, h);
 
-        function toggleCanvasPlay() {
-            isPlaying = !isPlaying;
-            document.getElementById('canvasPlayBtn').innerText = isPlaying ? "Pause" : "Play";
-        }
-
-        function resetCanvasSim() {
-            players[0].x = 100; players[0].y = 150;
-            players[1].x = 115; players[1].y = 155;
-            players[2].x = 40;  players[2].y = 180;
-            logToConsole("Spatial tracking positions reset.");
-        }
-
-        function renderCanvasLoop() {
-            if (isPlaying) {
-                frameCounter++;
-                document.getElementById('hudFrame').innerText = String(frameCounter).padStart(6, '0');
-                updatePlayerPositions();
-            }
-
-            // Canvas Background
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#020617';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Render Tactical Field
-            drawFieldGrid();
-
-            // Render Camera Mode Specific Overlays
-            if (state.cameraMode === 'coverage') {
-                drawCoverageHeatmap();
-            }
-
-            // Render Players & Vector Overlays
-            players.forEach(p => {
-                // Kinematic Arm-slot / Vector representation
-                if (state.cameraMode === 'kinematic') {
-                    ctx.beginPath();
-                    ctx.strokeStyle = p.color;
-                    ctx.lineWidth = 1.5;
-                    ctx.moveTo(p.x, p.y);
-                    ctx.lineTo(p.x + p.vx * 15, p.y + p.vy * 15);
-                    ctx.stroke();
-                }
-
-                // Player Bounding Box / Marker
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Selection Box for Target WR1
-                if (p.id === 'WR1') {
-                    ctx.strokeStyle = '#06b6d4';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(p.x - 10, p.y - 10, 20, 20);
-                }
-
-                // Label
-                ctx.fillStyle = '#f1f5f9';
-                ctx.font = '10px monospace';
-                ctx.fillText(p.id, p.x - 10, p.y - 12);
-            });
-
-            // HUD Distance Lines
-            ctx.beginPath();
-            ctx.setLineDash([3, 3]);
-            ctx.strokeStyle = '#64748b';
-            ctx.moveTo(players[0].x, players[0].y);
-            ctx.lineTo(players[1].x, players[1].y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            requestAnimationFrame(renderCanvasLoop);
-        }
-
-        function updatePlayerPositions() {
-            players.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-
-                // Bounce bounds
-                if (p.x > canvas.width - 20 || p.x < 20) p.vx *= -1;
-                if (p.y > canvas.height - 20 || p.y < 20) p.vy *= -1;
-            });
-
-            // Dynamic distance HUD metric
-            const dx = players[0].x - players[1].x;
-            const dy = players[0].y - players[1].y;
-            const distYds = (Math.sqrt(dx*dx + dy*dy) / 10).toFixed(2);
-            document.getElementById('hudSep').innerText = `${distYds} yds`;
-        }
-
-        function drawFieldGrid() {
+            // Draw Grid
             ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 1;
-
-            // Yard lines
-            for (let x = 0; x < canvas.width; x += 40) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
+            for (let x = 0; x < w; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
             }
-        }
+            for (let y = 0; y < h; y += 30) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
 
-        function drawCoverageHeatmap() {
-            const grad = ctx.createRadialGradient(players[0].x, players[0].y, 5, players[0].x, players[0].y, 60);
-            grad.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
-            grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-            ctx.fillStyle = grad;
+            // Generate synthetic points depending on metric
             ctx.beginPath();
-            ctx.arc(players[0].x, players[0].y, 60, 0, Math.PI * 2);
+            ctx.lineWidth = 2;
+            let strokeColor = '#00f3ff';
+
+            const points = 20;
+            const step = w / (points - 1);
+
+            if (currentChartMetric === 'arm') {
+                strokeColor = '#00f3ff';
+                ctx.strokeStyle = strokeColor;
+                for (let i = 0; i < points; i++) {
+                    const py = (h * 0.4) + Math.sin(i * 0.5) * 15 + (i * 0.8);
+                    if (i === 0) ctx.moveTo(0, py);
+                    else ctx.lineTo(i * step, py);
+                }
+            } else if (currentChartMetric === 'pocket') {
+                strokeColor = '#00ff66';
+                ctx.strokeStyle = strokeColor;
+                for (let i = 0; i < points; i++) {
+                    const py = (h * 0.5) + Math.cos(i * 0.6) * 20;
+                    if (i === 0) ctx.moveTo(0, py);
+                    else ctx.lineTo(i * step, py);
+                }
+            } else {
+                strokeColor = '#ffcc00';
+                ctx.strokeStyle = strokeColor;
+                for (let i = 0; i < points; i++) {
+                    const py = (h * 0.7) - (i * (h * 0.025)) + Math.sin(i) * 8;
+                    if (i === 0) ctx.moveTo(0, py);
+                    else ctx.lineTo(i * step, py);
+                }
+            }
+            ctx.stroke();
+
+            // Gradient fill under chart line
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, strokeColor + '33');
+            grad.addColorStop(1, strokeColor + '00');
+            ctx.fillStyle = grad;
             ctx.fill();
         }
 
-        /* MAX-SIM Monte Carlo Dynamic Engine */
-        function runMonteCarlo() {
-            const histogram = document.getElementById('histogram');
-            histogram.innerHTML = '';
-            
-            let samples = [];
-            for (let i = 0; i < 20; i++) {
-                const val = Math.floor(Math.random() * 80) + 10;
-                samples.push(val);
+        window.addEventListener('resize', drawAnalyticsChart);
 
-                const bar = document.createElement('div');
-                bar.className = 'histogram-bar';
-                bar.style.height = `${val}%`;
-                bar.title = `Bucket ${i+1}: ${val}% frequency`;
-                histogram.appendChild(bar);
-            }
-
-            const winProb = (55 + Math.random() * 20).toFixed(1);
-            const meanYds = (22 + Math.random() * 12).toFixed(1);
-            
-            document.getElementById('simWinProb').innerText = `${winProb}%`;
-            document.getElementById('simMean').innerText = meanYds;
-
-            logToConsole(`⚡ MAX-SIM 100K batch executed. Mean expected Yds: ${meanYds}, Win Prob: ${winProb}%`);
-        }
-
-        /* Risk Desk & Parlay Calculator Logic */
-        function addBetSelection(rawVal) {
-            if (!rawVal) return;
-            const [label, oddsStr] = rawVal.split('|');
-            const odds = parseFloat(oddsStr);
-
-            if (state.selections.some(s => s.label === label)) {
-                logToConsole(`Selection already exists in slip: ${label}`);
-                return;
-            }
-
-            state.selections.push({ label, odds });
-            renderBetSlip();
-            document.getElementById('marketSelect').value = '';
-            saveState();
-        }
-
-        function removeBetSelection(idx) {
-            state.selections.splice(idx, 1);
-            renderBetSlip();
-            saveState();
-        }
-
-        function renderBetSlip() {
-            const container = document.getElementById('betSlipContainer');
-            container.innerHTML = '';
-
-            if (state.selections.length === 0) {
-                container.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding-top: 30px;">No selections added to risk desk.</div>`;
-                calculateParlay();
-                return;
-            }
-
-            state.selections.forEach((item, index) => {
-                const elem = document.createElement('div');
-                elem.className = 'bet-slip-item';
-                elem.innerHTML = `
-                    <div>
-                        <div style="font-weight: 600;">${item.label}</div>
-                        <div style="color: var(--text-secondary); font-size: 10px;">Multiplier: ${item.odds.toFixed(2)}</div>
-                    </div>
-                    <button onclick="removeBetSelection(${index})" class="btn-red" style="padding: 2px 6px;">✕</button>
-                `;
-                container.appendChild(elem);
-            });
-
-            calculateParlay();
-        }
-
-        function calculateParlay() {
-            const stake = parseFloat(document.getElementById('stakeInput').value) || 0;
-            let totalOdds = state.selections.reduce((acc, curr) => acc * curr.odds, 1.0);
-            
-            if (state.selections.length === 0) totalOdds = 1.00;
-
-            const payout = stake * totalOdds;
-            document.getElementById('parlayOdds').innerText = totalOdds.toFixed(2);
-            document.getElementById('payoutVal').innerText = `$${payout.toFixed(2)}`;
-        }
-
-        function executeRiskTrade() {
-            if (state.selections.length === 0) {
-                logToConsole("❌ Execution rejected: Risk slip empty.");
-                return;
-            }
-            const stake = document.getElementById('stakeInput').value;
-            const payout = document.getElementById('payoutVal').innerText;
-            
-            logToConsole(`✅ EXECUTION SUCCESS: Order dispatched for ${state.selections.length} leg(s). Stake: $${stake} | Est Payout: ${payout}`);
-            state.selections = [];
-            renderBetSlip();
-            saveState();
-        }
-
-        /* CLI Engine */
-        function handleCliKey(e) {
-            if (e.key === 'Enter') {
-                const inputElem = document.getElementById('terminalInput');
-                const cmd = inputElem.value.trim();
-                if (cmd) {
-                    executeCommand(cmd);
-                    inputElem.value = '';
-                }
+        // Terminal CLI Input Logic
+        function handleCliSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('cli-input');
+            const cmd = input.value.trim();
+            if (cmd) {
+                runMacro(cmd);
+                input.value = '';
             }
         }
 
-        function executeCommand(cmd) {
-            logToConsole(`root@portal-os1:~# ${cmd}`);
-            const parts = cmd.split(' ');
-            const mainCmd = parts[0].toLowerCase();
+        function runMacro(command) {
+            logToCli(`> ${command}`);
+            const upper = command.toUpperCase();
 
-            switch (mainCmd) {
-                case 'help':
-                    logToConsole(`Available commands:
- - help                : Display this menu
- - status              : Query node status & health
- - sim --batch [N]     : Run Monte Carlo SIM engine
- - clear               : Clear output terminal
- - camera [mode]       : Set camera mode (tactical|kinematic|coverage)`);
-                    break;
-
-                case 'status':
-                    logToConsole(`NODE: edge-east-01 | MEM: 42MB/128MB | CPU: 0.4% | IPC: ACTIVE`);
-                    break;
-
-                case 'sim':
-                    runMonteCarlo();
-                    break;
-
-                case 'clear':
-                    clearConsole();
-                    break;
-
-                case 'camera':
-                    if (parts[1]) {
-                        switchCameraMode(parts[1]);
-                        document.getElementById('cameraMode').value = parts[1];
-                    } else {
-                        logToConsole(`Current camera mode: ${state.cameraMode}`);
-                    }
-                    break;
-
-                default:
-                    logToConsole(`Command not recognized: '${mainCmd}'. Type 'help' for menu.`);
+            if (upper === 'TRENCH CHECK') {
+                logToCli('[TRENCH CHECK]: NYG OT Hinge 1.4° | PHI Pocket 2.68s | DAL LT Hinge Decay >2.5°');
+            } else if (upper === 'QB TELEMETRY') {
+                logToCli('[QB TELEMETRY]: Arm-Slot 64.2° | Plant-Foot Variance <1.2% | Velocity Nominal');
+            } else if (upper === 'CAPTURE CLV') {
+                logToCli('[CAPTURE CLV]: Preserving 79.4% CLV Edge across active slate tickets.');
+            } else if (upper === 'DECAY AUDIT') {
+                logToCli('[DECAY AUDIT]: NO CB2 +14ms hip lag | CLE Starter stride shortening projected.');
+            } else if (upper === 'QUANTUM SYNC') {
+                logToCli('[QUANTUM SYNC]: QUBO true pricing updated. Active portfolio yield: +23.39%.');
+            } else if (upper === 'HELP') {
+                logToCli('Available commands: TRENCH CHECK, QB TELEMETRY, CAPTURE CLV, DECAY AUDIT, QUANTUM SYNC, CLEAR');
+            } else if (upper === 'CLEAR') {
+                document.getElementById('cli-output').innerHTML = '';
+            } else {
+                logToCli(`Unknown directive '${command}'. Type 'HELP' for commands.`);
             }
         }
 
-        function executeMacro(type) {
-            if (type === 'status') executeCommand('status');
-            if (type === 'sim') executeCommand('sim');
+        function logToCli(text) {
+            const out = document.getElementById('cli-output');
+            const line = document.createElement('div');
+            line.className = text.startsWith('>') ? 'text-brand-cyan font-bold' : 'text-slate-300';
+            line.innerText = text;
+            out.appendChild(line);
+            out.scrollTop = out.scrollHeight;
         }
 
-        function logToConsole(text) {
-            const logs = document.getElementById('terminalLogs');
-            logs.innerText += `\n${text}`;
-            logs.scrollTop = logs.scrollHeight;
-        }
-
-        function clearConsole() {
-            document.getElementById('terminalLogs').innerText = `Portal-OS1 Terminal Shell Cleared.`;
-        }
-
-        /* Initialization */
-        window.addEventListener('DOMContentLoaded', () => {
-            loadSavedState();
-            initCanvas();
-            renderBetSlip();
-            runMonteCarlo();
-            logToConsole("Kernel initialized successfully. Event loop connected.");
-        });
+        // On Load Initializations
+        window.onload = function() {
+            drawAnalyticsChart();
+            logToCli('SATELLITE INGEST ACTIVE (<184ms)');
+            logToCli('MAX-QUANTUM Portfolio Engine online.');
+        };
     </script>
 </body>
 </html>
