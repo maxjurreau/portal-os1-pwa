@@ -1,135 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>MAX Sports OS</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!--
-MAX Sports OS
-Tier 3 Presentation Layer
-Portal-OS1 Architecture
--->
-
 <style>
 
-/* PLACE ALL CSS FROM THE PREVIOUS RESPONSE HERE */
+:root{
 
-</style>
+--bg:#05070d;
+--panel:#0d1320;
+--panel2:#151e31;
+--sidebar:#080d16;
+--text:#ffffff;
+--accent:#00ffff;
+--success:#31ff8a;
+--danger:#ff5757;
+--border:rgba(255,255,255,.08);
 
-</head>
+}
 
-<body>
+body.light{
 
-<header class="topbar">
+--bg:#edf2f8;
+--panel:#ffffff;
+--panel2:#f5f7fb;
+--sidebar:#ffffff;
+--text:#111827;
+--accent:#0066ff;
+--border:#d6deeb;
 
-<div class="logo">
-MAX SPORTS OS
-</div>
+}
 
-<div>
-<button class="theme-btn" onclick="toggleTheme()">
-Toggle Theme
-</button>
-</div>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,Arial,sans-serif;
+}
 
-</header>
+body{
 
-<div class="main">
+background:var(--bg);
+color:var(--text);
 
-<aside class="sidebar">
+height:100vh;
 
-<div class="nav-item">🏈 NFL</div>
-<div class="nav-item">🏀 NBA</div>
-<div class="nav-item">⚾ MLB</div>
-<div class="nav-item">🏒 NHL</div>
+display:flex;
+flex-direction:column;
 
-<div class="section-title">
-INTELLIGENCE
-</div>
+transition:.3s;
 
-<div class="nav-item">📈 Markets</div>
-<div class="nav-item">🧠 SIM Engine</div>
-<div class="nav-item">📊 Predictions</div>
-<div class="nav-item">🎯 Scouting</div>
+}
 
-<div class="section-title">
-KERNEL
-</div>
+.topbar{
 
-<div class="nav-item">
-⚙ MAX.OS
-</div>
+height:70px;
 
-<div class="nav-item">
-🛰 IPC Bus
-</div>
+display:flex;
+align-items:center;
+justify-content:space-between;
 
-</aside>
+padding:0 20px;
 
-<main class="center">
+background:var(--panel);
 
-<section class="hero">
+border-bottom:1px solid var(--border);
 
-<h1>MAX SPORTS</h1>
+}
 
-<p>
-Sports Intelligence Operating System
-powered by Portal-OS1
-</p>
+.logo{
 
-<div class="metrics">
+font-size:28px;
+font-weight:800;
+color:var(--accent);
 
-<div class="metric">
-<div class="metric-value">14</div>
-LIVE GAMES
-</div>
+}
 
-<div class="metric">
-<div class="metric-value">7</div>
-EDGE SIGNALS
-</div>
+.theme-btn{
 
-<div class="metric">
-<div class="metric-value">3</div>
-HIGH CONFIDENCE
-</div>
+padding:10px 16px;
 
-<div class="metric">
-<div class="metric-value">97%</div>
-MODEL HEALTH
-</div>
+border:none;
+border-radius:10px;
 
-</div>
+background:var(--accent);
 
-</section>
+cursor:pointer;
+font-weight:bold;
 
-<section class="filters">
+}
+
+.main{
+
+flex:1;
+
+display:grid;
+
+grid-template-columns:
+240px
+1fr
+320px;
+
+overflow:hidden;
+
+}
+
+.sidebar{
+
+background:var(--sidebar);
+
+padding:20px;
+
+overflow:auto;
+
+border-right:1px solid var(--border);
+
+}
+
+.nav-item{
+
+padding:12px;
+
+border-radius:12px;
+
+background:var(--panel);
+
+margin-bottom:10px;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.nav-item:hover{
+
+transform:translateX(5px);
+
+}
+
+.section-title{
+
+font-size:12px;
+opacity:.5;
+
+margin:20px 0 10px;
+
+letter-spacing:2px;
+
+}
+
+.center{
+
+overflow:auto;
+padding:20px;
+
+}
+
+.hero{
+
+padding:30px;
+
+border-radius:20px;
+
+margin-bottom:20px;
+
+background:
+linear-gradient(
+135deg,
+#071b30,
+#10406f
+);
+
+}
+
+.hero h1{
+
+font-size:48px;
+
+color:white;
+
+}
+
+.hero p{
+
+margin-top:10px;
+opacity:.8;
+
+}
+
+.metrics{
+
+display:grid;
+
+grid-template-columns:
+repeat(4,1fr);
+
+gap:15px;
+
+margin-top:25px;
+
+}
+
+.metric{
+
+background:var(--panel);
+
+padding:18px;
+
+border-radius:14px;
+
+text-align:center;
+
+}
+
+.metric-value{
+
+font-size:28px;
+font-weight:800;
+
+color:var(--accent);
+
+animation:pulse 2s infinite;
+
+}
+
+@keyframes pulse{
+
+50%{
+
+transform:scale(1.07);
+
+}
+
+}
+
+.filters{
+
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+
+margin-bottom:20px;
+
+}
+
+.filters select,
+.filters input{
+
+padding:12px;
+
+border-radius:10px;
+
+border:1px solid var(--border);
+
+background:var(--panel);
+
+color:var(--text);
+
+}
+
+.filters input{
+
+flex:1;
+
+}
+
+.grid{
+
+display:grid;
+
+grid-template-columns:
+1fr
+1fr;
+
+gap:20px;
+
+}
+ .card{
+
+background:var(--panel);
+
+padding:20px;
+
+border-radius:20px;
+
+border:1px solid var(--border);
+
+}
+
+.card h3{
+
+margin-bottom:15px;
+
+color:var(--accent);
+
+}
+
+.game{
+
+background:var(--panel2);
+
+padding:12px;
+
+border-radius:10px;
+
+margin-bottom:10px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+}
+
+.live{
+
+color:var(--danger);
+
+font-size:12px;
+
+font-weight:bold;
+
+animation:blink 1s infinite;
+
+}
+
+@keyframes blink{
+
+50%{
+opacity:.4;
+}
+
+}
+
+.chart{
+
+height:220px;
+
+display:flex;
+
+align-items:flex-end;
+
+gap:10px;
+
+padding-top:20px;
+
+}
+
+.bar{
+
+flex:1;
+
+background:
+linear-gradient(
+180deg,
+var(--accent),
+#005eff
+);
+
+border-radius:8px 8px 0 0;
+
+transition:.5s;
+
+}
+
+.right{
+
+background:var(--sidebar);
+
+padding:20px;
+
+overflow:auto;
+
+border-left:1px solid var(--border);
+
+}
+
+.process{
+
+display:flex;
+
+justify-content:space-between;
+
+padding:12px;
+
+border-radius:10px;
+
+background:var(--panel);
+
+margin-bottom:10px;
+
+}
+
+.running{
+
+color:var(--success);
+
+font-weight:bold;
+
+}
+
+.ipc{
+
+margin-top:10px;
+
+padding
+ <section class="filters">
 
 <select id="leagueFilter">
 
-<option value="all">All Leagues</option>
-<option value="NFL">NFL</option>
-<option value="NBA">NBA</option>
-<option value="MLB">MLB</option>
-<option value="NHL">NHL</option>
+<option value="all">
+All Leagues
+</option>
+
+<option value="NFL">
+NFL
+</option>
+
+<option value="NBA">
+NBA
+</option>
+
+<option value="MLB">
+MLB
+</option>
+
+<option value="NHL">
+NHL
+</option>
 
 </select>
 
 <select id="confidenceFilter">
 
-<option value="all">All Confidence</option>
-<option value="high">High</option>
-<option value="medium">Medium</option>
-<option value="low">Low</option>
+<option value="all">
+All Confidence
+</option>
+
+<option value="high">
+High Confidence
+</option>
+
+<option value="medium">
+Medium Confidence
+</option>
+
+<option value="low">
+Low Confidence
+</option>
 
 </select>
 
 <input
 id="searchInput"
+type="text"
 placeholder="Search Team..."
 >
 
@@ -139,106 +469,54 @@ placeholder="Search Team..."
 
 <div class="card">
 
-<h3>LIVE GAMES</h3>
+<h3>
+LIVE GAMES
+</h3>
 
-<div id="gamesContainer"></div>
+<div id="gamesContainer">
+
+</div>
 
 </div>
 
 <div class="card">
 
-<h3>WIN PROBABILITY</h3>
+<h3>
+WIN PROBABILITY
+</h3>
 
-<canvas id="winChart"></canvas>
+<div class="chart">
 
+<div
+class="bar"
+style="height:52%">
 </div>
 
-<div class="card">
-
-<h3>SIMULATION DISTRIBUTION</h3>
-
-<canvas id="distChart"></canvas>
-
+<div
+class="bar"
+style="height:58%">
 </div>
 
-<div class="card">
+<div
+class="bar"
+style
+ <script>
 
-<h3>MONTE CARLO ENGINE</h3>
-
-<h1 style="color:#00ffff;">
-68.2%
-</h1>
-
-<p>Bills Win Probability</p>
-
-<br>
-
-<p>Spread Cover: 57.8%</p>
-<p>Expected Margin: +7.3</p>
-
-<br>
-
-<button class="theme-btn">
-RUN 100K SIM
-</button>
-
-</div>
-
-</section>
-
-</main>
-
-<aside class="right">
-
-<h3>ACTIVE PROCESSES</h3>
-
-<div class="process">
-<span>PID-101 MAX.NFL</span>
-<span class="running">RUNNING</span>
-</div>
-
-<div class="process">
-<span>PID-102 MAX.SIM</span>
-<span class="running">RUNNING</span>
-</div>
-
-<div class="process">
-<span>PID-103 MAX.RESEARCH</span>
-<span class="running">RUNNING</span>
-</div>
-
-<div class="process">
-<span>PID-104 MAX.MARKETS</span>
-<span class="running">RUNNING</span>
-</div>
-
-<br>
-
-<h3>IPC EVENT BUS</h3>
-
-<div id="ipcFeed"></div>
-
-</aside>
-
-</div>
-
-<footer class="command">
-
-<input
-placeholder="Ask MAX Sports..."
->
-
-</footer>
-
-<script>
-
-/* ---------- THEME ---------- */
+/* -----------------------
+   THEME ENGINE
+------------------------ */
 
 function toggleTheme(){
-document.body.classList.toggle("light");
+
+document.body.classList.toggle(
+"light"
+);
+
 }
 
-/* ---------- SAMPLE DATA ---------- */
+/* -----------------------
+   SAMPLE GAME DATABASE
+------------------------ */
 
 const games = [
 
@@ -280,232 +558,160 @@ confidence:"medium",
 home:"Rangers",
 away:"Bruins",
 score:"4-2"
+},
+
+{
+league:"NFL",
+confidence:"high",
+home:"Cowboys",
+away:"Eagles",
+score:"27-21"
 }
 
 ];
 
-/* ---------- FILTERS ---------- */
+/* -----------------------
+   GAME RENDERER
+------------------------ */
 
 const gamesContainer =
-document.getElementById("gamesContainer");
+document.getElementById(
+"gamesContainer"
+);
 
 function renderGames(){
 
 const league =
-document.getElementById("leagueFilter").value;
+document.getElementById(
+"leagueFilter"
+).value;
 
 const confidence =
-document.getElementById("confidenceFilter").value;
-
-const search =
 document
-.getElementById("searchInput")
-.value
-.toLowerCase();
+ /* -----------------------
+   FILTER EVENTS
+------------------------ */
 
-gamesContainer.innerHTML = "";
+document
+.getElementById(
+"leagueFilter"
+)
+.addEventListener(
+"change",
+renderGames
+);
 
-games
+document
+.getElementById(
+"confidenceFilter"
+)
+.addEventListener(
+"change",
+renderGames
+);
 
-.filter(game =>
+document
+.getElementById(
+"searchInput"
+)
+.addEventListener(
+"input",
+renderGames
+);
 
-(league === "all" || game.league === league)
+/* -----------------------
+   MONTE CARLO
+------------------------ */
 
-&&
+function runSimulation(){
 
-(confidence === "all" ||
- game.confidence === confidence)
-
-&&
-
+const winProb =
 (
-game.home.toLowerCase().includes(search)
-||
-game.away.toLowerCase().includes(search)
+55 +
+Math.random()*25
 )
+.toFixed(1);
 
+const coverProb =
+(
+45 +
+Math.random()*25
 )
+.toFixed(1);
 
-.forEach(game => {
-
-gamesContainer.innerHTML += `
-
-<div class="game">
-
-<div>
-
-<div class="live">
-● LIVE
-</div>
-
-<b>${game.home}</b>
-vs
-<b>${game.away}</b>
-
-<br>
-
-${game.league.toUpperCase()}
-
-</div>
-
-<div>
-
-${game.score}
-
-</div>
-
-</div>
-
-`;
-
-});
-
-}
-
-renderGames();
-
-/* ---------- EVENTS ---------- */
+const expectedMargin =
+(
+Math.random()*14
+)
+.toFixed(1);
 
 document
-.getElementById("leagueFilter")
-.addEventListener("change", renderGames);
+.getElementById(
+"winProb"
+)
+.innerHTML =
+winProb + "%";
 
 document
-.getElementById("confidenceFilter")
-.addEventListener("change", renderGames);
+.getElementById(
+"coverRate"
+)
+.innerHTML =
 
-document
-.getElementById("searchInput")
-.addEventListener("input", renderGames);
+"Spread Cover: "
++
+ /* -----------------------
+   LIVE SCORE UPDATES
+------------------------ */
 
-/* ---------- WIN CHART ---------- */
+function randomScoreUpdate(){
 
-new Chart(
-
-document.getElementById("winChart"),
-
-{
-type:"line",
-
-data:{
-
-labels:[
-"Q1",
-"Q2",
-"Q3",
-"Q4"
-],
-
-datasets:[{
-
-label:"Bills Win Probability",
-
-data:[
-52,
-58,
-64,
-68
-],
-
-borderColor:"#00ffff",
-
-backgroundColor:
-"rgba(0,255,255,.15)",
-
-fill:true,
-
-tension:.4
-
-}]
-}
-
-}
-
+const gameNodes =
+document.querySelectorAll(
+"#gamesContainer .game"
 );
 
-/* ---------- DISTRIBUTION ---------- */
-
-new Chart(
-
-document.getElementById("distChart"),
-
-{
-type:"bar",
-
-data:{
-
-labels:[
-"-14",
-"-7",
-"0",
-"+7",
-"+14"
-],
-
-datasets:[{
-
-data:[
-6,
-10,
-22,
-37,
-25
-],
-
-backgroundColor:"#00b7ff"
-
-}]
-
+if(gameNodes.length === 0){
+return;
 }
 
-}
-
-);
-
-/* ---------- IPC SIMULATION ---------- */
-
-const ipcFeed =
-document.getElementById("ipcFeed");
-
-const messages = [
-
-"MAX.NFL → MAX.SIM",
-"MAX.SIM → MAX.UI",
-"MAX.RESEARCH → MAX.NFL",
-"MAX.MARKETS → MAX.SIM",
-"MAX.SIM → MAX.MODEL",
-"MAX.EDGE → MAX.UI"
-
-];
-
-setInterval(() => {
-
-const div =
-document.createElement("div");
-
-div.className = "ipc";
-
-div.innerText =
-messages[
+const game =
+gameNodes[
 Math.floor(
 Math.random() *
-messages.length
+gameNodes.length
 )
 ];
 
-ipcFeed.prepend(div);
+game.style.transform =
+"scale(1.02)";
 
-if(ipcFeed.children.length > 8){
+setTimeout(()=>{
 
-ipcFeed.removeChild(
-ipcFeed.lastChild
-);
+game.style.transform =
+"scale(1)";
+
+},300);
 
 }
 
-},2000);
+/* -----------------------
+   BAR ANIMATION LOOP
+------------------------ */
 
-</script>
+setInterval(()=>{
 
-</body>
-</html>
+const bars =
+document.querySelectorAll(
+".bar"
+);
+
+bars.forEach(bar=>{
+
+const current =
+parseFloat(
+bar.style.height
+);
+
+const variance =
+(Math.
