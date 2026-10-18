@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PORTAL‑OS‑1</title>
+<title>PORTAL‑OS‑1 (Runtime v0.2)</title>
 <style>
 :root{
 --bg:#030712;
@@ -208,10 +208,10 @@ z-index:10;
 
 <div class="header">
 <div>
-<h1>PORTAL‑OS‑1</h1>
+<h1>PORTAL‑OS‑1 <span style="font-size:14px; color:var(--accent);">v0.2</span></h1>
 <div class="subtitle">MAX‑SIM • Five Great Maps • Umbrella • Identity → Simulation → Narrative</div>
 </div>
-<button class="portal-btn" onclick="runSimulation()">RUN SIM</button>
+<button class="portal-btn" onclick="PortalRuntime.runSimulation()">RUN SIM</button>
 </div>
 
 <div class="grid">
@@ -228,11 +228,7 @@ z-index:10;
 <div id="mapWorkspace">
 <h2>Physical Substrates</h2>
 <p style="margin-top:12px;color:#94a3b8;">Quantum Systems, Relativity, Thermodynamics, Physical Simulation</p>
-<div class="widget-grid" id="widgetGrid">
-<div class="widget"><div class="widget-title">Field Status</div><div class="widget-value">97%</div></div>
-<div class="widget"><div class="widget-title">Curvature</div><div class="widget-value">0.92</div></div>
-<div class="widget"><div class="widget-title">Entropy</div><div class="widget-value">LOW</div></div>
-</div>
+<div class="widget-grid" id="widgetGrid"></div>
 </div>
 </div>
 
@@ -251,11 +247,12 @@ z-index:10;
 <div>Portal‑OS: <span style="color:var(--success)">ONLINE</span></div>
 <div>MAX‑SIM: <span style="color:var(--success)">READY</span></div>
 <div>Worker API: <span id="workerStatus" style="color:#f59e0b">CHECKING...</span></div>
+<div>Narrative State: <span id="narrativeStatus" style="color:var(--accent)">idle</span></div>
 </div>
 
 <div class="sidebar-section">
 <div class="sidebar-title">Console</div>
-<div id="console" class="console">[BOOT] PORTAL‑OS READY</div>
+<div id="console" class="console">[BOOT] RUNTIME v0.2 INITIALIZING</div>
 <input id="consoleInput" class="console-input" placeholder="run sim">
 </div>
 </div>
@@ -295,7 +292,7 @@ padding: 20px;
 <div id="fallbackView" style="margin-top:6px; font-size:14px; color:#94a3b8;">VIEW: PHYSICS</div>
 <div id="fallbackNetwork" style="margin-top:4px; font-size:12px; color:#22c55e;">STATUS: ONLINE</div>
 <div id="fallbackUpdate" style="margin-top:2px; font-size:12px; color:#94a3b8;">LAST: Waiting...</div>
-<div id="fallbackMessage" style="margin-top:12px;">Waiting For Worker Response</div>
+<div id="fallbackMessage" style="margin-top:12px;">Waiting For First Worker Response</div>
 <button id="playOverlay" style="
 display:none;
 margin-top:15px;
@@ -312,58 +309,16 @@ font-weight:bold;
 </div>
 </div>
 
+<!-- Import Runtime Script -->
+<script src="/js/runtime.js"></script>
 <script>
 /* ==========================
-   STATE ENGINE & PORTAL STATE
-========================== */
-window.PortalState = {
-  version: "1.0",
-  currentMap: "physics",
-  hudEnabled: true,
-  workerOnline: false,
-  lastWorkerUpdate: null,
-  lastWorkerData: null,
-  lastError: null,
-  console: ["[BOOT] PORTAL-OS READY"],
-  simulation: {
-    iterations: 0,
-    coherence: 97.4,
-    probability: 68.2
-  },
-  telemetry: {
-    armSlot: 64.2,
-    separation: 3.1
-  }
-};
-
-function safeSave(){
-  try{
-    localStorage.setItem("portal-state", JSON.stringify(window.PortalState));
-  }
-  catch(error){
-    console.warn("Storage unavailable", error);
-  }
-}
-
-function safeLoad(){
-  try{
-    const saved = localStorage.getItem("portal-state");
-    if(saved){
-      Object.assign(window.PortalState, JSON.parse(saved));
-    }
-  }
-  catch(error){
-    console.warn("Load failed", error);
-  }
-}
-
-/* ==========================
-   FIVE GREAT MAPS DATA
+   UI BINDINGS & VIEW LAYER
 ========================== */
 const MAPS = {
   physics: {
     title: "Physical Substrates",
-    description: "Fields, thermodynamics, physics models",
+    description: "Quantum Systems, Relativity, Thermodynamics, Physical Simulation",
     widgets: [["Field Status", "97%"], ["Curvature", "0.92"], ["Entropy", "LOW"]]
   },
   compute: {
@@ -375,9 +330,9 @@ const MAPS = {
     title: "MAX‑SIM",
     description: "Simulation systems and propagation engines",
     widgets: [
-      ["Iterations", () => window.PortalState.simulation.iterations.toLocaleString()],
-      ["Coherence", () => window.PortalState.simulation.coherence + "%"],
-      ["Probability", () => window.PortalState.simulation.probability + "%"]
+      ["Iterations", () => PortalRuntime.state.simulation.iterations.toLocaleString()],
+      ["Coherence", () => PortalRuntime.state.simulation.coherence + "%"],
+      ["Probability", () => PortalRuntime.state.simulation.probability + "%"]
     ]
   },
   cognition: {
@@ -392,12 +347,30 @@ const MAPS = {
   }
 };
 
-function selectMap(name){
+function logConsole(text){
+  const consoleEl = document.getElementById('console');
+  if(consoleEl){
+    consoleEl.innerHTML += `<br>${text}`;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+  PortalRuntime.state.console.push(text);
+  if(PortalRuntime.state.console.length > 50){
+    PortalRuntime.state.console.shift();
+  }
+  PortalRuntime.save();
+}
+
+function restoreConsoleHistory(){
+  const consoleEl = document.getElementById('console');
+  if(consoleEl && PortalRuntime.state.console && PortalRuntime.state.console.length > 0){
+    consoleEl.innerHTML = PortalRuntime.state.console.join("<br>");
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+}
+
+function renderMap(name){
   if(!MAPS[name]) name = "physics";
   
-  window.PortalState.currentMap = name;
-  safeSave();
-
   document.querySelectorAll('.map-tab').forEach(tab => {
     tab.classList.remove('active');
     const attr = tab.getAttribute('onclick') || '';
@@ -428,110 +401,62 @@ function selectMap(name){
     `;
     grid.appendChild(el);
   });
-
-  logConsole('[MAP] ' + name);
 }
 
 /* ==========================
-   HASH ROUTER
+   EVENT BUS SUBSCRIBERS (UI)
 ========================== */
-function router(){
-  const route = location.hash.replace("#/", "").trim().toLowerCase();
-  if(MAPS[route]){
-    selectMap(route);
-  } else if(!location.hash) {
-    location.hash = "/" + window.PortalState.currentMap;
-  } else {
-    selectMap("physics");
+PortalRuntime.EventBus.on("portal.ready", () => {
+  restoreConsoleHistory();
+  logConsole("[BOOT] PORTAL RUNTIME v0.2 ACTIVE");
+});
+
+PortalRuntime.EventBus.on("route.changed", (route) => {
+  renderMap(route);
+  logConsole("[MAP] " + route);
+});
+
+PortalRuntime.EventBus.on("simulation.started", () => {
+  logConsole("[MAX‑SIM] Starting execution...");
+});
+
+PortalRuntime.EventBus.on("simulation.progress", (payload) => {
+  logConsole(`[MAX‑SIM] Progress: ${payload.progress}%`);
+});
+
+PortalRuntime.EventBus.on("simulation.completed", (sim) => {
+  logConsole(`[COMPLETE] Iterations: ${sim.iterations.toLocaleString()} | Coherence: ${sim.coherence}% | Prob: ${sim.probability}%`);
+  if(PortalRuntime.state.navigation.currentMap === 'simulation'){
+    renderMap('simulation');
   }
-}
+});
 
-window.addEventListener("hashchange", router);
+PortalRuntime.EventBus.on("narrative.generated", (narrative) => {
+  const ns = document.getElementById("narrativeStatus");
+  if(ns) ns.innerText = narrative.state;
+  logConsole(`[NARRATIVE] ${narrative.summary}`);
+});
 
-/* ==========================
-   CONSOLE LOGGING
-========================== */
-function logConsole(text){
-  const consoleEl = document.getElementById('console');
-  if(consoleEl){
-    consoleEl.innerHTML += `<br>${text}`;
-    consoleEl.scrollTop = consoleEl.scrollHeight;
+PortalRuntime.EventBus.on("worker.updated", () => {
+  const statusEl = document.getElementById("workerStatus");
+  if(statusEl){
+    statusEl.innerText = "ONLINE";
+    statusEl.style.color = "var(--success)";
   }
+  logConsole("[WORKER] HEALTH OK");
+});
 
-  window.PortalState.console.push(text);
-  if(window.PortalState.console.length > 50){
-    window.PortalState.console.shift();
+PortalRuntime.EventBus.on("worker.error", () => {
+  const statusEl = document.getElementById("workerStatus");
+  if(statusEl){
+    statusEl.innerText = "OFFLINE";
+    statusEl.style.color = "var(--error)";
   }
-  safeSave();
-}
-
-function restoreConsoleHistory(){
-  const consoleEl = document.getElementById('console');
-  if(consoleEl && window.PortalState.console && window.PortalState.console.length > 0){
-    consoleEl.innerHTML = window.PortalState.console.join("<br>");
-    consoleEl.scrollTop = consoleEl.scrollHeight;
-  }
-}
-
-/* ==========================
-   MAX-SIM ENGINE
-========================== */
-function runSimulation(){
-  logConsole('[MAX‑SIM] Starting execution...');
-  let progress = 0;
-
-  const run = setInterval(() => {
-    progress += 10;
-    logConsole(`[MAX‑SIM] Progress: ${progress}%`);
-
-    if(progress >= 100){
-      clearInterval(run);
-      window.PortalState.simulation.iterations += 100000;
-      window.PortalState.simulation.coherence = (95 + Math.random()*5).toFixed(1);
-      window.PortalState.simulation.probability = (50 + Math.random()*45).toFixed(1);
-
-      safeSave();
-
-      logConsole(`[COMPLETE] Iterations: ${window.PortalState.simulation.iterations.toLocaleString()} | Coherence: ${window.PortalState.simulation.coherence}% | Prob: ${window.PortalState.simulation.probability}%`);
-      
-      if(window.PortalState.currentMap === 'simulation'){
-        selectMap('simulation');
-      }
-    }
-  }, 300);
-}
-
-/* ==========================
-   COMMAND CONSOLE LISTENER
-========================== */
-document.getElementById('consoleInput').addEventListener('keydown', function(event){
-  if(event.key !== 'Enter') return;
-  const cmd = this.value.trim().toLowerCase();
-  if(!cmd) return;
-
-  logConsole('> ' + cmd);
-
-  if(cmd === 'run sim'){
-    runSimulation();
-  } else if(cmd === 'status'){
-    logConsole('PORTAL‑OS ONLINE');
-  } else if(cmd === 'help'){
-    logConsole('Commands: help, status, run sim, map physics, map compute, map simulation, map cognition, map markets');
-  } else if(cmd.startsWith('map ')){
-    const mapName = cmd.replace('map ', '').trim();
-    if(MAPS[mapName]){
-      location.hash = "/" + mapName;
-    } else {
-      logConsole('Map not found: ' + mapName);
-    }
-  } else {
-    logConsole('Unknown command');
-  }
-  this.value = '';
+  logConsole("[WORKER] OFFLINE");
 });
 
 /* ==========================
-   VIDEO & HUD SUBSYSTEM
+   UI CONTROLS & HUD LOOP
 ========================== */
 let cameraStream = null;
 
@@ -596,12 +521,12 @@ async function startCamera(){
 }
 
 function toggleHud(){
-  window.PortalState.hudEnabled = !window.PortalState.hudEnabled;
-  safeSave();
+  PortalRuntime.state.ui.hudEnabled = !PortalRuntime.state.ui.hudEnabled;
+  PortalRuntime.save();
   
   const statusEl = document.getElementById("hudState");
-  statusEl.innerText = window.PortalState.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
-  logConsole("[HUD] " + (window.PortalState.hudEnabled ? "ENABLED" : "DISABLED"));
+  statusEl.innerText = PortalRuntime.state.ui.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
+  logConsole("[HUD] " + (PortalRuntime.state.ui.hudEnabled ? "ENABLED" : "DISABLED"));
 }
 
 function resizeHud(){
@@ -615,9 +540,6 @@ function resizeHud(){
 
 window.addEventListener("resize", resizeHud);
 
-/* ==========================
-   OFFLINE & WORKER HEALTH MONITORING
-========================== */
 function updateNetworkState(){
   const banner = document.getElementById("offlineBanner");
   if(banner){
@@ -632,18 +554,18 @@ function updateFallbackStatus(){
   const msg = document.getElementById("fallbackMessage");
 
   if(network){
-    network.innerText = window.PortalState.workerOnline ? "STATUS: ONLINE" : "STATUS: OFFLINE";
+    network.innerText = PortalRuntime.state.worker.online ? "STATUS: ONLINE" : "STATUS: OFFLINE";
   }
   if(update){
-    update.innerText = window.PortalState.lastWorkerUpdate 
-      ? `LAST: ${window.PortalState.lastWorkerUpdate}` 
+    update.innerText = PortalRuntime.state.worker.lastUpdate 
+      ? `LAST: ${new Date(PortalRuntime.state.worker.lastUpdate).toLocaleTimeString()}` 
       : "LAST: Waiting...";
   }
   if(msg){
-    if(window.PortalState.workerOnline){
-      msg.innerText = "Live Worker Connected";
-    } else if(window.PortalState.lastWorkerData){
-      msg.innerText = "Offline • Using Last Known Data";
+    if(PortalRuntime.state.worker.online){
+      msg.innerText = PortalRuntime.state.narrative.summary || "Live Worker Connected";
+    } else if(PortalRuntime.state.worker.lastGoodData){
+      msg.innerText = "Offline • Using Cached Data";
     } else {
       msg.innerText = "Waiting For Worker Response";
     }
@@ -652,95 +574,36 @@ function updateFallbackStatus(){
 
 window.addEventListener("online", updateNetworkState);
 window.addEventListener("offline", updateNetworkState);
-
-async function pollWorker(){
-  if(!navigator.onLine){
-    window.PortalState.workerOnline = false;
-    window.PortalState.lastError = "Offline";
-    updateNetworkState();
-    return;
-  }
-
-  const statusEl = document.getElementById("workerStatus");
-
-  try{
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 5000);
-
-    const response = await fetch("https://portal-os1.maxchaz2.workers.dev/api/health", {
-      signal: controller.signal,
-      cache: "no-store"
-    });
-
-    clearTimeout(timeout);
-
-    if(!response.ok){
-      throw new Error("HTTP " + response.status);
-    }
-
-    let data = null;
-    const text = await response.text();
-
-    try{
-      data = JSON.parse(text);
-    }
-    catch{
-      data = {
-        status: "text-response",
-        raw: text
-      };
-    }
-
-    window.PortalState.workerOnline = true;
-    window.PortalState.lastWorkerData = data;
-    window.PortalState.lastWorkerUpdate = new Date().toLocaleTimeString();
-    window.PortalState.lastError = null;
-
-    if(statusEl) {
-      statusEl.innerText = "ONLINE";
-      statusEl.style.color = "var(--success)";
-    }
-
-    logConsole("[WORKER] HEALTH OK");
-    safeSave();
-  }
-  catch(err){
-    window.PortalState.workerOnline = false;
-    window.PortalState.lastError = err.message;
-    /* DO NOT CLEAR lastWorkerData to preserve last known good payload */
-    logConsole("[WORKER] OFFLINE");
-    console.warn("[WORKER]", err.message);
-
-    if(statusEl) {
-      statusEl.innerText = "OFFLINE";
-      statusEl.style.color = "var(--error)";
-    }
-  }
-
-  updateNetworkState();
-}
-
-/* ==========================
-   CONTINUOUS LOOPS & INTERVALS
-========================== */
-setInterval(() => {
-  window.PortalState.telemetry.armSlot = (60 + Math.random()*8).toFixed(1);
-  window.PortalState.telemetry.separation = (2 + Math.random()*4).toFixed(1);
-  safeSave();
-}, 1000);
-
-setInterval(() => {
-  window.PortalState.simulation.probability = (50 + Math.random()*40).toFixed(1);
-  window.PortalState.simulation.coherence = (95 + Math.random()*5).toFixed(1);
-}, 2000);
-
 setInterval(updateFallbackStatus, 1000);
 
-/* ==========================
-   HUD DRAW LOOP
-========================== */
+/* Console Input Listener */
+document.getElementById('consoleInput').addEventListener('keydown', function(event){
+  if(event.key !== 'Enter') return;
+  const cmd = this.value.trim().toLowerCase();
+  if(!cmd) return;
+
+  logConsole('> ' + cmd);
+
+  if(cmd === 'run sim'){
+    PortalRuntime.runSimulation();
+  } else if(cmd === 'status'){
+    logConsole('PORTAL‑OS RUNTIME v0.2 ONLINE');
+  } else if(cmd === 'help'){
+    logConsole('Commands: help, status, run sim, map physics, map compute, map simulation, map cognition, map markets');
+  } else if(cmd.startsWith('map ')){
+    const mapName = cmd.replace('map ', '').trim();
+    if(MAPS[mapName]){
+      location.hash = "/" + mapName;
+    } else {
+      logConsole('Map not found: ' + mapName);
+    }
+  } else {
+    logConsole('Unknown command');
+  }
+  this.value = '';
+});
+
+/* HUD Canvas Render Loop */
 function drawHud(){
   const canvas = document.getElementById("hudCanvas");
   if(!canvas){
@@ -751,81 +614,56 @@ function drawHud(){
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if(window.PortalState.hudEnabled){
+  if(PortalRuntime.state.ui.hudEnabled){
     const w = canvas.width / (window.devicePixelRatio || 1);
     const h = canvas.height / (window.devicePixelRatio || 1);
 
-    ctx.setTransform(
-      window.devicePixelRatio || 1, 0,
-      0, window.devicePixelRatio || 1,
-      0, 0
-    );
+    ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
 
     ctx.strokeStyle = "#00f3ff";
     ctx.lineWidth = 2;
 
-    /* receiver target boxes */
     ctx.strokeRect(w*0.28, h*0.35, w*0.10, h*0.22);
     ctx.strokeRect(w*0.65, h*0.25, w*0.10, h*0.22);
 
-    /* tactical routing line */
     ctx.beginPath();
     ctx.moveTo(w*0.50, h*0.80);
     ctx.lineTo(w*0.33, h*0.46);
     ctx.stroke();
 
-    /* live telemetry text overlay */
     ctx.fillStyle = "#00f3ff";
     ctx.font = "16px monospace";
-    ctx.fillText("ARM SLOT: " + window.PortalState.telemetry.armSlot + "°", 20, 40);
-    ctx.fillText("SEPARATION: " + window.PortalState.telemetry.separation + " yd", 20, 70);
-    ctx.fillText("COHERENCE: " + window.PortalState.simulation.coherence + "%", 20, 100);
-    ctx.fillText("WIN PROB: " + window.PortalState.simulation.probability + "%", 20, 130);
+    ctx.fillText("ARM SLOT: " + PortalRuntime.state.telemetry.armSlot + "°", 20, 40);
+    ctx.fillText("SEPARATION: " + PortalRuntime.state.telemetry.separation + " yd", 20, 70);
+    ctx.fillText("COHERENCE: " + PortalRuntime.state.simulation.coherence + "%", 20, 100);
+    ctx.fillText("WIN PROB: " + PortalRuntime.state.simulation.probability + "%", 20, 130);
     
-    ctx.fillText("WORKER: " + (window.PortalState.workerOnline ? "ONLINE" : "OFFLINE"), 20, 160);
-    ctx.fillText("LAST UPDATE: " + (window.PortalState.lastWorkerUpdate || "Never"), 20, 190);
+    ctx.fillText("WORKER: " + (PortalRuntime.state.worker.online ? "ONLINE" : "OFFLINE"), 20, 160);
+    
+    const updateTime = PortalRuntime.state.worker.lastUpdate ? new Date(PortalRuntime.state.worker.lastUpdate).toLocaleTimeString() : "Never";
+    ctx.fillText("LAST UPDATE: " + updateTime, 20, 190);
 
-    if(window.PortalState.lastWorkerData){
-      const data = window.PortalState.lastWorkerData;
-      ctx.fillText("STATUS: " + (data.status || "UNKNOWN"), 20, 220);
-      ctx.fillText("ENV: " + (data.environment || "n/a"), 20, 250);
-      ctx.fillText("VERSION: " + (data.version || "n/a"), 20, 280);
+    const stale = !PortalRuntime.state.worker.online && PortalRuntime.state.worker.lastGoodData;
+    if(stale){
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillText("DATA STATUS: STALE", 20, 220);
     }
 
-    if(window.PortalState.lastError){
+    if(PortalRuntime.state.worker.lastError){
       ctx.fillStyle = "#ff5555";
-      ctx.fillText("ERROR: " + window.PortalState.lastError, 20, 310);
+      ctx.fillText("ERROR: " + PortalRuntime.state.worker.lastError, 20, 310);
     }
   }
 
   requestAnimationFrame(drawHud);
 }
 
-/* ==========================
-   BOOT SEQUENCE
-========================== */
-window.addEventListener("DOMContentLoaded", async () => {
-  try {
-    safeLoad();
-    restoreConsoleHistory();
-    updateNetworkState();
-
-    const hudStateEl = document.getElementById("hudState");
-    if(hudStateEl){
-      hudStateEl.innerText = window.PortalState.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
-    }
-
-    router();
-    resizeHud();
-    drawHud();
-
-    await pollWorker();
-    setInterval(pollWorker, 10000);
-
-    logConsole("[BOOT] PORTAL-OS READY (LIVE POLLING & RESILIENCE ACTIVE)");
-  } catch(err) {
-    console.error("Boot error:", err);
-  }
+/* Boot Initialization */
+window.addEventListener("DOMContentLoaded", () => {
+  resizeHud();
+  drawHud();
+  updateNetworkState();
+  PortalRuntime.boot();
 });
 </script>
 
