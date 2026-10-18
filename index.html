@@ -32,6 +32,12 @@
         }
     </script>
     <style>
+        :root {
+            --accent: #00f3ff;
+            --panel2: #0f172a;
+            --text: #e2e8f0;
+        }
+
         /* Custom scrollbar for Bloomberg/Terminal aesthetic */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #030712; }
@@ -41,13 +47,69 @@
         .glow-cyan { box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
         .glow-green { box-shadow: 0 0 10px rgba(0, 255, 102, 0.2); }
         .glow-crimson { box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); }
-        
+
         .pulse-subtle {
             animation: pulse-border 2s infinite;
         }
         @keyframes pulse-border {
             0%, 100% { border-color: rgba(0, 243, 255, 0.4); }
             50% { border-color: rgba(0, 243, 255, 0.8); }
+        }
+
+        .video-module {
+            position: relative;
+            height: 500px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: black;
+            border: 1px solid rgba(0, 243, 255, 0.45);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.12);
+        }
+
+        .video-module video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        #hudCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .video-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .video-toolbar button {
+            background: var(--panel2);
+            color: var(--text);
+            padding: 10px 15px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .video-toolbar button:hover {
+            background: var(--accent);
+            color: black;
+        }
+
+        .node-panel {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 130px;
         }
     </style>
 </head>
@@ -99,7 +161,7 @@
 
         <div class="flex items-center space-x-2 w-full sm:w-auto">
             <div class="relative w-full sm:w-64">
-                <input type="text" id="filter-search" onkeyup="filterSlate()" placeholder="SEARCH GAMES / METRICS..." class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-cyan">
+                <input type="text" id="filter-search" onkeyup="filterSlate()" placeholder="SEARCH GAMES / METRICS..." class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1 text-xs font-mono text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-brand-cyan" />
             </div>
             <button onclick="clearFilters()" class="text-slate-400 hover:text-slate-200 text-[11px] px-2 py-1 bg-slate-900 rounded border border-slate-800">RESET</button>
         </div>
@@ -107,10 +169,10 @@
 
     <!-- MAIN TERMINAL DASHBOARD -->
     <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 p-3 overflow-hidden">
-        
+
         <!-- LEFT 8 COLUMNS: TELEMETRY & QUANTUM RISK DESK & CHART -->
         <div class="lg:col-span-8 flex flex-col space-y-3 overflow-y-auto pr-1">
-            
+
             <!-- SECTION 3: LIVE MULTI-GAME TELEMETRY STREAM -->
             <section class="bg-brand-panel border border-slate-800 rounded-lg p-3">
                 <div class="flex items-center justify-between mb-2">
@@ -132,7 +194,6 @@
                             </tr>
                         </thead>
                         <tbody id="telemetry-table-body">
-                            <!-- NO vs NYG -->
                             <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/40 transition">
                                 <td class="p-2">
                                     <div class="font-bold text-white">NO SAINTS @ NY GIANTS</div>
@@ -141,13 +202,12 @@
                                 <td class="p-2 font-bold text-brand-gold">0 - 0</td>
                                 <td class="p-2 space-y-0.5">
                                     <div class="text-[11px]"><span class="text-brand-crimson font-bold">• NO CB2:</span> +14ms Directional Reaction Lag</div>
-                                    <div class="text-[10px] text-slate-400">• NYG OT Stance Hinge: <span class="text-brand-green">1.4° (Optimal)</span> | Pocket: <span class="text-brand-cyan">2.52s</span></div>
+                                    <div class="text-[10px] text-slate-400">• NYG OT Stance Hinge: <span class="text-brand-green">1.4° (Optimal)</span> | Pocket: <span class="text-brand-cyan">2.68s</span></div>
                                 </td>
                                 <td class="p-2 text-right">
                                     <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold">+5.1% EV</span>
                                 </td>
                             </tr>
-                            <!-- CAR vs PHI -->
                             <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/40 transition">
                                 <td class="p-2">
                                     <div class="font-bold text-white">CAR PANTHERS @ PHI EAGLES</div>
@@ -162,7 +222,6 @@
                                     <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold">+6.1% EV</span>
                                 </td>
                             </tr>
-                            <!-- TB vs CLE -->
                             <tr class="game-row slate-mlb border-b border-slate-800/50 hover:bg-slate-900/40 transition">
                                 <td class="p-2">
                                     <div class="font-bold text-white">TB RAYS @ CLE GUARDIANS</div>
@@ -177,7 +236,6 @@
                                     <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 px-2 py-0.5 rounded font-bold text-sm">+8.6% EV</span>
                                 </td>
                             </tr>
-                            <!-- DAL vs GB -->
                             <tr class="game-row slate-nfl hover:bg-slate-900/40 transition">
                                 <td class="p-2">
                                     <div class="font-bold text-white">DAL COWBOYS @ GB PACKERS</div>
@@ -194,6 +252,47 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            <section class="bg-brand-panel border border-slate-800 rounded-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-mono font-bold text-brand-cyan uppercase tracking-wider">MAX-SIM VIDEO INTELLIGENCE</span>
+                    <span class="text-[10px] font-mono bg-emerald-950 text-brand-green px-2 py-0.5 rounded border border-emerald-800/60">SIMULATION FEED</span>
+                </div>
+
+                <div class="video-module">
+                    <video id="simVideo" autoplay controls muted loop playsinline>
+                        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+                    </video>
+                    <canvas id="hudCanvas"></canvas>
+                </div>
+
+                <div class="video-toolbar">
+                    <button onclick="loadView('qb')">QB VIEW</button>
+                    <button onclick="loadView('coverage')">COVERAGE</button>
+                    <button onclick="loadView('trench')">TRENCH CAM</button>
+                    <button onclick="toggleHud()">HUD</button>
+                </div>
+
+                <div class="mt-4 rounded-xl border border-slate-700/80 bg-slate-950/80 p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">UMBRELLA WORKSPACE</span>
+                        <div class="flex gap-2 text-[10px] font-mono">
+                            <button onclick="selectNode('identity')" class="bg-slate-800 text-slate-200 px-2 py-1 rounded border border-slate-700">IDENTITY</button>
+                            <button onclick="selectNode('simulation')" class="bg-slate-800 text-slate-200 px-2 py-1 rounded border border-slate-700">SIM</button>
+                            <button onclick="selectNode('narrative')" class="bg-slate-800 text-slate-200 px-2 py-1 rounded border border-slate-700">NARRATIVE</button>
+                            <button onclick="selectNode('output')" class="bg-slate-800 text-slate-200 px-2 py-1 rounded border border-slate-700">OUTPUT</button>
+                        </div>
+                    </div>
+                    <div id="nodePanel" class="node-panel">
+                        <h4 class="text-sm font-bold text-brand-cyan">Simulation Field</h4>
+                        <p class="mt-2 text-slate-300">MAX-SIM Active</p>
+                        <div class="mt-3 flex gap-2 flex-wrap">
+                            <button onclick="runSimulation()" class="bg-brand-cyan text-black px-3 py-1 rounded font-bold">RUN 100K SIM</button>
+                            <button onclick="focusVideo()" class="bg-slate-800 text-slate-100 px-3 py-1 rounded border border-slate-700">OPEN VIDEO</button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -219,13 +318,12 @@
                             </tr>
                         </thead>
                         <tbody id="quantum-table-body">
-                            <!-- TB Rays ML -->
                             <tr class="game-row slate-mlb border-b border-slate-800/50 hover:bg-slate-900/30">
                                 <td class="p-2 font-bold text-slate-200">
                                     TB Rays Moneyline <span class="text-slate-400 font-normal">(ALCS G5)</span>
                                 </td>
                                 <td class="p-2">
-                                    <button onclick="addWager('TB Rays ML', '-105', 8.6, 'Rays Pitch Tunnel Edge vs CLE starter decay')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                    <button onclick="addWager('TB Rays ML', '-105', 8.6, 'Rays Pitch Tunnel Edge vs CLE starter decay')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 text-brand-cyan rounded px-2 py-1 font-bold">
                                         -105
                                     </button>
                                 </td>
@@ -235,13 +333,12 @@
                                     <span class="bg-cyan-950 text-brand-cyan border border-cyan-500/40 text-[10px] px-2 py-0.5 rounded font-bold">PRIMARY VALUE BUY</span>
                                 </td>
                             </tr>
-                            <!-- GB Packers Spread -->
                             <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/30">
                                 <td class="p-2 font-bold text-slate-200">
                                     GB Packers -2.5 <span class="text-slate-400 font-normal">(DAL @ GB)</span>
                                 </td>
                                 <td class="p-2">
-                                    <button onclick="addWager('Packers -2.5', '-110', 7.8, 'Packers trench leverage vs DAL LT hinge decay')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                    <button onclick="addWager('Packers -2.5', '-110', 7.8, 'Packers trench leverage vs DAL LT hinge decay')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 text-brand-cyan rounded px-2 py-1 font-bold">
                                         -110
                                     </button>
                                 </td>
@@ -251,13 +348,12 @@
                                     <span class="bg-emerald-950 text-brand-green border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-bold">CORE SPREAD</span>
                                 </td>
                             </tr>
-                            <!-- DAL @ GB Under -->
                             <tr class="game-row slate-nfl border-b border-slate-800/50 hover:bg-slate-900/30">
                                 <td class="p-2 font-bold text-slate-200">
                                     DAL @ GB Under 47.5 <span class="text-slate-400 font-normal">(DAL @ GB)</span>
                                 </td>
                                 <td class="p-2">
-                                    <button onclick="addWager('DAL/GB Under 47.5', '-110', 6.4, 'QB rear-hip rotational velocity decay in cold')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                    <button onclick="addWager('DAL/GB Under 47.5', '-110', 6.4, 'QB rear-hip rotational velocity decay in cold')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 text-brand-cyan rounded px-2 py-1 font-bold">
                                         -110
                                     </button>
                                 </td>
@@ -267,13 +363,12 @@
                                     <span class="bg-purple-950 text-brand-purple border border-purple-500/40 text-[10px] px-2 py-0.5 rounded font-bold">MACRO UNDER</span>
                                 </td>
                             </tr>
-                            <!-- NY Giants Spread -->
                             <tr class="game-row slate-nfl hover:bg-slate-900/30">
                                 <td class="p-2 font-bold text-slate-200">
                                     NY Giants -1.5 <span class="text-slate-400 font-normal">(NO @ NYG)</span>
                                 </td>
                                 <td class="p-2">
-                                    <button onclick="addWager('Giants -1.5', '-110', 5.1, 'Saints CB2 directional hip latency +14ms')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 px-2.5 py-1 rounded text-brand-cyan font-bold transition">
+                                    <button onclick="addWager('Giants -1.5', '-110', 5.1, 'Saints CB2 directional hip latency +14ms')" class="odds-btn hover:border-brand-cyan border border-slate-700 bg-slate-900 text-brand-cyan rounded px-2 py-1 font-bold">
                                         -110
                                     </button>
                                 </td>
@@ -314,7 +409,7 @@
 
         <!-- RIGHT 4 COLUMNS: INTERACTIVE BET SLIP & TERMINAL CLI -->
         <div class="lg:col-span-4 flex flex-col space-y-3 overflow-y-auto">
-            
+
             <!-- SECTION 5: INTERACTIVE BET SLIP & PORTFOLIO ALLOCATOR -->
             <section class="bg-brand-panel border border-slate-800 rounded-lg p-3 flex flex-col glow-cyan flex-1">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
@@ -325,14 +420,12 @@
                     <button onclick="clearSlip()" class="text-[10px] font-mono text-slate-500 hover:text-brand-crimson transition">CLEAR ALL</button>
                 </div>
 
-                <!-- Slip Tickets Selection -->
                 <div id="slip-wagers-container" class="space-y-2 mb-3 max-h-56 overflow-y-auto pr-1">
                     <div id="slip-empty-state" class="text-center py-6 text-slate-600 font-mono text-xs">
                         No positions selected.<br>Click market odds to stage wagers.
                     </div>
                 </div>
 
-                <!-- Structured Ticket Presets -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded p-2 mb-3 font-mono text-xs space-y-2">
                     <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">QUICK MULTI-LEG STRUCTURES</div>
                     <div class="grid grid-cols-1 gap-1.5">
@@ -360,12 +453,11 @@
                     </div>
                 </div>
 
-                <!-- Unit Input & Payout Summary -->
                 <div class="bg-slate-950 rounded border border-slate-800 p-2.5 font-mono text-xs space-y-2 mt-auto">
                     <div class="flex justify-between items-center">
                         <span class="text-slate-400">STAKE UNIT:</span>
                         <div class="flex items-center space-x-1">
-                            <input type="number" id="unit-stake-input" value="1.0" step="0.5" min="0.1" onchange="calculatePayout()" class="w-16 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-right font-bold text-slate-100 focus:outline-none focus:border-brand-cyan">
+                            <input type="number" id="unit-stake-input" value="1.0" step="0.5" min="0.1" onchange="calculatePayout()" class="w-16 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-slate-100 focus:outline-none focus:border-brand-cyan" />
                             <span class="text-slate-400">Units</span>
                         </div>
                     </div>
@@ -378,7 +470,7 @@
                         <span id="expected-yield" class="text-brand-cyan font-bold">+0.00%</span>
                     </div>
 
-                    <button onclick="executeAllocation()" class="w-full mt-2 bg-brand-cyan hover:bg-cyan-400 text-black font-extrabold py-2 rounded shadow-lg transition uppercase tracking-wider text-xs">
+                    <button onclick="executeAllocation()" class="w-full mt-2 bg-brand-cyan hover:bg-cyan-400 text-black font-extrabold py-2 rounded shadow-lg transition uppercase tracking-wider text-[10px]">
                         EXECUTE CAPITAL ALLOCATION
                     </button>
                 </div>
@@ -391,20 +483,17 @@
                     <span class="text-[10px] font-mono text-slate-500">SYSTEM INTERACTION</span>
                 </div>
 
-                <!-- Console Output Area -->
                 <div id="cli-output" class="flex-1 bg-black/80 rounded border border-slate-800/80 p-2 font-mono text-[11px] overflow-y-auto space-y-1 text-slate-300">
                     <div class="text-brand-cyan">MAX SPORTS Terminal v4.1 initialized...</div>
                     <div class="text-slate-500">Type 'HELP' for available macro commands.</div>
                 </div>
 
-                <!-- CLI Input Line -->
                 <form onsubmit="handleCliSubmit(event)" class="mt-2 flex items-center space-x-1">
                     <span class="font-mono text-brand-cyan text-xs font-bold">&gt;</span>
-                    <input type="text" id="cli-input" placeholder="Type command (e.g. TRENCH CHECK, CAPTURE CLV)..." class="flex-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 font-mono text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-cyan">
+                    <input type="text" id="cli-input" placeholder="Type command (e.g. TRENCH CHECK, CAPTURE CLV)..." class="flex-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 font-mono text-[11px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-brand-cyan" />
                     <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 font-mono text-xs rounded border border-slate-700">RUN</button>
                 </form>
 
-                <!-- Macro Quick Action Bar -->
                 <div class="grid grid-cols-3 gap-1 mt-2 text-[10px] font-mono">
                     <button onclick="runMacro('TRENCH CHECK')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 py-1 rounded text-center truncate">TRENCH CHECK</button>
                     <button onclick="runMacro('QB TELEMETRY')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 py-1 rounded text-center truncate">QB TELEMETRY</button>
@@ -421,6 +510,146 @@
         let stagedWagers = [];
         let currentChartMetric = 'arm';
         let chartAnimationId = null;
+        let hudEnabled = true;
+
+        function toggleSlipModal() {
+            let modal = document.getElementById('portfolio-slip-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'portfolio-slip-modal';
+                modal.className = 'fixed inset-0 bg-black/80 hidden items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-700 rounded-xl w-[90%] max-w-xl shadow-2xl">
+                        <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+                            <span class="font-mono text-brand-cyan font-bold uppercase tracking-wider">Portfolio Slip</span>
+                            <button onclick="toggleSlipModal()" class="text-slate-400 hover:text-white">✕</button>
+                        </div>
+                        <div class="p-4 font-mono text-sm text-slate-300">
+                            <div class="text-brand-green font-bold">Active positions: ${stagedWagers.length}</div>
+                            <div class="mt-3 space-y-2">
+                                ${stagedWagers.length ? stagedWagers.map(w => `<div class="border border-slate-800 rounded p-2">${w.selection} <span class="text-brand-green">${w.odds}</span></div>`).join('') : '<div class="text-slate-500">No positions staged.</div>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function resizeHUD() {
+            const hud = document.getElementById('hudCanvas');
+            if (!hud) return;
+            hud.width = hud.offsetWidth;
+            hud.height = hud.offsetHeight;
+        }
+
+        function drawHUD() {
+            const hud = document.getElementById('hudCanvas');
+            if (!hud) return;
+            const hctx = hud.getContext('2d');
+            if (!hctx) return;
+
+            if (!hudEnabled) {
+                hctx.clearRect(0, 0, hud.width, hud.height);
+                requestAnimationFrame(drawHUD);
+                return;
+            }
+
+            hctx.clearRect(0, 0, hud.width, hud.height);
+            hctx.strokeStyle = '#00ffff';
+            hctx.lineWidth = 2;
+            hctx.font = '16px Arial';
+            hctx.fillStyle = '#00ffff';
+
+            hctx.strokeRect(250, 150, 80, 120);
+            hctx.fillText('WR1', 255, 140);
+
+            hctx.strokeRect(500, 100, 80, 120);
+            hctx.fillText('WR2', 505, 90);
+
+            hctx.beginPath();
+            hctx.moveTo(420, 350);
+            hctx.lineTo(290, 200);
+            hctx.stroke();
+
+            hctx.fillStyle = '#00ff88';
+            hctx.fillText('ARM SLOT 64.2°', 20, 40);
+            hctx.fillText('SEPARATION 3.2 yd', 20, 70);
+            hctx.fillText('TORQUE 92.7', 20, 100);
+
+            requestAnimationFrame(drawHUD);
+        }
+
+        function toggleHud() {
+            hudEnabled = !hudEnabled;
+            logToCli(hudEnabled ? 'HUD overlay enabled.' : 'HUD overlay disabled.');
+        }
+
+        function loadView(view) {
+            const video = document.getElementById('simVideo');
+            if (!video) return;
+            const sourceMap = {
+                qb: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+                coverage: 'https://www.w3schools.com/html/mov_bbb.mp4',
+                trench: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
+            };
+            if (sourceMap[view]) {
+                video.src = sourceMap[view];
+            }
+            if (video && !video.paused) {
+                video.pause();
+            }
+            video.play();
+        }
+
+        function focusVideo() {
+            const video = document.getElementById('simVideo');
+            if (video) {
+                video.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function runSimulation() {
+            logToCli('[SIMULATION]: RUN 100K SIM // probability model recalibrated.');
+            const video = document.getElementById('simVideo');
+            if (video) {
+                video.currentTime = 0;
+                video.play();
+            }
+        }
+
+        function selectNode(node) {
+            const panel = document.getElementById('nodePanel');
+            if (!panel) return;
+
+            if (node === 'identity') {
+                panel.innerHTML = `
+                    <h4 class="text-sm font-bold text-brand-cyan">Identity Field</h4>
+                    <p class="mt-2 text-slate-300">Core system identities loaded.</p>
+                `;
+            } else if (node === 'simulation') {
+                panel.innerHTML = `
+                    <h4 class="text-sm font-bold text-brand-cyan">Simulation Field</h4>
+                    <p class="mt-2 text-slate-300">MAX-SIM Active</p>
+                    <div class="mt-3 flex gap-2 flex-wrap">
+                        <button onclick="runSimulation()" class="bg-brand-cyan text-black px-3 py-1 rounded font-bold">RUN 100K SIM</button>
+                        <button onclick="focusVideo()" class="bg-slate-800 text-slate-100 px-3 py-1 rounded border border-slate-700">OPEN VIDEO</button>
+                    </div>
+                `;
+            } else if (node === 'narrative') {
+                panel.innerHTML = `
+                    <h4 class="text-sm font-bold text-brand-cyan">Narrative Field</h4>
+                    <p class="mt-2 text-slate-300">Reporting Layer Active</p>
+                `;
+            } else if (node === 'output') {
+                panel.innerHTML = `
+                    <h4 class="text-sm font-bold text-brand-cyan">Output Layer</h4>
+                    <p class="mt-2 text-slate-300">Predictions Available</p>
+                `;
+            }
+        }
 
         // Initialize Live Clock & Dynamic Latency
         function updateClock() {
@@ -560,11 +789,10 @@
                 return;
             }
 
-            // Estimate multiplier
             let multiplier = 1.0;
             let combinedEv = 0;
             stagedWagers.forEach(w => {
-                multiplier *= 1.91; // ~American -110 average payout
+                multiplier *= 1.91;
                 combinedEv += wagerEvToDecimal(w.ev);
             });
 
@@ -618,8 +846,7 @@
             const canvas = document.getElementById('analytics-canvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            
-            // Handle DPI resizing
+
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
             const w = canvas.width;
@@ -627,7 +854,6 @@
 
             ctx.clearRect(0, 0, w, h);
 
-            // Draw Grid
             ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 1;
             for (let x = 0; x < w; x += 40) {
@@ -637,7 +863,6 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
             }
 
-            // Generate synthetic points depending on metric
             ctx.beginPath();
             ctx.lineWidth = 2;
             let strokeColor = '#00f3ff';
@@ -672,7 +897,6 @@
             }
             ctx.stroke();
 
-            // Gradient fill under chart line
             ctx.lineTo(w, h);
             ctx.lineTo(0, h);
             ctx.closePath();
@@ -699,21 +923,44 @@
         function runMacro(command) {
             logToCli(`> ${command}`);
             const upper = command.toUpperCase();
+            const normalized = upper.replace(/\s+/g, ' ').trim();
 
-            if (upper === 'TRENCH CHECK') {
+            if (normalized === 'TRENCH CHECK') {
                 logToCli('[TRENCH CHECK]: NYG OT Hinge 1.4° | PHI Pocket 2.68s | DAL LT Hinge Decay >2.5°');
-            } else if (upper === 'QB TELEMETRY') {
+            } else if (normalized === 'QB TELEMETRY') {
                 logToCli('[QB TELEMETRY]: Arm-Slot 64.2° | Plant-Foot Variance <1.2% | Velocity Nominal');
-            } else if (upper === 'CAPTURE CLV') {
+            } else if (normalized === 'CAPTURE CLV') {
                 logToCli('[CAPTURE CLV]: Preserving 79.4% CLV Edge across active slate tickets.');
-            } else if (upper === 'DECAY AUDIT') {
+            } else if (normalized === 'DECAY AUDIT') {
                 logToCli('[DECAY AUDIT]: NO CB2 +14ms hip lag | CLE Starter stride shortening projected.');
-            } else if (upper === 'QUANTUM SYNC') {
+            } else if (normalized === 'QUANTUM SYNC') {
                 logToCli('[QUANTUM SYNC]: QUBO true pricing updated. Active portfolio yield: +23.39%.');
-            } else if (upper === 'HELP') {
-                logToCli('Available commands: TRENCH CHECK, QB TELEMETRY, CAPTURE CLV, DECAY AUDIT, QUANTUM SYNC, CLEAR');
-            } else if (upper === 'CLEAR') {
+            } else if (normalized === 'HELP' || normalized === 'STATUS') {
+                logToCli('Available commands: HELP, STATUS, TRENCH CHECK, QB TELEMETRY, CAPTURE CLV, DECAY AUDIT, QUANTUM SYNC, VIDEO, VIDEO QB, VIDEO COVERAGE, VIDEO TRENCH, RUN BILLS_JETS, UMBRELLA STRICT, UMBRELLA ADVISORY, RISK AUDIT, FIELD COHERENCE, CLEAR');
+            } else if (normalized === 'CLEAR') {
                 document.getElementById('cli-output').innerHTML = '';
+            } else if (normalized === 'VIDEO') {
+                focusVideo();
+                logToCli('[VIDEO]: MAX-SIM stream focused and active.');
+            } else if (normalized === 'VIDEO QB') {
+                loadView('qb');
+                logToCli('[VIDEO]: QB view loaded.');
+            } else if (normalized === 'VIDEO COVERAGE') {
+                loadView('coverage');
+                logToCli('[VIDEO]: Coverage view loaded.');
+            } else if (normalized === 'VIDEO TRENCH') {
+                loadView('trench');
+                logToCli('[VIDEO]: Trench cam loaded.');
+            } else if (normalized === 'RUN BILLS_JETS') {
+                logToCli('[SIMULATION]: Bills Jets model initiated. Risk posture aligned to MAX-QUANTUM priors.');
+            } else if (normalized === 'UMBRELLA STRICT') {
+                logToCli('[UMBRELLA]: strict mode enabled. Simulation guardrails applied.');
+            } else if (normalized === 'UMBRELLA ADVISORY') {
+                logToCli('[UMBRELLA]: advisory mode enabled. Narrative overlays remain informational.');
+            } else if (normalized === 'RISK AUDIT') {
+                logToCli('[RISK AUDIT]: Portfolio variance stable. No breach across active EV tiers.');
+            } else if (normalized === 'FIELD COHERENCE') {
+                logToCli('[FIELD COHERENCE]: Identity → Simulation → Narrative stack is synchronized.');
             } else {
                 logToCli(`Unknown directive '${command}'. Type 'HELP' for commands.`);
             }
@@ -731,46 +978,12 @@
         // On Load Initializations
         window.onload = function() {
             drawAnalyticsChart();
+            drawHUD();
+            resizeHUD();
+            selectNode('simulation');
             logToCli('SATELLITE INGEST ACTIVE (<184ms)');
             logToCli('MAX-QUANTUM Portfolio Engine online.');
         };
     </script>
 </body>
 </html>
-.video-module{
-
-position:relative;
-
-width:100%;
-height:500px;
-
-border-radius:14px;
-
-overflow:hidden;
-
-background:black;
-
-}
-
-.video-module video{
-
-width:100%;
-height:100%;
-
-object-fit:cover;
-
-}
-
-#hudCanvas{
-
-position:absolute;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-pointer-events:none;
-
-}
