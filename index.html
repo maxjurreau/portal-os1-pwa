@@ -211,7 +211,10 @@ z-index:10;
 <h1>PORTAL‑OS‑1 <span style="font-size:14px; color:var(--accent);">v0.2</span></h1>
 <div class="subtitle">MAX‑SIM • Five Great Maps • Umbrella • Identity → Simulation → Narrative</div>
 </div>
+<div style="display:flex; gap:10px;">
 <button class="portal-btn" onclick="PortalRuntime.runSimulation()">RUN SIM</button>
+<button class="portal-btn" style="background:#ef4444; color:white;" onclick="PortalRuntime.cancelSimulation()">CANCEL</button>
+</div>
 </div>
 
 <div class="grid">
@@ -245,7 +248,7 @@ z-index:10;
 <div class="sidebar-section">
 <div class="sidebar-title">System Status</div>
 <div>Portal‑OS: <span style="color:var(--success)">ONLINE</span></div>
-<div>MAX‑SIM: <span style="color:var(--success)">READY</span></div>
+<div>MAX‑SIM: <span style="color:var(--success)">READY</span> (<span id="simProgress">0%</span>)</div>
 <div>Worker API: <span id="workerStatus" style="color:#f59e0b">CHECKING...</span></div>
 <div>Narrative State: <span id="narrativeStatus" style="color:var(--accent)">idle</span></div>
 </div>
@@ -313,7 +316,7 @@ font-weight:bold;
 <script src="/js/runtime.js"></script>
 <script>
 /* ==========================
-   UI BINDINGS & VIEW LAYER
+   UI VIEW LAYER BINDINGS
 ========================== */
 const MAPS = {
   physics: {
@@ -346,27 +349,6 @@ const MAPS = {
     widgets: [["Risk", "LOW"], ["Signals", "7"], ["Liquidity", "HIGH"]]
   }
 };
-
-function logConsole(text){
-  const consoleEl = document.getElementById('console');
-  if(consoleEl){
-    consoleEl.innerHTML += `<br>${text}`;
-    consoleEl.scrollTop = consoleEl.scrollHeight;
-  }
-  PortalRuntime.state.console.push(text);
-  if(PortalRuntime.state.console.length > 50){
-    PortalRuntime.state.console.shift();
-  }
-  PortalRuntime.save();
-}
-
-function restoreConsoleHistory(){
-  const consoleEl = document.getElementById('console');
-  if(consoleEl && PortalRuntime.state.console && PortalRuntime.state.console.length > 0){
-    consoleEl.innerHTML = PortalRuntime.state.console.join("<br>");
-    consoleEl.scrollTop = consoleEl.scrollHeight;
-  }
-}
 
 function renderMap(name){
   if(!MAPS[name]) name = "physics";
@@ -404,46 +386,46 @@ function renderMap(name){
 }
 
 /* ==========================
-   EVENT BUS SUBSCRIBERS (UI)
+   EVENT SUBSCRIBERS
 ========================== */
 PortalRuntime.EventBus.on("portal.ready", () => {
-  restoreConsoleHistory();
-  logConsole("[BOOT] PORTAL RUNTIME v0.2 ACTIVE");
+  PortalRuntime.log("[BOOT] PORTAL RUNTIME v0.2.1 ACTIVE");
 });
 
 PortalRuntime.EventBus.on("route.changed", (route) => {
   renderMap(route);
-  logConsole("[MAP] " + route);
+  PortalRuntime.log("[MAP] " + route);
 });
 
-PortalRuntime.EventBus.on("simulation.started", () => {
-  logConsole("[MAX‑SIM] Starting execution...");
-});
-
-PortalRuntime.EventBus.on("simulation.progress", (payload) => {
-  logConsole(`[MAX‑SIM] Progress: ${payload.progress}%`);
+PortalRuntime.EventBus.on("simulation.started", (payload) => {
+  PortalRuntime.log(`[MAX‑SIM] Starting execution (${payload.iterations} iterations)...`);
 });
 
 PortalRuntime.EventBus.on("simulation.completed", (sim) => {
-  logConsole(`[COMPLETE] Iterations: ${sim.iterations.toLocaleString()} | Coherence: ${sim.coherence}% | Prob: ${sim.probability}%`);
+  PortalRuntime.log(`[COMPLETE] Iterations: ${sim.iterations.toLocaleString()} | Coherence: ${sim.coherence}% | Prob: ${sim.probability}%`);
   if(PortalRuntime.state.navigation.currentMap === 'simulation'){
     renderMap('simulation');
   }
 });
 
+PortalRuntime.EventBus.on("simulation.cancelled", () => {
+  PortalRuntime.log("[MAX-SIM] Execution cancelled by operator.");
+  const prog = document.getElementById("simProgress");
+  if(prog) prog.innerText = "CANCELLED";
+});
+
+PortalRuntime.EventBus.on("simulation.timeout", () => {
+  PortalRuntime.log("[MAX-SIM ERROR] Execution timed out (30s limit exceeded).");
+});
+
+PortalRuntime.EventBus.on("simulation.error", (err) => {
+  PortalRuntime.log("[MAX-SIM ERROR] " + err.message);
+});
+
 PortalRuntime.EventBus.on("narrative.generated", (narrative) => {
   const ns = document.getElementById("narrativeStatus");
   if(ns) ns.innerText = narrative.state;
-  logConsole(`[NARRATIVE] ${narrative.summary}`);
-});
-
-PortalRuntime.EventBus.on("worker.updated", () => {
-  const statusEl = document.getElementById("workerStatus");
-  if(statusEl){
-    statusEl.innerText = "ONLINE";
-    statusEl.style.color = "var(--success)";
-  }
-  logConsole("[WORKER] HEALTH OK");
+  PortalRuntime.log(`[NARRATIVE] ${narrative.summary}`);
 });
 
 PortalRuntime.EventBus.on("worker.error", () => {
@@ -452,7 +434,7 @@ PortalRuntime.EventBus.on("worker.error", () => {
     statusEl.innerText = "OFFLINE";
     statusEl.style.color = "var(--error)";
   }
-  logConsole("[WORKER] OFFLINE");
+  PortalRuntime.log("[WORKER] OFFLINE");
 });
 
 /* ==========================
@@ -477,7 +459,7 @@ function loadView(view){
     const fallback = document.getElementById("videoFallback");
     fallback.style.display = "flex";
     document.getElementById("fallbackMessage").innerText = `Missing Video: ${view}`;
-    logConsole(`[VIDEO] Missing asset: ${view}`);
+    PortalRuntime.log(`[VIDEO] Missing asset: ${view}`);
   };
 
   video.onloadeddata = () => {
@@ -488,7 +470,7 @@ function loadView(view){
     video.src = files[view];
     video.load();
     video.play().catch(() => {
-      logConsole("[VIDEO] User interaction required");
+      PortalRuntime.log("[VIDEO] User interaction required");
       const button = document.getElementById("playOverlay");
       button.style.display = "inline-block";
       document.getElementById("videoFallback").style.display = "flex";
@@ -504,7 +486,7 @@ function loadView(view){
         }
       };
     });
-    logConsole("[VIEW] Loaded " + view);
+    PortalRuntime.log("[VIEW] Loaded " + view);
   }
 }
 
@@ -514,9 +496,9 @@ async function startCamera(){
     const camera = document.getElementById("liveVideo");
     camera.srcObject = cameraStream;
     camera.style.display = "block";
-    logConsole("[CAMERA] ACTIVE");
+    PortalRuntime.log("[CAMERA] ACTIVE");
   } catch(err) {
-    logConsole("[CAMERA] DENIED / UNAVAILABLE");
+    PortalRuntime.log("[CAMERA] DENIED / UNAVAILABLE");
   }
 }
 
@@ -526,7 +508,7 @@ function toggleHud(){
   
   const statusEl = document.getElementById("hudState");
   statusEl.innerText = PortalRuntime.state.ui.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
-  logConsole("[HUD] " + (PortalRuntime.state.ui.hudEnabled ? "ENABLED" : "DISABLED"));
+  PortalRuntime.log("[HUD] " + (PortalRuntime.state.ui.hudEnabled ? "ENABLED" : "DISABLED"));
 }
 
 function resizeHud(){
@@ -582,23 +564,25 @@ document.getElementById('consoleInput').addEventListener('keydown', function(eve
   const cmd = this.value.trim().toLowerCase();
   if(!cmd) return;
 
-  logConsole('> ' + cmd);
+  PortalRuntime.log('> ' + cmd);
 
   if(cmd === 'run sim'){
     PortalRuntime.runSimulation();
+  } else if(cmd === 'cancel sim'){
+    PortalRuntime.cancelSimulation();
   } else if(cmd === 'status'){
-    logConsole('PORTAL‑OS RUNTIME v0.2 ONLINE');
+    PortalRuntime.log('PORTAL‑OS RUNTIME v0.2 ONLINE');
   } else if(cmd === 'help'){
-    logConsole('Commands: help, status, run sim, map physics, map compute, map simulation, map cognition, map markets');
+    PortalRuntime.log('Commands: help, status, run sim, cancel sim, map physics, map compute, map simulation, map cognition, map markets');
   } else if(cmd.startsWith('map ')){
     const mapName = cmd.replace('map ', '').trim();
     if(MAPS[mapName]){
       location.hash = "/" + mapName;
     } else {
-      logConsole('Map not found: ' + mapName);
+      PortalRuntime.log('Map not found: ' + mapName);
     }
   } else {
-    logConsole('Unknown command');
+    PortalRuntime.log('Unknown command');
   }
   this.value = '';
 });
