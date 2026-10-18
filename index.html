@@ -3,11 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
 <title>PORTAL‑OS‑1</title>
-
 <style>
-
 :root{
 --bg:#030712;
 --panel:#0f172a;
@@ -16,64 +13,55 @@
 --accent:#00f3ff;
 --border:#1e293b;
 --success:#22c55e;
+--error:#ef4444;
 }
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
 font-family:Inter,Arial,sans-serif;
 }
-
 body{
 background:var(--bg);
 color:var(--text);
 min-height:100vh;
 padding:20px;
 }
-
 .header{
 display:flex;
 justify-content:space-between;
 align-items:center;
 margin-bottom:20px;
 }
-
 h1{
 font-size:28px;
 }
-
 .subtitle{
 color:#94a3b8;
 font-size:14px;
 }
-
 .card{
 background:var(--panel);
 border:1px solid var(--border);
 border-radius:14px;
 padding:16px;
 }
-
 .grid{
 display:grid;
 grid-template-columns:1fr 340px;
 gap:18px;
 }
-
 @media(max-width:1000px){
 .grid{
 grid-template-columns:1fr;
 }
 }
-
 .map-tabs{
 display:flex;
 gap:8px;
 flex-wrap:wrap;
 margin-bottom:15px;
 }
-
 .map-tab{
 padding:10px 12px;
 border:none;
@@ -82,53 +70,44 @@ color:white;
 cursor:pointer;
 border-radius:10px;
 }
-
 .map-tab.active{
 background:var(--accent);
 color:black;
 font-weight:bold;
 }
-
 #mapWorkspace{
 min-height:260px;
 padding:10px;
 }
-
 .widget-grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
 gap:10px;
 margin-top:20px;
 }
-
 .widget{
 padding:12px;
 background:#08111f;
 border-radius:12px;
 border:1px solid #11304a;
 }
-
 .widget-title{
 font-size:12px;
 color:#94a3b8;
 }
-
 .widget-value{
 font-size:28px;
 margin-top:8px;
 color:var(--accent);
 }
-
 .sidebar-section{
 margin-bottom:18px;
 }
-
 .sidebar-title{
 margin-bottom:10px;
 font-size:14px;
 font-weight:bold;
 }
-
 .node{
 padding:10px;
 background:#08111f;
@@ -136,11 +115,9 @@ border-radius:10px;
 margin-bottom:8px;
 cursor:pointer;
 }
-
 .node:hover{
 border:1px solid var(--accent);
 }
-
 button.portal-btn{
 padding:10px 14px;
 background:var(--accent);
@@ -150,7 +127,6 @@ border:none;
 border-radius:10px;
 cursor:pointer;
 }
-
 .console{
 height:180px;
 overflow:auto;
@@ -160,7 +136,6 @@ border-radius:10px;
 font-family:monospace;
 font-size:12px;
 }
-
 .console-input{
 width:100%;
 margin-top:10px;
@@ -170,12 +145,9 @@ border-radius:10px;
 background:#08111f;
 color:white;
 }
-
-/* Video Panel Styles */
 .video-panel{
 margin-top:20px;
 }
-
 .video-container{
 position:relative;
 height:500px;
@@ -184,7 +156,6 @@ border-radius:12px;
 border:1px solid var(--border);
 background:black;
 }
-
 .video-container video{
 position:absolute;
 inset:0;
@@ -192,7 +163,6 @@ width:100%;
 height:100%;
 object-fit:cover;
 }
-
 #hudCanvas{
 position:absolute;
 inset:0;
@@ -200,14 +170,12 @@ width:100%;
 height:100%;
 pointer-events:none;
 }
-
 .video-controls{
 display:flex;
 gap:10px;
 flex-wrap:wrap;
 margin-bottom:12px;
 }
-
 .hud-status{
 position:absolute;
 right:10px;
@@ -219,55 +187,36 @@ font-size:12px;
 color:#00f3ff;
 z-index:10;
 }
-
 </style>
-
 </head>
-
 <body>
 
 <div class="header">
 <div>
 <h1>PORTAL‑OS‑1</h1>
-<div class="subtitle">
-MAX‑SIM • Five Great Maps • Umbrella
+<div class="subtitle">MAX‑SIM • Five Great Maps • Umbrella • Worker State</div>
 </div>
-</div>
-<button class="portal-btn" onclick="runSimulation()">
-RUN SIM
-</button>
+<button class="portal-btn" onclick="runSimulation()">RUN SIM</button>
 </div>
 
 <div class="grid">
-
 <!-- LEFT -->
 <div class="card">
 <div class="map-tabs">
-<button class="map-tab active" onclick="selectMap('physics',this)">Physics</button>
-<button class="map-tab" onclick="selectMap('compute',this)">Compute</button>
-<button class="map-tab" onclick="selectMap('simulation',this)">Simulation</button>
-<button class="map-tab" onclick="selectMap('cognition',this)">Cognition</button>
-<button class="map-tab" onclick="selectMap('markets',this)">Markets</button>
+<button class="map-tab active" onclick="selectMap('physics')">Physics</button>
+<button class="map-tab" onclick="selectMap('compute')">Compute</button>
+<button class="map-tab" onclick="selectMap('simulation')">Simulation</button>
+<button class="map-tab" onclick="selectMap('cognition')">Cognition</button>
+<button class="map-tab" onclick="selectMap('markets')">Markets</button>
 </div>
 
 <div id="mapWorkspace">
 <h2>Physical Substrates</h2>
-<p style="margin-top:12px;color:#94a3b8;">
-Quantum Systems, Relativity, Thermodynamics, Physical Simulation
-</p>
-<div class="widget-grid">
-<div class="widget">
-<div class="widget-title">Field Status</div>
-<div class="widget-value">97%</div>
-</div>
-<div class="widget">
-<div class="widget-title">Curvature</div>
-<div class="widget-value">0.92</div>
-</div>
-<div class="widget">
-<div class="widget-title">Entropy</div>
-<div class="widget-value">LOW</div>
-</div>
+<p style="margin-top:12px;color:#94a3b8;">Quantum Systems, Relativity, Thermodynamics, Physical Simulation</p>
+<div class="widget-grid" id="widgetGrid">
+<div class="widget"><div class="widget-title">Field Status</div><div class="widget-value">97%</div></div>
+<div class="widget"><div class="widget-title">Curvature</div><div class="widget-value">0.92</div></div>
+<div class="widget"><div class="widget-title">Entropy</div><div class="widget-value">LOW</div></div>
 </div>
 </div>
 </div>
@@ -284,8 +233,9 @@ Quantum Systems, Relativity, Thermodynamics, Physical Simulation
 
 <div class="sidebar-section">
 <div class="sidebar-title">System Status</div>
-<div>Portal‑OS: <span style="color:#22c55e">ONLINE</span></div>
-<div>MAX‑SIM: <span style="color:#22c55e">READY</span></div>
+<div>Portal‑OS: <span style="color:var(--success)">ONLINE</span></div>
+<div>MAX‑SIM: <span style="color:var(--success)">READY</span></div>
+<div>Worker API: <span id="workerStatus" style="color:#f59e0b">CHECKING...</span></div>
 </div>
 
 <div class="sidebar-section">
@@ -294,15 +244,11 @@ Quantum Systems, Relativity, Thermodynamics, Physical Simulation
 <input id="consoleInput" class="console-input" placeholder="run sim">
 </div>
 </div>
-
 </div>
 
 <!-- VIDEO PANEL -->
 <div class="card video-panel">
-<h2 style="margin-bottom:10px;">
-MAX‑SIM VIDEO HUD
-</h2>
-
+<h2 style="margin-bottom:10px;">MAX‑SIM VIDEO HUD</h2>
 <div class="video-controls">
 <button class="portal-btn" onclick="startCamera()">Camera</button>
 <button class="portal-btn" onclick="toggleHud()">HUD</button>
@@ -310,7 +256,6 @@ MAX‑SIM VIDEO HUD
 <button class="portal-btn" onclick="loadView('coverage')">Coverage</button>
 <button class="portal-btn" onclick="loadView('trench')">Trench</button>
 </div>
-
 <div class="video-container">
 <div id="hudState" class="hud-status">HUD ACTIVE</div>
 <video id="simVideo" autoplay muted loop playsinline></video>
@@ -320,297 +265,381 @@ MAX‑SIM VIDEO HUD
 </div>
 
 <script>
-
 /* ==========================
-   FIVE GREAT MAPS
+   PORTAL STATE & STORAGE
 ========================== */
+const STORAGE_KEY = "PORTAL_OS_STATE_V2";
 
-const MAPS = {
-physics: {
-title:"Physical Substrates",
-description:"Fields, thermodynamics, physics models",
-widgets:[["Field Status","97%"],["Curvature","0.92"],["Entropy","LOW"]]
-},
-compute: {
-title:"Compute Architecture",
-description:"Kernel, routing, workers, IPC",
-widgets:[["Kernel","ONLINE"],["IPC","ACTIVE"],["Latency","12ms"]]
-},
-simulation: {
-title:"MAX‑SIM",
-description:"Simulation systems and propagation engines",
-widgets:[["Iterations","100K"],["Coherence","97.3"],["Agents","214"]]
-},
-cognition: {
-title:"Intent & Cognition",
-description:"Identity agents and decision systems",
-widgets:[["Agents","42"],["Nodes","311"],["Goals","ACTIVE"]]
-},
-markets: {
-title:"Value & Order",
-description:"Markets, liquidity and signals",
-widgets:[["Risk","LOW"],["Signals","7"],["Liquidity","HIGH"]]
-}
+window.PortalState = {
+  currentMap: "physics",
+  hudEnabled: true,
+  simulation: {
+    iterations: 0,
+    coherence: 97.3,
+    probability: 68.2
+  },
+  telemetry: {
+    armSlot: 64.2,
+    separation: 3.1,
+    coherence: 97.4,
+    probability: 68.2
+  },
+  consoleHistory: ["[BOOT] PORTAL‑OS READY"]
 };
 
-function selectMap(name, button){
-document.querySelectorAll('.map-tab').forEach(tab => {
-tab.classList.remove('active');
-});
-
-if(button){
-button.classList.add('active');
+function saveState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(window.PortalState));
+  } catch(e) {
+    console.warn("Storage write failed", e);
+  }
 }
 
-const map = MAPS[name];
-const workspace = document.getElementById('mapWorkspace');
-
-workspace.innerHTML = `
-<h2>${map.title}</h2>
-<p style="margin-top:12px;color:#94a3b8;">${map.description}</p>
-<div class="widget-grid" id="widgetGrid"></div>
-`;
-
-const grid = document.getElementById('widgetGrid');
-map.widgets.forEach(widget=>{
-const el = document.createElement('div');
-el.className = 'widget';
-el.innerHTML = `
-<div class="widget-title">${widget[0]}</div>
-<div class="widget-value">${widget[1]}</div>
-`;
-grid.appendChild(el);
-});
-
-logConsole('[MAP] ' + name);
+function loadState(){
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved){
+      const parsed = JSON.parse(saved);
+      window.PortalState = { ...window.PortalState, ...parsed };
+    }
+  } catch(e) {
+    console.warn("Storage read failed", e);
+  }
 }
+
+/* ==========================
+   FIVE GREAT MAPS DATA
+========================== */
+const MAPS = {
+  physics: {
+    title: "Physical Substrates",
+    description: "Fields, thermodynamics, physics models",
+    widgets: [["Field Status", "97%"], ["Curvature", "0.92"], ["Entropy", "LOW"]]
+  },
+  compute: {
+    title: "Compute Architecture",
+    description: "Kernel, routing, workers, IPC",
+    widgets: [["Kernel", "ONLINE"], ["IPC", "ACTIVE"], ["Latency", "12ms"]]
+  },
+  simulation: {
+    title: "MAX‑SIM",
+    description: "Simulation systems and propagation engines",
+    widgets: [
+      ["Iterations", window.PortalState.simulation.iterations.toLocaleString()],
+      ["Coherence", window.PortalState.simulation.coherence + "%"],
+      ["Probability", window.PortalState.simulation.probability + "%"]
+    ]
+  },
+  cognition: {
+    title: "Intent & Cognition",
+    description: "Identity agents and decision systems",
+    widgets: [["Agents", "42"], ["Nodes", "311"], ["Goals", "ACTIVE"]]
+  },
+  markets: {
+    title: "Value & Order",
+    description: "Markets, liquidity and signals",
+    widgets: [["Risk", "LOW"], ["Signals", "7"], ["Liquidity", "HIGH"]]
+  }
+};
+
+/* ==========================
+   HASH ROUTER & SELECT MAP
+========================== */
+function selectMap(name, updateHash = true){
+  if(!MAPS[name]) name = "physics";
+  
+  window.PortalState.currentMap = name;
+  saveState();
+
+  if(updateHash){
+    window.location.hash = "/" + name;
+  }
+
+  // Update button visual styles
+  document.querySelectorAll('.map-tab').forEach(tab => {
+    tab.classList.remove('active');
+    if(tab.innerText.toLowerCase() === name){
+      tab.classList.add('active');
+    }
+  });
+
+  const map = MAPS[name];
+  const workspace = document.getElementById('mapWorkspace');
+
+  workspace.innerHTML = `
+    <h2>${map.title}</h2>
+    <p style="margin-top:12px;color:#94a3b8;">${map.description}</p>
+    <div class="widget-grid" id="widgetGrid"></div>
+  `;
+
+  const grid = document.getElementById('widgetGrid');
+  map.widgets.forEach(widget => {
+    const el = document.createElement('div');
+    el.className = 'widget';
+    el.innerHTML = `
+      <div class="widget-title">${widget[0]}</div>
+      <div class="widget-value">${widget[1]}</div>
+    `;
+    grid.appendChild(el);
+  });
+
+  logConsole('[MAP] Switched to ' + name);
+}
+
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#/', '').trim().toLowerCase();
+  if(MAPS[hash]){
+    selectMap(hash, false);
+  }
+});
 
 /* ==========================
    CONSOLE
 ========================== */
-
 function logConsole(text){
-const consoleEl = document.getElementById('console');
-consoleEl.innerHTML += `<br>${text}`;
-consoleEl.scrollTop = consoleEl.scrollHeight;
+  const consoleEl = document.getElementById('console');
+  consoleEl.innerHTML += `<br>${text}`;
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+  
+  // Track history
+  window.PortalState.consoleHistory.push(text);
+  if(window.PortalState.consoleHistory.length > 50){
+    window.PortalState.consoleHistory.shift();
+  }
+  saveState();
 }
 
 /* ==========================
-   MAX-SIM
+   MAX-SIM ENGINE
 ========================== */
-
-window.SIM_STATE = {
-iterations:0,
-coherence:97.3,
-probability:68.2
-};
-
 function runSimulation(){
-logConsole('[MAX‑SIM] Starting...');
-let progress = 0;
+  logConsole('[MAX‑SIM] Starting execution...');
+  let progress = 0;
 
-const run = setInterval(()=>{
-progress += 10;
-logConsole(`[MAX‑SIM] ${progress}%`);
+  const run = setInterval(() => {
+    progress += 10;
+    logConsole(`[MAX‑SIM] Progress: ${progress}%`);
 
-if(progress >= 100){
-clearInterval(run);
-SIM_STATE.iterations += 100000;
-SIM_STATE.coherence = (95 + Math.random()*5).toFixed(1);
-SIM_STATE.probability = (50 + Math.random()*45).toFixed(1);
+    if(progress >= 100){
+      clearInterval(run);
+      window.PortalState.simulation.iterations += 100000;
+      window.PortalState.simulation.coherence = (95 + Math.random()*5).toFixed(1);
+      window.PortalState.simulation.probability = (50 + Math.random()*45).toFixed(1);
+      
+      MAPS.simulation.widgets = [
+        ["Iterations", window.PortalState.simulation.iterations.toLocaleString()],
+        ["Coherence", window.PortalState.simulation.coherence + "%"],
+        ["Probability", window.PortalState.simulation.probability + "%"]
+      ];
 
-logConsole(`[COMPLETE] Iterations: ${SIM_STATE.iterations} | Coherence: ${SIM_STATE.coherence} | Probability: ${SIM_STATE.probability}%`);
-refreshSimulationWidgets();
-}
-},300);
-}
+      saveState();
 
-function refreshSimulationWidgets(){
-const active = document.querySelector('.map-tab.active');
-if(active && active.innerText.toLowerCase().includes('simulation')){
-selectMap('simulation', active);
-}
+      logConsole(`[COMPLETE] Iterations: ${window.PortalState.simulation.iterations.toLocaleString()} | Coherence: ${window.PortalState.simulation.coherence}% | Prob: ${window.PortalState.simulation.probability}%`);
+      
+      if(window.PortalState.currentMap === 'simulation'){
+        selectMap('simulation', false);
+      }
+    }
+  }, 300);
 }
 
 /* ==========================
-   COMMAND CONSOLE
+   COMMAND CONSOLE LISTENER
 ========================== */
-
 document.getElementById('consoleInput').addEventListener('keydown', function(event){
-if(event.key !== 'Enter'){
-return;
-}
+  if(event.key !== 'Enter') return;
+  const cmd = this.value.trim().toLowerCase();
+  if(!cmd) return;
 
-const cmd = this.value.trim().toLowerCase();
-if(!cmd) return;
+  logConsole('> ' + cmd);
 
-logConsole('> ' + cmd);
-
-if(cmd === 'run sim'){
-runSimulation();
-}
-else if(cmd === 'status'){
-logConsole('PORTAL‑OS ONLINE');
-}
-else if(cmd === 'help'){
-logConsole(`
-help
-status
-run sim
-map physics
-map compute
-map simulation
-map cognition
-map markets
-`);
-}
-else if(cmd.startsWith('map ')){
-const map = cmd.replace('map ', '');
-const tab = Array.from(document.querySelectorAll('.map-tab')).find(t => t.innerText.toLowerCase() === map);
-if(tab){
-tab.click();
-}else{
-logConsole('Map not found');
-}
-}
-else{
-logConsole('Unknown command');
-}
-
-this.value='';
+  if(cmd === 'run sim'){
+    runSimulation();
+  } else if(cmd === 'status'){
+    logConsole('PORTAL‑OS ONLINE');
+  } else if(cmd === 'help'){
+    logConsole('Commands: help, status, run sim, map physics, map compute, map simulation, map cognition, map markets');
+  } else if(cmd.startsWith('map ')){
+    const mapName = cmd.replace('map ', '').trim();
+    if(MAPS[mapName]){
+      selectMap(mapName, true);
+    } else {
+      logConsole('Map not found: ' + mapName);
+    }
+  } else {
+    logConsole('Unknown command');
+  }
+  this.value = '';
 });
 
-/* ======================
-   VIDEO + HUD
-====================== */
-
+/* ==========================
+   VIDEO & HUD SUBSYSTEM
+========================== */
 let cameraStream = null;
-let hudEnabled = true;
 
 function loadView(view){
-const video = document.getElementById("simVideo");
-const files = {
-qb: "/videos/qb.mp4",
-coverage: "/videos/coverage.mp4",
-trench: "/videos/trench.mp4"
-};
+  const video = document.getElementById("simVideo");
+  const files = {
+    qb: "/videos/qb.mp4",
+    coverage: "/videos/coverage.mp4",
+    trench: "/videos/trench.mp4"
+  };
 
-video.onerror = function(){
-logConsole(`[VIDEO] Missing file: ${view}`);
-video.poster = "";
-};
+  video.onerror = function(){
+    logConsole(`[VIDEO] Missing asset: ${view}`);
+    video.removeAttribute("src");
+    video.style.background = "#000";
+  };
 
-if(files[view]){
-video.src = files[view];
-video.load();
-video.play().catch(()=>{
-logConsole("[VIDEO] Autoplay blocked");
-});
-}
-}
-
-function focusVideo(){
-document.querySelector(".video-container").scrollIntoView({
-behavior:"smooth"
-});
+  if(files[view]){
+    video.src = files[view];
+    video.load();
+    video.play().catch(() => {
+      logConsole("[VIDEO] Autoplay blocked or restricted");
+    });
+    logConsole("[VIEW] Loaded " + view);
+  }
 }
 
 async function startCamera(){
-try{
-cameraStream = await navigator.mediaDevices.getUserMedia({
-video:true,
-audio:false
-});
-const camera = document.getElementById("liveVideo");
-camera.srcObject = cameraStream;
-camera.style.display = "block";
-logConsole("[CAMERA] ACTIVE");
-}
-catch(err){
-logConsole("[CAMERA] DENIED");
-}
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    const camera = document.getElementById("liveVideo");
+    camera.srcObject = cameraStream;
+    camera.style.display = "block";
+    logConsole("[CAMERA] ACTIVE");
+  } catch(err) {
+    logConsole("[CAMERA] DENIED / UNAVAILABLE");
+  }
 }
 
 function toggleHud(){
-hudEnabled = !hudEnabled;
-document.getElementById("hudState").innerText = hudEnabled ? "HUD ACTIVE" : "HUD OFF";
+  window.PortalState.hudEnabled = !window.PortalState.hudEnabled;
+  saveState();
+  
+  const statusEl = document.getElementById("hudState");
+  statusEl.innerText = window.PortalState.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
+  logConsole("[HUD] " + (window.PortalState.hudEnabled ? "ENABLED" : "DISABLED"));
 }
 
 function resizeHud(){
-const canvas = document.getElementById("hudCanvas");
-if(!canvas) return;
-const rect = canvas.getBoundingClientRect();
-const ratio = window.devicePixelRatio || 1;
-canvas.width = rect.width * ratio;
-canvas.height = rect.height * ratio;
+  const canvas = document.getElementById("hudCanvas");
+  if(!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = rect.width * ratio;
+  canvas.height = rect.height * ratio;
 }
 
 window.addEventListener("resize", resizeHud);
 
-const TELEMETRY = {
-armSlot:64.2,
-separation:3.1,
-coherence:97.4,
-probability:68.2
-};
+/* ==========================
+   LIVE TELEMETRY & WORKER POLL
+========================== */
+function updateTelemetry(){
+  window.PortalState.telemetry.armSlot = (60 + Math.random()*8).toFixed(1);
+  window.PortalState.telemetry.separation = (2 + Math.random()*4).toFixed(1);
+  window.PortalState.telemetry.coherence = (95 + Math.random()*5).toFixed(1);
+  window.PortalState.telemetry.probability = (50 + Math.random()*40).toFixed(1);
+}
 
-setInterval(()=>{
-TELEMETRY.armSlot = (60 + Math.random()*8).toFixed(1);
-TELEMETRY.separation = (2 + Math.random()*4).toFixed(1);
-TELEMETRY.coherence = (95 + Math.random()*5).toFixed(1);
-TELEMETRY.probability = (50 + Math.random()*40).toFixed(1);
-},1000);
+async function pollWorker(){
+  const statusEl = document.getElementById("workerStatus");
+  try {
+    const res = await fetch("https://portal-os1.maxchaz2.workers.dev/api/health", { cache: "no-store" });
+    if(res.ok){
+      statusEl.innerText = "ONLINE";
+      statusEl.style.color = "var(--success)";
+    } else {
+      statusEl.innerText = "ERROR (" + res.status + ")";
+      statusEl.style.color = "var(--error)";
+    }
+  } catch(e) {
+    statusEl.innerText = "OFFLINE";
+    statusEl.style.color = "var(--error)";
+  }
+}
 
+setInterval(updateTelemetry, 1000);
+setInterval(pollWorker, 10000);
+
+/* ==========================
+   HUD DRAW LOOP
+========================== */
 function drawHud(){
-const canvas = document.getElementById("hudCanvas");
-if(!canvas){
-requestAnimationFrame(drawHud);
-return;
+  const canvas = document.getElementById("hudCanvas");
+  if(!canvas){
+    requestAnimationFrame(drawHud);
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if(window.PortalState.hudEnabled){
+    const w = canvas.width / (window.devicePixelRatio || 1);
+    const h = canvas.height / (window.devicePixelRatio || 1);
+
+    ctx.setTransform(
+      window.devicePixelRatio || 1, 0,
+      0, window.devicePixelRatio || 1,
+      0, 0
+    );
+
+    ctx.strokeStyle = "#00f3ff";
+    ctx.lineWidth = 2;
+
+    /* receiver target boxes */
+    ctx.strokeRect(w*0.28, h*0.35, w*0.10, h*0.22);
+    ctx.strokeRect(w*0.65, h*0.25, w*0.10, h*0.22);
+
+    /* tactical routing line */
+    ctx.beginPath();
+    ctx.moveTo(w*0.50, h*0.80);
+    ctx.lineTo(w*0.33, h*0.46);
+    ctx.stroke();
+
+    /* live telemetry text overlay */
+    ctx.fillStyle = "#00f3ff";
+    ctx.font = "16px monospace";
+    ctx.fillText("ARM SLOT: " + window.PortalState.telemetry.armSlot + "°", 20, 40);
+    ctx.fillText("SEPARATION: " + window.PortalState.telemetry.separation + " yd", 20, 70);
+    ctx.fillText("COHERENCE: " + window.PortalState.telemetry.coherence + "%", 20, 100);
+    ctx.fillText("WIN PROB: " + window.PortalState.telemetry.probability + "%", 20, 130);
+  }
+
+  requestAnimationFrame(drawHud);
 }
 
-const ctx = canvas.getContext("2d");
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-if(hudEnabled){
-const w = canvas.width;
-const h = canvas.height;
-
-ctx.strokeStyle = "#00f3ff";
-ctx.lineWidth = 2;
-
-/* receiver boxes */
-ctx.strokeRect(w*0.28, h*0.35, w*0.10, h*0.22);
-ctx.strokeRect(w*0.65, h*0.25, w*0.10, h*0.22);
-
-/* lane */
-ctx.beginPath();
-ctx.moveTo(w*0.50, h*0.80);
-ctx.lineTo(w*0.33, h*0.46);
-ctx.stroke();
-
-/* telemetry */
-ctx.fillStyle = "#00f3ff";
-ctx.font = "16px monospace";
-ctx.fillText("ARM SLOT: " + TELEMETRY.armSlot + "°", 20, 40);
-ctx.fillText("SEPARATION: " + TELEMETRY.separation + " yd", 20, 70);
-ctx.fillText("COHERENCE: " + TELEMETRY.coherence + "%", 20, 100);
-ctx.fillText("WIN PROB: " + TELEMETRY.probability + "%", 20, 130);
-}
-
-requestAnimationFrame(drawHud);
-}
-
+/* ==========================
+   INITIALIZATION BOOT
+========================== */
 window.addEventListener("DOMContentLoaded", () => {
-try{
-resizeHud();
-drawHud();
-logConsole("[BOOT] PORTAL‑OS READY");
-}
-catch(err){
-console.error(err);
-}
-});
+  try {
+    loadState();
 
+    // Rehydrate HUD text state if toggled off
+    const hudStateEl = document.getElementById("hudState");
+    if(hudStateEl){
+      hudStateEl.innerText = window.PortalState.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
+    }
+
+    // Determine initial map from URL hash or persistent state
+    const hash = window.location.hash.replace('#/', '').trim().toLowerCase();
+    const targetMap = (hash && MAPS[hash]) ? hash : window.PortalState.currentMap;
+
+    selectMap(targetMap, true);
+    resizeHud();
+    drawHud();
+
+    logConsole("[BOOT] PORTAL‑OS FULLY OPERATIONAL");
+
+    // Initial worker ping
+    pollWorker();
+  } catch(err) {
+    console.error("Boot error:", err);
+  }
+});
 </script>
 
 </body>
