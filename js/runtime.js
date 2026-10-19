@@ -137,7 +137,9 @@ const PortalRuntime = (() => {
       EventBus.emit("state.loaded", state);
     }
     catch(error){
-      console.warn("State load failed", error);
+      console.warn("State load failed, falling back to defaults", error);
+      replaceState(structuredClone(DEFAULT_STATE));
+      save();
       EventBus.emit("state.loaded", state);
     }
   }
@@ -166,13 +168,14 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     6. SIMULATION RUNNER (CENTRALIZED CLEANUP)
+     6. SIMULATION RUNNER (CENTRALIZED CLEANUP & FINISHED LOCK)
   ========================================== */
   let activeSimulation = null;
   let simulationTimeout = null;
+  let simulationFinished = false;
   const SIM_TIMEOUT_MS = 30000;
 
-  function cleanupSimulation(){
+  function clearSimulationTimers(){
     if(activeSimulation){
       clearInterval(activeSimulation);
       activeSimulation = null;
@@ -192,18 +195,21 @@ const PortalRuntime = (() => {
     state.simulation.running = true;
     state.simulation.cancelled = false;
     state.simulation.progress = 0;
+    simulationFinished = false;
 
     EventBus.emit("simulation.started", { iterations });
 
     simulationTimeout = setTimeout(() => {
+      if(simulationFinished) return;
+      simulationFinished = true;
       EventBus.emit("simulation.timeout");
       cancelSimulation();
     }, SIM_TIMEOUT_MS);
 
     activeSimulation = setInterval(() => {
       try {
-        if(!state.simulation.running || state.simulation.cancelled){
-          cleanupSimulation();
+        if(simulationFinished || !state.simulation.running || state.simulation.cancelled){
+          clearSimulationTimers();
           return;
         }
 
@@ -211,7 +217,10 @@ const PortalRuntime = (() => {
         EventBus.emit("simulation.progress", { progress: state.simulation.progress });
 
         if(state.simulation.progress >= 100){
-          cleanupSimulation();
+          if(simulationFinished) return;
+          simulationFinished = true;
+
+          clearSimulationTimers();
 
           state.simulation.running = false;
           state.simulation.iterations += iterations;
@@ -223,7 +232,10 @@ const PortalRuntime = (() => {
         }
       }
       catch(error){
-        cleanupSimulation();
+        if(simulationFinished) return;
+        simulationFinished = true;
+
+        clearSimulationTimers();
         state.simulation.running = false;
         EventBus.emit("simulation.error", { message: error.message });
       }
@@ -231,8 +243,9 @@ const PortalRuntime = (() => {
   }
 
   function cancelSimulation(){
-    if(!state.simulation.running && !activeSimulation) return;
-    cleanupSimulation();
+    if(simulationFinished && !state.simulation.running) return;
+    simulationFinished = true;
+    clearSimulationTimers();
     state.simulation.cancelled = true;
     state.simulation.running = false;
     EventBus.emit("simulation.cancelled");
@@ -241,31 +254,39 @@ const PortalRuntime = (() => {
   /* ==========================================
      7. NARRATIVE ENGINE (IDENTITY → SIM → NARRATIVE)
   ========================================== */
+  let generatingNarrative = false;
+
   function generateNarrative(simulation){
-    if(state.narrative.state === "generating"){
+    if(generatingNarrative || state.narrative.state === "generating"){
       return;
     }
+    generatingNarrative = true;
 
-    state.narrative.state = "generating";
-    EventBus.emit("narrative.generating", state.narrative);
+    try {
+      state.narrative.state = "generating";
+      EventBus.emit("narrative.generating", state.narrative);
 
-    const probability = Number(simulation.probability);
-    let summary;
+      const probability = Number(simulation.probability);
+      let summary;
 
-    if(probability > 80){
-      summary = "High confidence scenario projection.";
-    } else if(probability > 60){
-      summary = "Stable projected outcome.";
-    } else {
-      summary = "Low confidence scenario trajectory.";
+      if(probability > 80){
+        summary = "High confidence scenario projection.";
+      } else if(probability > 60){
+        summary = "Stable projected outcome.";
+      } else {
+        summary = "Low confidence scenario trajectory.";
+      }
+
+      state.narrative.state = "generated";
+      state.narrative.summary = summary;
+      state.narrative.lastGenerated = Date.now();
+      save();
+
+      EventBus.emit("narrative.generated", state.narrative);
     }
-
-    state.narrative.state = "generated";
-    state.narrative.summary = summary;
-    state.narrative.lastGenerated = Date.now();
-    save();
-
-    EventBus.emit("narrative.generated", state.narrative);
+    finally {
+      generatingNarrative = false;
+    }
   }
 
   EventBus.on("simulation.completed", (simulation) => {
