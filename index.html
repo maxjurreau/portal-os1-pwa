@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAX SPORTS // MAX SIM Institutional Quantitative Risk Desk</title>
+  <title>MAX-QUANTM SPORTS™</title>
   
   <!-- Google Fonts & Tailwind CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- HLS.js Library -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <style>
     :root {
@@ -149,7 +149,7 @@
     <div class="flex items-center gap-3">
       <div class="w-3 h-3 rounded-full bg-[var(--accent)] animate-pulse"></div>
       <div>
-        <h1 class="text-xl font-extrabold tracking-wider text-white">MAX SPORTS <span class="text-[var(--accent)]">//</span> MAX SIM</h1>
+        <h1 class="text-xl font-extrabold tracking-wider text-white">MAX-QUANTM SPORTS™ <span class="text-[var(--accent)]">//</span> MAX SIM</h1>
         <p class="text-xs text-[var(--text-muted)]">INSTITUTIONAL QUANTITATIVE RISK DESK &amp; SIMULATION TERMINAL</p>
       </div>
     </div>
@@ -310,35 +310,38 @@
         </div>
       </div>
 
-      <!-- TAB 3: VIDEO INTELLIGENCE MODULE -->
+      <!-- TAB 3: VIDEO INTELLIGENCE MODULE WITH CLOUDFLARE STREAM HLS -->
       <div id="view-video" class="panel-card p-5" style="display: none;">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-            MAX-SIM VIDEO INTELLIGENCE &amp; HUD OVERLAY
+            CLOUDFLARE STREAM // LIVE INTELLIGENCE &amp; HUD OVERLAY
           </h2>
-          <span class="text-xs text-[var(--green)] font-bold">120 FPS TELEMETRY SYNC</span>
+          <span class="text-xs text-[var(--green)] font-bold">SECURE FIREBASE AUTH GATEWAY</span>
         </div>
 
         <div class="video-module">
-          <video id="simVideo" autoplay muted controls playsinline></video>
+          <video id="simVideo" autoplay muted controls playsinline style="display: none;"></video>
+          <div id="videoLockNotice" class="flex flex-col items-center justify-center h-full text-center p-6 text-[var(--text-muted)]">
+            <div class="text-[var(--gold)] font-bold text-sm mb-2">🔒 RESTRICTED STREAM ACCESS</div>
+            <p class="text-xs">Authenticate via Portal-OS Google credentials to unlock live Cloudflare Stream ingestion.</p>
+          </div>
           <canvas id="hudCanvas"></canvas>
         </div>
 
-        <!-- Video Toolbar Controls -->
+        <!-- Video Feed Selection Toolbar -->
         <div class="video-toolbar">
-          <button onclick="startCamera()">Camera</button>
+          <button onclick="loadFeed('main')">Main Feed</button>
+          <button onclick="loadFeed('desk')">Risk Desk</button>
+          <button onclick="startCamera()">Webcam</button>
           <button onclick="startScreenShare()">Screen</button>
-          <button onclick="loadQBFeed()">QB Feed</button>
-          <button onclick="loadCoverageFeed()">Coverage</button>
-          <button onclick="loadTrenchFeed()">Trench</button>
           <button onclick="pauseFeed()">Pause</button>
           <button onclick="playFeed()">Play</button>
           <button onclick="toggleHud()" class="bg-[var(--accent)]/10 border border-[var(--accent)] text-[var(--accent)]">TOGGLE HUD</button>
         </div>
 
         <div class="flex gap-2 mt-3">
-          <input id="hlsUrl" type="text" placeholder="Paste .m3u8 stream URL" class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
-          <button onclick="loadCustomHLS()" class="bg-[#1e293b] border border-[#1e293b] hover:border-[var(--accent)] text-white px-4 py-2 rounded text-xs font-bold transition">Connect HLS</button>
+          <input id="hlsUrl" type="text" placeholder="Paste custom .m3u8 stream URL" class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
+          <button onclick="loadCustomHLS()" class="bg-[#1e293b] border border-[#1e293b] hover:border-[var(--accent)] text-white px-4 py-2 rounded text-xs font-bold transition">Connect Custom</button>
         </div>
       </div>
 
@@ -350,34 +353,13 @@
           </h2>
           <span class="text-xs text-[var(--green)] font-bold">120Hz HIGH-FREQUENCY INGEST</span>
         </div>
-        <div class="space-y-3 text-xs font-mono max-h-96 overflow-y-auto pr-2">
+        <div id="telemetryFeedContainer" class="space-y-3 text-xs font-mono max-h-96 overflow-y-auto pr-2">
           <div class="p-3 bg-[#060a12] border-l-4 border-[var(--green)] rounded">
             <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
               <span>[15:38:02] • NFL // DAL vs. GB</span>
               <span class="text-[var(--green)]">STABLE</span>
             </div>
             <span class="text-white font-bold">DAL QB:</span> Throwing arm-slot angle stable at <span class="text-[var(--accent)]">64.2°</span>. Plant-foot base width variance 1.1%.
-          </div>
-          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--gold)] rounded">
-            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
-              <span>[15:37:44] • MLB // ALCS Game 5</span>
-              <span class="text-[var(--gold)]">WARNING: DECAY</span>
-            </div>
-            <span class="text-white font-bold">CLE STARTER:</span> Stride shortening detected (-3.5%). Release slot droop imminent in Inning 4.
-          </div>
-          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--red)] rounded">
-            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
-              <span>[15:36:10] • NFL // NO vs. NYG</span>
-              <span class="text-[var(--red)]">CRITICAL ANOMALY</span>
-            </div>
-            <span class="text-white font-bold">NO CB2:</span> Secondary reaction latency exhibiting <span class="text-[var(--red)]">+14ms lag</span> on post-motion hip turns.
-          </div>
-          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--accent)] rounded">
-            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
-              <span>[15:34:20] • NFL // SNF Trenches</span>
-              <span class="text-[var(--accent)]">OPTIMAL</span>
-            </div>
-            <span class="text-white font-bold">GB LT:</span> Stance-hinge pressure load well-distributed. Zero torque loss across last 40 dropbacks.
           </div>
         </div>
       </div>
@@ -388,10 +370,16 @@
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
             PORTFOLIO CLV CAPTURE &amp; YIELD TRAJECTORY
           </h2>
-          <span class="text-xs text-[var(--green)] font-bold">CLV EFFICIENCY: +96.4%</span>
+          <span id="oddsApiStatus" class="text-xs text-[var(--gold)] font-bold">ODDS API: NOT CONFIGURED</span>
         </div>
+        
+        <!-- Live Provider Feed Section -->
+        <div id="liveProviderFeed" class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] mb-4 text-xs space-y-2">
+          <div class="text-[var(--text-muted)] font-bold">LIVE PROVIDER FEED (/api/odds/live):</div>
+          <div id="liveProviderOutput" class="text-white font-mono text-[11px]">Awaiting Netlify serverless poll response...</div>
+        </div>
+
         <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] h-64 flex flex-col justify-end relative overflow-hidden">
-          <!-- SVG CLV Chart -->
           <svg class="absolute inset-0 w-full h-full p-4" preserveAspectRatio="none" viewBox="0 0 500 200">
             <path d="M 0 160 Q 100 140, 200 100 T 400 40 L 500 20" fill="none" stroke="var(--green)" stroke-width="3"></path>
             <path d="M 0 180 Q 100 160, 200 130 T 400 90 L 500 70" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"></path>
@@ -433,7 +421,6 @@
           <span id="slipCount" class="bg-[var(--accent)] text-black text-xs font-bold px-2 py-0.5 rounded-full">PRESET MODE</span>
         </div>
 
-        <!-- PRESET TICKET BUTTONS -->
         <div class="grid grid-cols-3 gap-2 mb-4">
           <button onclick="loadPreset('core')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
             <div class="font-bold text-white">2-LEG CORE</div>
@@ -449,12 +436,8 @@
           </button>
         </div>
 
-        <!-- LIVE TICKET OUTPUT -->
-        <div id="ticketOutput" class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2 text-xs mb-4">
-          <!-- Dynamically populated ticket view -->
-        </div>
+        <div id="ticketOutput" class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2 text-xs mb-4"></div>
 
-        <!-- STAKE & PAYOUT MATH -->
         <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-3 text-xs mb-4">
           <div class="flex justify-between">
             <span class="text-[var(--text-muted)]">UNIT CAPITAL STAKE:</span>
@@ -494,9 +477,10 @@
 
   </main>
 
-  <!-- FIREBASE & DASHBOARD JAVASCRIPT LOGIC ENGINE -->
+  <!-- FIREBASE AUTH, CLOUDFLARE HLS & WEBSOCKET TELEMETRY LOGIC -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
     import { 
         getAuth, 
         GoogleAuthProvider, 
@@ -516,6 +500,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
@@ -523,7 +508,9 @@
     const loginBtn = document.getElementById("loginBtn");
     const userInfo = document.getElementById("userInfo");
 
-    // Google Sign-In Integration
+    // Global Event Emitter for Auth state changes
+    window.currentUser = null;
+
     loginBtn.onclick = async () => {
       try {
         if (auth.currentUser) {
@@ -542,20 +529,36 @@
     };
 
     onAuthStateChanged(auth, (user) => {
+      window.currentUser = user;
+      const videoEl = document.getElementById("simVideo");
+      const lockNotice = document.getElementById("videoLockNotice");
+
       if (user) {
         authStatusBadge.innerText = `PORTAL-OS: ${user.email}`;
         authStatusBadge.className = "text-[var(--green)] font-bold text-xs bg-[var(--green)]/10 px-3 py-1 rounded-full border border-[var(--green)]/30";
         userInfo.innerText = user.email;
         loginBtn.innerText = "Sign Out";
+        
+        // Unlock Cloudflare Stream video feed upon verification
+        if (videoEl && lockNotice) {
+          videoEl.style.display = "block";
+          lockNotice.style.display = "none";
+          if (typeof window.loadFeed === 'function') window.loadFeed('main');
+        }
       } else {
         authStatusBadge.innerText = "PORTAL-OS: UNVERIFIED";
         authStatusBadge.className = "text-[var(--red)] font-bold text-xs bg-[var(--red)]/10 px-3 py-1 rounded-full border border-[var(--red)]/30";
         userInfo.innerText = "Session Unauthenticated.";
         loginBtn.innerText = "Login With Google";
+
+        // Lock video feed if unauthenticated
+        if (videoEl && lockNotice) {
+          videoEl.style.display = "none";
+          lockNotice.style.display = "flex";
+        }
       }
     });
 
-    // Make appendConsole globally accessible
     window.appendConsole = function(text) {
       const consoleOutput = document.getElementById("consoleOutput");
       if (!consoleOutput) return;
@@ -568,7 +571,253 @@
 
   <script>
     /* ==========================================================================
-       DASHBOARD & SIMULATION LOGIC
+       CLOUDFLARE STREAM HLS MULTI-FEED & HUD ENGINE
+       ========================================================================== */
+    const video = document.getElementById("simVideo");
+    const feeds = {
+      main: "https://customer-xxxx.cloudflarestream.com/XXXXXXXX/manifest/video.m3u8",
+      desk: "https://customer-xxxx.cloudflarestream.com/YYYYYYYY/manifest/video.m3u8"
+    };
+
+    let hlsInstance = null;
+
+    function loadFeed(name) {
+      if (!window.currentUser) {
+        if (window.appendConsole) window.appendConsole("STREAM ACCESS DENIED: Firebase authentication required.");
+        return;
+      }
+
+      const streamUrl = feeds[name] || feeds.main;
+      if (window.appendConsole) window.appendConsole(`STREAM: Loading Cloudflare feed '${name}' -> ${streamUrl}`);
+
+      if (Hls.isSupported()) {
+        if (!hlsInstance) {
+          hlsInstance = new Hls();
+          hlsInstance.attachMedia(video);
+        }
+        hlsInstance.loadSource(streamUrl);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = streamUrl;
+      }
+    }
+    window.loadFeed = loadFeed;
+
+    function attachHLS(url) {
+      if (!window.currentUser) {
+        alert("Please login via Google before connecting custom streams.");
+        return;
+      }
+      if (Hls.isSupported()) {
+        if (!hlsInstance) {
+          hlsInstance = new Hls();
+          hlsInstance.attachMedia(video);
+        }
+        hlsInstance.loadSource(url);
+        if (window.appendConsole) window.appendConsole(`VIDEO: Attached custom HLS stream -> ${url}`);
+      } else {
+        video.src = url;
+      }
+    }
+
+    function loadCustomHLS() {
+      const url = document.getElementById("hlsUrl").value.trim();
+      if (url) attachHLS(url);
+    }
+
+    async function startCamera() {
+      if (!window.currentUser) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+        video.style.display = "block";
+        document.getElementById("videoLockNotice").style.display = "none";
+        if (window.appendConsole) window.appendConsole("VIDEO: Webcam feed successfully attached.");
+      } catch (err) {
+        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Unable to access camera.");
+      }
+    }
+
+    async function startScreenShare() {
+      if (!window.currentUser) return;
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        video.srcObject = stream;
+        video.style.display = "block";
+        document.getElementById("videoLockNotice").style.display = "none";
+        if (window.appendConsole) window.appendConsole("VIDEO: Screen share feed successfully attached.");
+      } catch (err) {
+        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Screen share cancelled or unavailable.");
+      }
+    }
+
+    function playFeed() { video.play(); }
+    function pauseFeed() { video.pause(); }
+
+    // HUD Canvas Overlay
+    const hud = document.getElementById("hudCanvas");
+    const hctx = hud ? hud.getContext("2d") : null;
+    let hudEnabled = true;
+
+    function resizeHUD() {
+      if (!hud) return;
+      hud.width = hud.offsetWidth;
+      hud.height = hud.offsetHeight;
+    }
+    window.addEventListener("resize", resizeHUD);
+    setTimeout(resizeHUD, 300);
+
+    function toggleHud() { hudEnabled = !hudEnabled; }
+
+    function drawHUD() {
+      if (!hud || !hctx) return;
+      hctx.clearRect(0, 0, hud.width, hud.height);
+
+      if (hudEnabled && window.currentUser) {
+        hctx.strokeStyle = "#00f3ff";
+        hctx.lineWidth = 2;
+
+        hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
+        hctx.fillStyle = "#00f3ff";
+        hctx.font = "bold 12px 'JetBrains Mono'";
+        hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
+
+        hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
+        hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
+
+        hctx.fillStyle = "#00ff66";
+        hctx.font = "13px 'JetBrains Mono'";
+        hctx.fillText("ARM SLOT: 64.2°", 20, 35);
+        hctx.fillText("SEPARATION: 3.2 yd", 20, 60);
+        hctx.fillText("TORQUE INDEX: 92.7", 20, 85);
+      }
+      requestAnimationFrame(drawHUD);
+    }
+    drawHUD();
+
+    /* ==========================================================================
+       ROBUST WEBSOCKET TELEMETRY STREAM & SERVERLESS ODDS POLLING ENGINE
+       ========================================================================== */
+    let ws = null;
+    let reconnectAttempts = 0;
+    const maxReconnectDelay = 30000;
+
+    function connectTelemetryWebSocket() {
+      const wsUrl = window.TELEMETRY_WS_URL || "";
+      if (!wsUrl) {
+        return;
+      }
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        reconnectAttempts = 0;
+        if (window.appendConsole) window.appendConsole("TELEMETRY WS: Connected to live backend stream.");
+        const channel = window.TELEMETRY_CHANNEL || "nfl_week6";
+        ws.send(JSON.stringify({ action: "subscribe", channel: channel }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const packet = JSON.parse(event.data);
+          injectTelemetryPacket(packet);
+
+          if (packet.qbLatency !== undefined) {
+            const latencyEl = document.querySelector("header div:nth-child(3) span.text-[var\\(--green\\)]");
+            if (latencyEl) latencyEl.innerText = packet.qbLatency + "ms";
+          }
+        } catch (e) {
+          // Skip invalid JSON packets safely
+        }
+      };
+
+      ws.onclose = () => {
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
+        reconnectAttempts++;
+        setTimeout(connectTelemetryWebSocket, delay);
+      };
+
+      ws.onerror = () => {
+        if (ws) ws.close();
+      };
+    }
+
+    function injectTelemetryPacket(packet) {
+      const container = document.getElementById("telemetryFeedContainer");
+      if (!container) return;
+
+      const card = document.createElement("div");
+      const statusColor = packet.status === 'CRITICAL' ? 'border-[var(--red)]' : (packet.status === 'WARNING' ? 'border-[var(--gold)]' : 'border-[var(--green)]');
+      const timeStr = new Date().toLocaleTimeString();
+
+      card.className = `p-3 bg-[#060a12] border-l-4 ${statusColor} rounded`;
+      
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "flex justify-between text-[10px] text-[var(--text-muted)] mb-1";
+      headerDiv.innerHTML = `<span>[${timeStr}] • ${packet.event || 'LIVE TELEMETRY'}</span><span class="${packet.status === 'CRITICAL' ? 'text-[var(--red)]' : 'text-[var(--green)]'}">${packet.status || 'STABLE'}</span>`;
+
+      const bodyDiv = document.createElement("div");
+      bodyDiv.innerText = packet.message || JSON.stringify(packet);
+
+      card.appendChild(headerDiv);
+      card.appendChild(bodyDiv);
+
+      container.prepend(card);
+      while (container.children.length > 50) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    // Polling Serverless Odds API with Visibility Conservation
+    let oddsInterval = null;
+
+    async function pollLiveOdds() {
+      if (document.hidden) return; // Save API quota when tab in background
+
+      try {
+        const response = await fetch("/api/odds/live");
+        const statusEl = document.getElementById("oddsApiStatus");
+        const outputEl = document.getElementById("liveProviderOutput");
+
+        if (!response.ok) {
+          if (statusEl) {
+            statusEl.innerText = "ODDS API: DEGRADED";
+            statusEl.className = "text-xs text-[var(--red)] font-bold";
+          }
+          return;
+        }
+
+        const data = await response.json();
+        if (statusEl) {
+          const count = Array.isArray(data) ? data.length : (data.events?.length || 1);
+          statusEl.innerText = `ODDS API: CONNECTED (${count} EVENTS)`;
+          statusEl.className = "text-xs text-[var(--green)] font-bold";
+        }
+        if (outputEl) {
+          outputEl.innerText = JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        const statusEl = document.getElementById("oddsApiStatus");
+        if (statusEl) {
+          statusEl.innerText = "ODDS API: OFFLINE";
+          statusEl.className = "text-xs text-[var(--red)] font-bold";
+        }
+      }
+    }
+
+    window.addEventListener("load", () => {
+      connectTelemetryWebSocket();
+      pollLiveOdds();
+      oddsInterval = setInterval(pollLiveOdds, 10000);
+      loadPreset("core");
+      switchTab('risk');
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) pollLiveOdds();
+    });
+
+    /* ==========================================================================
+       SIMULATION, CLI & BETTING LOGIC
        ========================================================================== */
     function updateSimParams(type, val) {
       if (type === 'Fatigue') document.getElementById('valFatigue').innerText = val + 'x';
@@ -588,126 +837,6 @@
         if (window.appendConsole) window.appendConsole(`RE-CALIBRATION COMPLETE: TB Rays Win Prob: ${randRays}% | CLE Guardians Win Prob: ${randCle}%`);
       }, 500);
     }
-
-    // Video Engine
-    const video = document.getElementById("simVideo");
-    let currentHls = null;
-    const hud = document.getElementById("hudCanvas");
-    const hctx = hud ? hud.getContext("2d") : null;
-    let hudEnabled = true;
-
-    function resizeHUD() {
-      if (!hud) return;
-      hud.width = hud.offsetWidth;
-      hud.height = hud.offsetHeight;
-    }
-    window.addEventListener("resize", resizeHUD);
-    setTimeout(resizeHUD, 300);
-
-    function toggleHud() {
-      hudEnabled = !hudEnabled;
-    }
-
-    function drawHUD() {
-      if (!hud || !hctx) return;
-      hctx.clearRect(0, 0, hud.width, hud.height);
-
-      if (hudEnabled) {
-        hctx.strokeStyle = "#00f3ff";
-        hctx.lineWidth = 2;
-
-        hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
-        hctx.fillStyle = "#00f3ff";
-        hctx.font = "bold 12px 'JetBrains Mono'";
-        hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
-
-        hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
-        hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
-
-        hctx.beginPath();
-        hctx.moveTo(hud.width * 0.5, hud.height * 0.7);
-        hctx.lineTo(hud.width * 0.35, hud.height * 0.35);
-        hctx.setLineDash([6, 4]);
-        hctx.stroke();
-        hctx.setLineDash([]);
-
-        hctx.fillStyle = "#00ff66";
-        hctx.font = "13px 'JetBrains Mono'";
-        hctx.fillText("ARM SLOT: 64.2°", 20, 35);
-        hctx.fillText("SEPARATION: 3.2 yd", 20, 60);
-        hctx.fillText("TORQUE INDEX: 92.7", 20, 85);
-      }
-
-      requestAnimationFrame(drawHUD);
-    }
-    drawHUD();
-
-    function destroyFeed() {
-      if (currentHls) {
-        currentHls.destroy();
-        currentHls = null;
-      }
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
-    }
-
-    async function startCamera() {
-      destroyFeed();
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        video.srcObject = stream;
-        if (window.appendConsole) window.appendConsole("VIDEO: Webcam feed successfully attached.");
-      } catch (err) {
-        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Unable to access camera.");
-      }
-    }
-
-    async function startScreenShare() {
-      destroyFeed();
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        video.srcObject = stream;
-        if (window.appendConsole) window.appendConsole("VIDEO: Screen share feed successfully attached.");
-      } catch (err) {
-        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Screen share cancelled or unavailable.");
-      }
-    }
-
-    function attachHLS(url) {
-      destroyFeed();
-      if (Hls.isSupported()) {
-        currentHls = new Hls();
-        currentHls.loadSource(url);
-        currentHls.attachMedia(video);
-        if (window.appendConsole) window.appendConsole(`VIDEO: Attached HLS stream -> ${url}`);
-      } else {
-        video.src = url;
-        if (window.appendConsole) window.appendConsole(`VIDEO: Native HLS fallback -> ${url}`);
-      }
-    }
-
-    function loadCustomHLS() {
-      const url = document.getElementById("hlsUrl").value.trim();
-      if (url) attachHLS(url);
-    }
-
-    function loadQBFeed() { attachHLS("streams/qb.m3u8"); }
-    function loadCoverageFeed() { attachHLS("streams/coverage.m3u8"); }
-    function loadTrenchFeed() { attachHLS("streams/trench.m3u8"); }
-
-    function playFeed() { video.play(); }
-    function pauseFeed() { video.pause(); }
-
-    document.addEventListener("keydown", e => {
-      if (e.code === "Space") {
-        e.preventDefault();
-        if (video.paused) video.play(); else video.pause();
-      }
-      if (e.key === "m") video.muted = !video.muted;
-      if (e.key === "f") video.requestFullscreen();
-    });
 
     // CLI Engine
     let commandHistory = [];
@@ -853,11 +982,6 @@
 
       if (tab === 'video') setTimeout(resizeHUD, 100);
     }
-
-    window.addEventListener("load", () => {
-      loadPreset("core");
-      switchTab('risk');
-    });
   </script>
 </body>
 </html>
