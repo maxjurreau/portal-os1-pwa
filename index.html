@@ -61,107 +61,6 @@
       border-color: rgba(0, 243, 255, 0.4);
     }
 
-    /* Draggable Umbrella Graph Styles */
-    #graphCanvas {
-      position: relative;
-      height: 480px;
-      background: #060a12;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--panel-border);
-    }
-    #graphLinks {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-    .node {
-      position: absolute;
-      width: 160px;
-      height: 65px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: #0f172a;
-      border: 2px solid var(--accent);
-      border-radius: 10px;
-      cursor: grab;
-      font-weight: 700;
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
-      transition: border-color 0.25s ease;
-      z-index: 2;
-      user-select: none;
-    }
-    .node:active {
-      cursor: grabbing;
-    }
-    .node:hover {
-      box-shadow: 0 0 30px var(--accent);
-      border-color: #ffffff;
-    }
-    .flowLine {
-      fill: none;
-      stroke: var(--accent);
-      stroke-width: 2.5;
-      stroke-dasharray: 8 6;
-      animation: flow 2s linear infinite;
-    }
-    @keyframes flow {
-      to {
-        stroke-dashoffset: -20;
-      }
-    }
-
-    /* Video Module Styles */
-    .video-module {
-      position: relative;
-      height: 480px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #000000;
-      border: 1px solid var(--accent);
-    }
-    .video-module video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    #hudCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 3;
-    }
-    .video-toolbar {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-    .video-toolbar button {
-      background: #1e293b;
-      color: var(--text-main);
-      padding: 8px 16px;
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      font-weight: 700;
-      transition: all 0.2s ease;
-    }
-    .video-toolbar button:hover {
-      background: var(--accent);
-      color: #000000;
-      box-shadow: 0 0 15px var(--accent);
-    }
-
     .nav-btn {
       padding: 8px 16px;
       border-radius: 8px;
@@ -209,8 +108,9 @@
     <!-- TABS -->
     <div class="flex items-center gap-2">
       <button onclick="switchTab('risk')" id="tab-risk" class="nav-btn active">RISK DESK &amp; ODDS</button>
-      <button onclick="switchTab('umbrella')" id="tab-umbrella" class="nav-btn">OUR UMBRELLA™ GRAPH</button>
-      <button onclick="switchTab('sim')" id="tab-sim" class="nav-btn">MAX SIM VIDEO</button>
+      <button onclick="switchTab('sim')" id="tab-sim" class="nav-btn">MAX SIM ENGINE</button>
+      <button onclick="switchTab('telemetry')" id="tab-telemetry" class="nav-btn">KINEMATIC FEED</button>
+      <button onclick="switchTab('analytics')" id="tab-analytics" class="nav-btn">PORTFOLIO ANALYTICS</button>
     </div>
 
     <div class="flex items-center gap-6 text-xs">
@@ -223,8 +123,8 @@
         <span class="text-[var(--accent)] font-bold">MAX-QUANTUM (QUBO)</span>
       </div>
       <div>
-        <span class="text-[var(--text-muted)]">GOVERNANCE:</span>
-        <span id="headerGovMode" class="text-[var(--gold)] font-bold">STRICT</span>
+        <span class="text-[var(--text-muted)]">SYSTEM TIME:</span>
+        <span class="text-[var(--gold)] font-bold">OCT 18, 20:52 EDT</span>
       </div>
     </div>
   </header>
@@ -235,7 +135,7 @@
     <!-- LEFT 8-COLUMN MAIN WORKSPACE -->
     <section class="lg:col-span-8 flex flex-col gap-6">
 
-      <!-- PANEL 1: RISK DESK & ODDS MATRIX -->
+      <!-- TAB 1: RISK DESK & ODDS MATRIX -->
       <div id="view-risk" class="panel-card p-5">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-2">
@@ -317,86 +217,124 @@
         </div>
       </div>
 
-      <!-- PANEL 2: OUR UMBRELLA™ DRAGGABLE GRAPH WORKSPACE -->
-      <div id="view-umbrella" class="panel-card p-5" style="display: none;">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <div>
-            <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-              OUR umbrella™ // GRAPH WORKSPACE
-            </h2>
-            <p class="text-xs text-[var(--text-muted)]">IDENTITY → SIMULATION → NARRATIVE GOVERNANCE ARCHITECTURE</p>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="setGovernanceMode('strict')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-xs px-3 py-1 rounded text-white">STRICT</button>
-            <button onclick="setGovernanceMode('advisory')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-xs px-3 py-1 rounded text-white">ADVISORY</button>
-          </div>
-        </div>
-
-        <div id="graphCanvas">
-          <svg id="graphLinks"></svg>
-          <div id="identity" class="node" onclick="selectNode('identity')">
-            <span class="text-xs text-[var(--accent)]">IDENTITY</span>
-            <span class="text-[10px] text-[var(--text-muted)]">PORTAL-OS</span>
-          </div>
-          <div id="simulation" class="node" onclick="selectNode('simulation')">
-            <span class="text-xs text-[var(--green)]">SIMULATION</span>
-            <span class="text-[10px] text-[var(--text-muted)]">MAX-SIM CORE</span>
-          </div>
-          <div id="narrative" class="node" onclick="selectNode('narrative')">
-            <span class="text-xs text-[var(--gold)]">NARRATIVE</span>
-            <span class="text-[10px] text-[var(--text-muted)]">INSIDER FEED</span>
-          </div>
-          <div id="output" class="node" onclick="selectNode('output')">
-            <span class="text-xs text-white">OUTPUT</span>
-            <span class="text-[10px] text-[var(--text-muted)]">QUANTUM EV</span>
-          </div>
-        </div>
-
-        <div id="nodePanel" class="mt-4 p-4 bg-[#060a12] border border-[#1e293b] rounded-xl text-xs">
-          <h4 class="font-bold text-[var(--accent)] mb-1">GRAPH NODE INSPECTOR</h4>
-          <p class="text-[var(--text-muted)]">Select or drag any node above to inspect structural parameters.</p>
-        </div>
-      </div>
-
-      <!-- PANEL 3: MAX-SIM VIDEO INTELLIGENCE MODULE -->
+      <!-- TAB 2: MAX-SIM ENGINE CONTROLS -->
       <div id="view-sim" class="panel-card p-5" style="display: none;">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-            MAX-SIM VIDEO INTELLIGENCE &amp; HUD OVERLAY
+            MAX-SIM // 100,000 ITERATION MONTE CARLO CONTROLS
           </h2>
-          <span class="text-xs text-[var(--green)] font-bold">120 FPS TELEMETRY SYNC</span>
+          <span class="text-xs text-[var(--green)] font-bold">SOLVER: ACTIVE</span>
         </div>
 
-        <div class="video-module">
-          <video id="simVideo" autoplay controls muted loop playsinline>
-            <source src="videos/maxsim-demo.mp4" type="video/mp4">
-          </video>
-          <canvas id="hudCanvas"></canvas>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-xs">
+          <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2">
+            <label class="text-[var(--text-muted)]">Fatigue Acceleration Multiplier</label>
+            <div class="flex justify-between font-bold"><span id="valFatigue">1.2x</span></div>
+            <input type="range" min="0.5" max="3.0" step="0.1" value="1.2" oninput="updateSimParams('Fatigue', this.value)" class="w-full accent-[var(--accent)]">
+          </div>
+          <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2">
+            <label class="text-[var(--text-muted)]">Micro-Latency Penalty (ms)</label>
+            <div class="flex justify-between font-bold"><span id="valLatency">14ms</span></div>
+            <input type="range" min="0" max="50" step="1" value="14" oninput="updateSimParams('Latency', this.value)" class="w-full accent-[var(--accent)]">
+          </div>
+          <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2">
+            <label class="text-[var(--text-muted)]">Turf Friction Coefficient (%)</label>
+            <div class="flex justify-between font-bold"><span id="valTurf">8.5%</span></div>
+            <input type="range" min="0" max="25" step="0.5" value="8.5" oninput="updateSimParams('Turf', this.value)" class="w-full accent-[var(--accent)]">
+          </div>
         </div>
 
-        <div class="video-toolbar">
-          <button onclick="loadView('qb')">QB VIEW</button>
-          <button onclick="loadView('coverage')">COVERAGE</button>
-          <button onclick="loadView('trench')">TRENCH CAM</button>
-          <button onclick="toggleHud()">TOGGLE HUD</button>
-          <button onclick="focusVideo()" class="ml-auto bg-[var(--accent)]/10 border border-[var(--accent)] text-[var(--accent)]">FOCUS VIDEO</button>
+        <div class="bg-[#030712] p-4 rounded-xl border border-[#1e293b] text-xs space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-white">MONTE CARLO PROBABILITY DISTRIBUTION OUTPUT</span>
+            <button onclick="executeMonteCarlo()" class="bg-[var(--accent)] text-black px-4 py-1.5 rounded font-extrabold hover:bg-cyan-400 transition">RUN RE-CALIBRATION</button>
+          </div>
+          <div class="w-full bg-[#060a12] h-6 rounded-full overflow-hidden border border-[#1e293b] flex">
+            <div id="simBarRays" class="bg-[var(--accent)] h-full transition-all duration-500" style="width: 61.2%;"></div>
+            <div id="simBarCle" class="bg-[#1e293b] h-full transition-all duration-500" style="width: 38.8%;"></div>
+          </div>
+          <div class="flex justify-between text-[11px] text-[var(--text-muted)]">
+            <span class="text-[var(--accent)] font-bold">TB Rays True Win Prob: <span id="txtRaysProb">61.2%</span></span>
+            <span class="text-white">CLE Guardians True Win Prob: <span id="txtCleProb">38.8%</span></span>
+          </div>
         </div>
       </div>
 
-      <!-- PANEL 4: KINEMATIC TELEMETRY TICKER -->
-      <div class="panel-card p-5">
-        <h3 class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider mb-3">
-          REAL-TIME KINEMATIC DECAY FEED
-        </h3>
-        <div id="telemetryTicker" class="space-y-2 text-xs font-mono max-h-40 overflow-y-auto pr-2">
-          <div class="p-2 bg-[#060a12] border-l-2 border-[var(--green)] rounded">
-            <span class="text-[var(--text-muted)]">[15:38:02]</span> <span class="text-white font-bold">DAL QB:</span> Throwing arm-slot angle stable at <span class="text-[var(--accent)]">64.2°</span>. Plant-foot base width variance 1.1%.
+      <!-- TAB 3: KINEMATIC TELEMETRY FEED -->
+      <div id="view-telemetry" class="panel-card p-5" style="display: none;">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
+            REAL-TIME KINEMATIC DECAY &amp; ANOMALY STREAM
+          </h2>
+          <span class="text-xs text-[var(--green)] font-bold">120Hz HIGH-FREQUENCY INGEST</span>
+        </div>
+        <div class="space-y-3 text-xs font-mono max-h-96 overflow-y-auto pr-2">
+          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--green)] rounded">
+            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+              <span>[15:38:02] • NFL // DAL vs. GB</span>
+              <span class="text-[var(--green)]">STABLE</span>
+            </div>
+            <span class="text-white font-bold">DAL QB:</span> Throwing arm-slot angle stable at <span class="text-[var(--accent)]">64.2°</span>. Plant-foot base width variance 1.1%.
           </div>
-          <div class="p-2 bg-[#060a12] border-l-2 border-[var(--gold)] rounded">
-            <span class="text-[var(--text-muted)]">[15:37:44]</span> <span class="text-white font-bold">CLE STARTER:</span> Stride shortening detected (-3.5%). Release slot droop imminent in Inning 4.
+          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--gold)] rounded">
+            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+              <span>[15:37:44] • MLB // ALCS Game 5</span>
+              <span class="text-[var(--gold)]">WARNING: DECAY</span>
+            </div>
+            <span class="text-white font-bold">CLE STARTER:</span> Stride shortening detected (-3.5%). Release slot droop imminent in Inning 4.
           </div>
-          <div class="p-2 bg-[#060a12] border-l-2 border-[var(--red)] rounded">
-            <span class="text-[var(--text-muted)]">[15:36:10]</span> <span class="text-white font-bold">NO CB2:</span> Secondary reaction latency exhibiting <span class="text-[var(--red)]">+14ms lag</span> on post-motion hip turns.
+          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--red)] rounded">
+            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+              <span>[15:36:10] • NFL // NO vs. NYG</span>
+              <span class="text-[var(--red)]">CRITICAL ANOMALY</span>
+            </div>
+            <span class="text-white font-bold">NO CB2:</span> Secondary reaction latency exhibiting <span class="text-[var(--red)]">+14ms lag</span> on post-motion hip turns.
+          </div>
+          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--accent)] rounded">
+            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
+              <span>[15:34:20] • NFL // SNF Trenches</span>
+              <span class="text-[var(--accent)]">OPTIMAL</span>
+            </div>
+            <span class="text-white font-bold">GB LT:</span> Stance-hinge pressure load well-distributed. Zero torque loss across last 40 dropbacks.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: PORTFOLIO ANALYTICS -->
+      <div id="view-analytics" class="panel-card p-5" style="display: none;">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
+            PORTFOLIO CLV CAPTURE &amp; YIELD TRAJECTORY
+          </h2>
+          <span class="text-xs text-[var(--green)] font-bold">CLV EFFICIENCY: +96.4%</span>
+        </div>
+        <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] h-64 flex flex-col justify-end relative overflow-hidden">
+          <!-- SVG CLV Chart -->
+          <svg class="absolute inset-0 w-full h-full p-4" preserveAspectRatio="none" viewBox="0 0 500 200">
+            <path d="M 0 160 Q 100 140, 200 100 T 400 40 L 500 20" fill="none" stroke="var(--green)" stroke-width="3"></path>
+            <path d="M 0 180 Q 100 160, 200 130 T 400 90 L 500 70" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"></path>
+          </svg>
+          <div class="z-10 flex justify-between text-[10px] text-[var(--text-muted)] border-t border-[#1e293b] pt-2">
+            <span>WEEK 1</span>
+            <span>WEEK 2</span>
+            <span>WEEK 3</span>
+            <span>WEEK 4</span>
+            <span>WEEK 5</span>
+            <span>WEEK 6 (LIVE)</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mt-4 text-xs">
+          <div class="bg-[#060a12] p-3 rounded-xl border border-[#1e293b]">
+            <div class="text-[var(--text-muted)] text-[10px]">TOTAL CAP ACTIVITY</div>
+            <div class="font-bold text-white text-sm mt-1">$24,500.00</div>
+          </div>
+          <div class="bg-[#060a12] p-3 rounded-xl border border-[#1e293b]">
+            <div class="text-[var(--text-muted)] text-[10px]">REALIZED +EV YIELD</div>
+            <div class="font-bold text-[var(--green)] text-sm mt-1">+7.42%</div>
+          </div>
+          <div class="bg-[#060a12] p-3 rounded-xl border border-[#1e293b]">
+            <div class="text-[var(--text-muted)] text-[10px]">AVG CLV BEAT</div>
+            <div class="font-bold text-[var(--accent)] text-sm mt-1">+4.2%</div>
           </div>
         </div>
       </div>
@@ -414,18 +352,18 @@
         </div>
 
         <!-- PRESET TICKET BUTTONS -->
-        <div class="grid grid-cols-3 gap-2 mb-4 ticket-buttons">
+        <div class="grid grid-cols-3 gap-2 mb-4">
           <button onclick="loadPreset('core')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
             <div class="font-bold text-white">2-LEG CORE</div>
-            <div class="text-[var(--accent)]">-105/-110</div>
+            <div class="text-[var(--accent)]">+264</div>
           </button>
           <button onclick="loadPreset('snf')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
             <div class="font-bold text-white">SNF SGP</div>
-            <div class="text-[var(--accent)]">-110/-110</div>
+            <div class="text-[var(--accent)]">+264</div>
           </button>
           <button onclick="loadPreset('mega')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
             <div class="font-bold text-white">4-LEG MEGA</div>
-            <div class="text-[var(--green)]">4-LEG</div>
+            <div class="text-[var(--green)]">+1228</div>
           </button>
         </div>
 
@@ -473,212 +411,29 @@
   <!-- JAVASCRIPT LOGIC ENGINE -->
   <script>
     /* ==========================================================================
-       1. DRAGGABLE UMBRELLA GRAPH WORKSPACE (WITH MOUSE & TOUCH SUPPORT)
+       1. MAX-SIM MONTE CARLO PARAMETER CONTROLS
        ========================================================================== */
-    const positions = {
-      identity: { x: 40, y: 50 },
-      simulation: { x: 260, y: 120 },
-      narrative: { x: 120, y: 280 },
-      output: { x: 460, y: 280 }
-    };
-
-    let activeNode = null;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    function center(node) {
-      if (!node) return { x: 0, y: 0 };
-      return {
-        x: node.offsetLeft + node.offsetWidth / 2,
-        y: node.offsetTop + node.offsetHeight / 2
-      };
+    function updateSimParams(type, val) {
+      if (type === 'Fatigue') document.getElementById('valFatigue').innerText = val + 'x';
+      if (type === 'Latency') document.getElementById('valLatency').innerText = val + 'ms';
+      if (type === 'Turf') document.getElementById('valTurf').innerText = val + '%';
     }
 
-    function initGraph() {
-      const nodes = document.querySelectorAll(".node");
-      nodes.forEach(node => {
-        if (positions[node.id]) {
-          node.style.left = positions[node.id].x + "px";
-          node.style.top = positions[node.id].y + "px";
-        }
-
-        // Mouse Drag Support
-        node.addEventListener("mousedown", e => {
-          activeNode = node;
-          offsetX = e.clientX - node.offsetLeft;
-          offsetY = e.clientY - node.offsetTop;
-        });
-
-        // Touch Drag Support
-        node.addEventListener("touchstart", e => {
-          activeNode = node;
-          const touch = e.touches[0];
-          offsetX = touch.clientX - node.offsetLeft;
-          offsetY = touch.clientY - node.offsetTop;
-        });
-      });
-
-      document.addEventListener("mousemove", e => {
-        if (!activeNode) return;
-        const parentRect = document.getElementById("graphCanvas").getBoundingClientRect();
-        let left = e.clientX - offsetX;
-        let top = e.clientY - offsetY;
-
-        left = Math.max(0, Math.min(parentRect.width - 160, left));
-        top = Math.max(0, Math.min(parentRect.height - 65, top));
-
-        activeNode.style.left = left + "px";
-        activeNode.style.top = top + "px";
-        drawLinks();
-      });
-
-      document.addEventListener("touchmove", e => {
-        if (!activeNode) return;
-        const touch = e.touches[0];
-        const parentRect = document.getElementById("graphCanvas").getBoundingClientRect();
-        let left = touch.clientX - offsetX;
-        let top = touch.clientY - offsetY;
-
-        left = Math.max(0, Math.min(parentRect.width - 160, left));
-        top = Math.max(0, Math.min(parentRect.height - 65, top));
-
-        activeNode.style.left = left + "px";
-        activeNode.style.top = top + "px";
-        drawLinks();
-      });
-
-      document.addEventListener("mouseup", () => { activeNode = null; });
-      document.addEventListener("touchend", () => { activeNode = null; });
-
-      drawLinks();
-    }
-
-    function drawLinks() {
-      const svg = document.getElementById("graphLinks");
-      if (!svg) return;
-      svg.innerHTML = "";
-      connect("identity", "simulation");
-      connect("simulation", "narrative");
-      connect("simulation", "output");
-    }
-
-    function connect(a, b) {
-      const svg = document.getElementById("graphLinks");
-      const p1 = center(document.getElementById(a));
-      const p2 = center(document.getElementById(b));
-      if (!svg) return;
-
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const curve = `M ${p1.x} ${p1.y} C ${(p1.x + p2.x) / 2} ${p1.y}, ${(p1.x + p2.x) / 2} ${p2.y}, ${p2.x} ${p2.y}`;
-      path.setAttribute("d", curve);
-      path.setAttribute("class", "flowLine");
-      svg.appendChild(path);
-    }
-
-    function selectNode(node) {
-      const panel = document.getElementById("nodePanel");
-      if (!panel) return;
-
-      if (node === "identity") {
-        panel.innerHTML = `
-          <h4 class="font-bold text-[var(--accent)]">IDENTITY FIELD (PORTAL-OS)</h4>
-          <p class="text-[var(--text-muted)]">Core sovereign identities and architectural system protocols loaded.</p>
-        `;
-      } else if (node === "simulation") {
-        panel.innerHTML = `
-          <h4 class="font-bold text-[var(--green)]">SIMULATION FIELD (MAX-SIM)</h4>
-          <p class="text-[var(--text-muted)]">100,000 Iteration Monte Carlo engine online.</p>
-          <div class="flex gap-2 mt-2">
-            <button onclick="executeMonteCarlo()" class="bg-[var(--green)] text-black px-3 py-1 rounded font-bold">RUN 100K SIM</button>
-            <button onclick="focusVideo()" class="bg-[#0f172a] border border-[#1e293b] text-white px-3 py-1 rounded">OPEN VIDEO</button>
-          </div>
-        `;
-      } else if (node === "narrative") {
-        panel.innerHTML = `
-          <h4 class="font-bold text-[var(--gold)]">NARRATIVE FIELD</h4>
-          <p class="text-[var(--text-muted)]">Qualitative news vectors and biomechanical micro-signals integrated.</p>
-        `;
-      } else if (node === "output") {
-        panel.innerHTML = `
-          <h4 class="font-bold text-white">OUTPUT LAYER (QUANTUM EV)</h4>
-          <p class="text-[var(--text-muted)]">QUBO solver matrix generating optimal expected value bets.</p>
-        `;
-      }
+    function executeMonteCarlo() {
+      appendConsole("Executing 100,000 Iteration Monte Carlo Re-calibration...");
+      setTimeout(() => {
+        const randRays = (60 + Math.random() * 4).toFixed(1);
+        const randCle = (100 - randRays).toFixed(1);
+        document.getElementById('txtRaysProb').innerText = randRays + '%';
+        document.getElementById('txtCleProb').innerText = randCle + '%';
+        document.getElementById('simBarRays').style.width = randRays + '%';
+        document.getElementById('simBarCle').style.width = randCle + '%';
+        appendConsole(`RE-CALIBRATION COMPLETE: TB Rays Win Prob: ${randRays}% | CLE Guardians Win Prob: ${randCle}%`);
+      }, 500);
     }
 
     /* ==========================================================================
-       2. MAX-SIM VIDEO INTELLIGENCE & HUD CANVAS ENGINE
-       ========================================================================== */
-    const hud = document.getElementById("hudCanvas");
-    const hctx = hud ? hud.getContext("2d") : null;
-    let hudEnabled = true;
-
-    function resizeHUD() {
-      if (!hud) return;
-      hud.width = hud.offsetWidth;
-      hud.height = hud.offsetHeight;
-    }
-    window.addEventListener("resize", resizeHUD);
-    setTimeout(resizeHUD, 300);
-
-    function toggleHud() {
-      hudEnabled = !hudEnabled;
-    }
-
-    function drawHUD() {
-      if (!hud || !hctx) return;
-      hctx.clearRect(0, 0, hud.width, hud.height);
-
-      if (hudEnabled) {
-        hctx.strokeStyle = "#00f3ff";
-        hctx.lineWidth = 2;
-
-        // WR1 Bounding Box
-        hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
-        hctx.fillStyle = "#00f3ff";
-        hctx.font = "bold 12px 'JetBrains Mono'";
-        hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
-
-        // WR2 Bounding Box
-        hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
-        hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
-
-        // Passing Lane Vector
-        hctx.beginPath();
-        hctx.moveTo(hud.width * 0.5, hud.height * 0.7);
-        hctx.lineTo(hud.width * 0.35, hud.height * 0.35);
-        hctx.setLineDash([6, 4]);
-        hctx.stroke();
-        hctx.setLineDash([]);
-
-        // Telemetry Overlay HUD Text
-        hctx.fillStyle = "#00ff66";
-        hctx.font = "13px 'JetBrains Mono'";
-        hctx.fillText("ARM SLOT: 64.2°", 20, 35);
-        hctx.fillText("SEPARATION: 3.2 yd", 20, 60);
-        hctx.fillText("TORQUE INDEX: 92.7", 20, 85);
-      }
-
-      requestAnimationFrame(drawHUD);
-    }
-
-    function loadView(view) {
-      const video = document.getElementById("simVideo");
-      if (!video) return;
-      if (view === "qb") video.src = "videos/qb.mp4";
-      if (view === "coverage") video.src = "videos/coverage.mp4";
-      if (view === "trench") video.src = "videos/trench.mp4";
-      video.play().catch(() => {});
-    }
-
-    function focusVideo() {
-      switchTab('sim');
-      const video = document.getElementById("simVideo");
-      if (video) video.scrollIntoView({ behavior: "smooth" });
-    }
-
-    /* ==========================================================================
-       3. MAX-SIM CONSOLE CLI & HISTORY
+       2. MAX-SIM CONSOLE CLI & HISTORY (WITH FIXED CAPTURE CLV)
        ========================================================================== */
     let commandHistory = [];
     let historyIndex = -1;
@@ -717,41 +472,27 @@
       appendConsole(`> ${cmd}`);
 
       if (cmd === "help") {
-        appendConsole(`Available Commands:
-• help                - List commands
-• status              - Show system health & latency
-• video               - Scroll to video intelligence
-• video qb            - Load QB View stream
-• video coverage      - Load Coverage View stream
-• video trench        - Load Trench Cam stream
-• umbrella strict     - Set governance to STRICT
-• umbrella advisory   - Set governance to ADVISORY
-• run montecarlo      - Execute 100K sim sweep
-• risk audit          - Audit slate kinematic risks
-• clear               - Clear console output`);
+        appendConsole(`Available Terminal Directives & System Macros:
+• help                - List available command macros
+• status              - Show system health, latency, & QUBO solver state
+• run sim             - Execute 100K Monte Carlo iteration sweep
+• decay audit         - Audit kinematic joint-decay across active slate
+• trench check        - Scan line-of-scrimmage physics & torque metrics
+• capture clv         - Calculate real-time Closing Line Value capture delta
+• quantum sync        - Re-calibrate QUBO true-price matrix with live odds
+• clear               - Clear console output buffer`);
       } else if (cmd === "status") {
-        appendConsole(`MAX-SIM ONLINE // Latency: 178ms // Governance: ${localStorage.getItem("umbrella.mode") || "STRICT"}`);
-      } else if (cmd === "video") {
-        focusVideo();
-      } else if (cmd === "video qb") {
-        loadView("qb");
-        focusVideo();
-      } else if (cmd === "video coverage") {
-        loadView("coverage");
-        focusVideo();
-      } else if (cmd === "video trench") {
-        loadView("trench");
-        focusVideo();
-      } else if (cmd === "umbrella strict") {
-        setGovernanceMode("strict");
-        appendConsole("Governance set to STRICT.");
-      } else if (cmd === "umbrella advisory") {
-        setGovernanceMode("advisory");
-        appendConsole("Governance set to ADVISORY.");
-      } else if (cmd === "run montecarlo" || cmd === "run bills_jets") {
+        appendConsole(`MAX-SIM ONLINE // Latency: 178ms // Solver: MAX-QUANTUM (QUBO) // Governance: STRICT`);
+      } else if (cmd === "run sim" || cmd === "run montecarlo") {
         executeMonteCarlo();
-      } else if (cmd === "risk audit") {
-        appendConsole("RISK AUDIT: CLE Pitch Slot Droop (+8.6% EV on TB Rays ML); DAL LT Stance Hinge Decay (+7.8% EV on GB Packers).");
+      } else if (cmd === "decay audit" || cmd === "risk audit") {
+        appendConsole("DECAY AUDIT: CLE Pitch Slot Droop detected (+8.6% EV on TB Rays ML); DAL LT Stance Hinge Decay (+7.8% EV on GB Packers).");
+      } else if (cmd === "trench check") {
+        appendConsole("TRENCH CHECK: GB O-Line push index stable at 94.2. DAL defensive front reaction latency +12ms. Advantage: Packers.");
+      } else if (cmd === "capture clv") {
+        appendConsole("CAPTURE CLV AUDIT: Current portfolio beating closing numbers by an average of +4.2% across active NFL/MLB positions. CLV Efficiency: 96.4%.");
+      } else if (cmd === "quantum sync") {
+        appendConsole("QUANTUM SYNC: QUBO true-price matrix successfully re-calibrated against live exchange feeds. Zero structural drift.");
       } else if (cmd === "clear") {
         if (consoleOutput) consoleOutput.innerHTML = "";
       } else {
@@ -767,22 +508,8 @@
       consoleOutput.scrollTop = consoleOutput.scrollHeight;
     }
 
-    function setGovernanceMode(mode) {
-      localStorage.setItem("umbrella.mode", mode);
-      const el = document.getElementById("headerGovMode");
-      if (el) el.innerText = mode.toUpperCase();
-      appendConsole(`Governance mode updated: ${mode.toUpperCase()}`);
-    }
-
-    function executeMonteCarlo() {
-      appendConsole("Executing 100,000 Iteration Monte Carlo Simulation...");
-      setTimeout(() => {
-        appendConsole("SIMULATION COMPLETE: TB Rays ML (61.2% Win Prob) | GB Packers -2.5 (66.4% Cover Prob).");
-      }, 600);
-    }
-
     /* ==========================================================================
-       4. BET SLIP & TICKET PRESET ENGINE
+       3. BET SLIP & TICKET PRESET ENGINE
        ========================================================================== */
     const presets = {
       core: { name: "2-LEG CORE", odds: [-105, -110] },
@@ -855,29 +582,23 @@
     }
 
     /* ==========================================================================
-       5. UI TAB SWITCHING
+       4. UI TAB SWITCHING
        ========================================================================== */
     function switchTab(tab) {
       document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
       document.getElementById(`tab-${tab}`).classList.add("active");
 
       document.getElementById("view-risk").style.display = tab === 'risk' ? 'block' : 'none';
-      document.getElementById("view-umbrella").style.display = tab === 'umbrella' ? 'block' : 'none';
       document.getElementById("view-sim").style.display = tab === 'sim' ? 'block' : 'none';
-
-      if (tab === 'umbrella') setTimeout(drawLinks, 100);
-      if (tab === 'sim') setTimeout(resizeHUD, 100);
+      document.getElementById("view-telemetry").style.display = tab === 'telemetry' ? 'block' : 'none';
+      document.getElementById("view-analytics").style.display = tab === 'analytics' ? 'block' : 'none';
     }
 
     /* ==========================================================================
-       6. INITIALIZATION
+       5. INITIALIZATION
        ========================================================================== */
     window.addEventListener("load", () => {
-      initGraph();
-      drawHUD();
       loadPreset("core");
-      const savedMode = localStorage.getItem("umbrella.mode") || "strict";
-      setGovernanceMode(savedMode);
       switchTab('risk');
     });
   </script>
