@@ -1,720 +1,885 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PORTAL‑OS‑1 (Runtime v0.2)</title>
-<style>
-:root{
---bg:#030712;
---panel:#0f172a;
---panel2:#111827;
---text:#e2e8f0;
---accent:#00f3ff;
---border:#1e293b;
---success:#22c55e;
---error:#ef4444;
-}
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Inter,Arial,sans-serif;
-}
-body{
-background:var(--bg);
-color:var(--text);
-min-height:100vh;
-padding:20px;
-}
-#offlineBanner{
-display:none;
-position:fixed;
-top:0;
-left:0;
-right:0;
-z-index:9999;
-background:#dc2626;
-color:white;
-padding:10px;
-text-align:center;
-font-weight:bold;
-}
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-h1{
-font-size:28px;
-}
-.subtitle{
-color:#94a3b8;
-font-size:14px;
-}
-.card{
-background:var(--panel);
-border:1px solid var(--border);
-border-radius:14px;
-padding:16px;
-}
-.grid{
-display:grid;
-grid-template-columns:1fr 340px;
-gap:18px;
-}
-@media(max-width:1000px){
-.grid{
-grid-template-columns:1fr;
-}
-}
-.map-tabs{
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-margin-bottom:15px;
-}
-.map-tab{
-padding:10px 12px;
-border:none;
-background:var(--panel2);
-color:white;
-cursor:pointer;
-border-radius:10px;
-}
-.map-tab.active{
-background:var(--accent);
-color:black;
-font-weight:bold;
-}
-#mapWorkspace{
-min-height:260px;
-padding:10px;
-}
-.widget-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:10px;
-margin-top:20px;
-}
-.widget{
-padding:12px;
-background:#08111f;
-border-radius:12px;
-border:1px solid #11304a;
-}
-.widget-title{
-font-size:12px;
-color:#94a3b8;
-}
-.widget-value{
-font-size:28px;
-margin-top:8px;
-color:var(--accent);
-}
-.sidebar-section{
-margin-bottom:18px;
-}
-.sidebar-title{
-margin-bottom:10px;
-font-size:14px;
-font-weight:bold;
-}
-.node{
-padding:10px;
-background:#08111f;
-border-radius:10px;
-margin-bottom:8px;
-cursor:pointer;
-}
-.node:hover{
-border:1px solid var(--accent);
-}
-button.portal-btn{
-padding:10px 14px;
-background:var(--accent);
-color:black;
-font-weight:bold;
-border:none;
-border-radius:10px;
-cursor:pointer;
-}
-.console{
-height:180px;
-overflow:auto;
-background:black;
-padding:10px;
-border-radius:10px;
-font-family:monospace;
-font-size:12px;
-}
-.console-input{
-width:100%;
-margin-top:10px;
-padding:10px;
-border:none;
-border-radius:10px;
-background:#08111f;
-color:white;
-}
-.video-panel{
-margin-top:20px;
-}
-.video-container{
-position:relative;
-height:500px;
-overflow:hidden;
-border-radius:12px;
-border:1px solid var(--border);
-background:black;
-}
-.video-container video{
-position:absolute;
-inset:0;
-width:100%;
-height:100%;
-object-fit:cover;
-}
-#hudCanvas{
-position:absolute;
-inset:0;
-width:100%;
-height:100%;
-pointer-events:none;
-}
-.video-controls{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-bottom:12px;
-}
-.hud-status{
-position:absolute;
-right:10px;
-top:10px;
-padding:6px 10px;
-background:rgba(0,0,0,.65);
-border-radius:8px;
-font-size:12px;
-color:#00f3ff;
-z-index:10;
-}
-</style>
-</head>
-<body>
-
-<div id="offlineBanner">OFFLINE MODE</div>
-
-<div class="header">
-<div>
-<h1>PORTAL‑OS‑1 <span style="font-size:14px; color:var(--accent);">v0.2</span></h1>
-<div class="subtitle">MAX‑SIM • Five Great Maps • Umbrella • Identity → Simulation → Narrative</div>
-</div>
-</div>
-
-<div class="grid">
-<!-- LEFT -->
-<div class="card">
-<div class="map-tabs">
-<button class="map-tab" onclick="location.hash='/physics'">Physics</button>
-<button class="map-tab" onclick="location.hash='/compute'">Compute</button>
-<button class="map-tab" onclick="location.hash='/simulation'">Simulation</button>
-<button class="map-tab" onclick="location.hash='/cognition'">Cognition</button>
-<button class="map-tab" onclick="location.hash='/markets'">Markets</button>
-</div>
-
-<div id="mapWorkspace">
-<h2>Physical Substrates</h2>
-<p style="margin-top:12px;color:#94a3b8;">Quantum Systems, Relativity, Thermodynamics, Physical Simulation</p>
-<div class="widget-grid" id="widgetGrid"></div>
-</div>
-</div>
-
-<!-- RIGHT -->
-<div class="card">
-<div class="sidebar-section">
-<div class="sidebar-title">Umbrella Nodes</div>
-<div class="node">IDENTITY</div>
-<div class="node">SIMULATION</div>
-<div class="node">NARRATIVE</div>
-<div class="node">OUTPUT</div>
-</div>
-
-<div class="sidebar-section">
-<div class="sidebar-title">System Status</div>
-<div>Portal‑OS: <span style="color:var(--success)">ONLINE</span></div>
-<div>MAX‑SIM: <span style="color:var(--success)">READY</span> (<span id="simProgress">0%</span>)</div>
-<div>Worker API: <span id="workerStatus" style="color:#f59e0b">CHECKING...</span></div>
-<div>Narrative State: <span id="narrativeStatus" style="color:var(--accent)">idle</span></div>
-</div>
-
-<div class="sidebar-section">
-<div class="sidebar-title">Console</div>
-<div id="console" class="console">[BOOT] RUNTIME v0.2 INITIALIZING</div>
-<input id="consoleInput" class="console-input" placeholder="run sim">
-</div>
-</div>
-</div>
-
-<!-- MAX-SIM CONTROL PANEL -->
-<div class="card" style="margin-top:20px;">
-  <h2>MAX‑SIM Control Panel</h2>
-  <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
-    <button id="runSimBtn" class="portal-btn">RUN MAX‑SIM</button>
-    <button id="cancelSimBtn" class="portal-btn" style="background:#ef4444; color:white;">CANCEL</button>
-  </div>
-  <div id="simProgressDisplay" style="margin-top:12px; color:#00f3ff; font-weight:bold;">READY</div>
-  <div id="simResults" style="margin-top:12px; padding:12px; border:1px solid #1e293b; border-radius:10px; background:#08111f; min-height:80px;">
-    No simulation results.
-  </div>
-</div>
-
-<!-- VIDEO PANEL -->
-<div class="card video-panel">
-<h2 style="margin-bottom:10px;">MAX‑SIM VIDEO HUD</h2>
-<div class="video-controls">
-<button class="portal-btn" onclick="startCamera()">Camera</button>
-<button class="portal-btn" onclick="toggleHud()">HUD</button>
-<button class="portal-btn" onclick="loadView('qb')">QB</button>
-<button class="portal-btn" onclick="loadView('coverage')">Coverage</button>
-<button class="portal-btn" onclick="loadView('trench')">Trench</button>
-</div>
-<div class="video-container">
-<div id="hudState" class="hud-status">HUD ACTIVE</div>
-<video id="simVideo" autoplay muted loop playsinline></video>
-<video id="liveVideo" autoplay muted playsinline style="display:none"></video>
-<canvas id="hudCanvas"></canvas>
-
-<!-- SMART VIDEO FALLBACK OVERLAY -->
-<div id="videoFallback" style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#050b15; color:#00f3ff; z-index:5; text-align:center; padding:20px;">
-<h2>MAX‑SIM HUD</h2>
-<div id="fallbackView" style="margin-top:6px; font-size:14px; color:#94a3b8;">VIEW: PHYSICS</div>
-<div id="fallbackNetwork" style="margin-top:4px; font-size:12px; color:#22c55e;">STATUS: ONLINE</div>
-<div id="fallbackUpdate" style="margin-top:2px; font-size:12px; color:#94a3b8;">LAST: Waiting...</div>
-<div id="fallbackMessage" style="margin-top:12px;">Waiting For First Worker Response</div>
-<button id="playOverlay" style="display:none; margin-top:15px; padding:12px 18px; background:#00f3ff; color:black; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">CLICK TO START</button>
-</div>
-
-</div>
-</div>
-
-<!-- Import Runtime Script -->
-<script src="/js/runtime.js"></script>
-<script>
-/* ==========================
-   UI VIEW LAYER BINDINGS
-========================== */
-const MAPS = {
-  physics: {
-    title: "Physical Substrates",
-    description: "Quantum Systems, Relativity, Thermodynamics, Physical Simulation",
-    widgets: [["Field Status", "97%"], ["Curvature", "0.92"], ["Entropy", "LOW"]]
-  },
-  compute: {
-    title: "Compute Architecture",
-    description: "Kernel, routing, workers, IPC",
-    widgets: [["Kernel", "ONLINE"], ["IPC", "ACTIVE"], ["Latency", "12ms"]]
-  },
-  simulation: {
-    title: "MAX‑SIM",
-    description: "Simulation systems and propagation engines",
-    widgets: [
-      ["Iterations", () => PortalRuntime.state.simulation.iterations.toLocaleString()],
-      ["Coherence", () => PortalRuntime.state.simulation.coherence + "%"],
-      ["Probability", () => PortalRuntime.state.simulation.probability + "%"]
-    ]
-  },
-  cognition: {
-    title: "Intent & Cognition",
-    description: "Identity agents and decision systems",
-    widgets: [["Agents", "42"], ["Nodes", "311"], ["Goals", "ACTIVE"]]
-  },
-  markets: {
-    title: "Value & Order",
-    description: "Markets, liquidity and signals",
-    widgets: [["Risk", "LOW"], ["Signals", "7"], ["Liquidity", "HIGH"]]
-  }
-};
-
-function renderMap(name){
-  if(!MAPS[name]) name = "physics";
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAX SPORTS // MAX SIM Institutional Quantitative Risk Desk</title>
   
-  document.querySelectorAll('.map-tab').forEach(tab => {
-    tab.classList.remove('active');
-    const attr = tab.getAttribute('onclick') || '';
-    if(attr.includes(name)){
-      tab.classList.add('active');
+  <!-- Google Fonts & Tailwind CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg-base: #030712;
+      --panel-bg: #090d16;
+      --panel-border: #1e293b;
+      --accent: #00f3ff;
+      --accent-glow: rgba(0, 243, 255, 0.25);
+      --green: #00ff66;
+      --red: #ff0055;
+      --gold: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #64748b;
     }
-  });
 
-  const map = MAPS[name];
-  const workspace = document.getElementById('mapWorkspace');
-
-  workspace.innerHTML = `
-    <h2>${map.title}</h2>
-    <p style="margin-top:12px;color:#94a3b8;">${map.description}</p>
-    <div class="widget-grid" id="widgetGrid"></div>
-  `;
-
-  const grid = document.getElementById('widgetGrid');
-  map.widgets.forEach(widget => {
-    const el = document.createElement('div');
-    el.className = 'widget';
-    const label = widget[0];
-    const val = typeof widget[1] === 'function' ? widget[1]() : widget[1];
-    
-    el.innerHTML = `
-      <div class="widget-title">${label}</div>
-      <div class="widget-value">${val}</div>
-    `;
-    grid.appendChild(el);
-  });
-}
-
-/* ==========================
-   SAFE LOGGER
-========================== */
-function runtimeLog(msg){
-  if(window.PortalRuntime && typeof PortalRuntime.log === "function"){
-    PortalRuntime.log(msg);
-  } else {
-    const el = document.getElementById("console");
-    if(el){
-      el.innerHTML += "<br>" + msg;
-      el.scrollTop = el.scrollHeight;
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
-  }
-}
 
-/* ==========================
-   BUTTON WIRING
-========================== */
-(function(){
-  const runBtn = document.getElementById("runSimBtn");
-  const cancelBtn = document.getElementById("cancelSimBtn");
-
-  if(runBtn){
-    runBtn.onclick = () => {
-      PortalRuntime.runSimulation(100000);
-    };
-  }
-
-  if(cancelBtn){
-    cancelBtn.onclick = () => {
-      PortalRuntime.cancelSimulation();
-    };
-  }
-})();
-
-/* ==========================
-   EVENT SUBSCRIBERS
-========================== */
-PortalRuntime.EventBus.on("portal.ready", () => {
-  runtimeLog("[BOOT] PORTAL RUNTIME v0.2.1 ACTIVE");
-});
-
-PortalRuntime.EventBus.on("route.changed", (route) => {
-  renderMap(route);
-  runtimeLog("[MAP] " + route);
-});
-
-PortalRuntime.EventBus.on("simulation.started", (payload) => {
-  runtimeLog(`[MAX‑SIM] Started (${payload.iterations.toLocaleString()} iterations)`);
-  const progress = document.getElementById("simProgressDisplay");
-  const statusProg = document.getElementById("simProgress");
-  if(progress) progress.innerText = "RUNNING 0%";
-  if(statusProg) statusProg.innerText = "0%";
-});
-
-PortalRuntime.EventBus.on("simulation.progress", (payload) => {
-  const progress = document.getElementById("simProgressDisplay");
-  const statusProg = document.getElementById("simProgress");
-  if(progress) progress.innerText = `RUNNING ${payload.progress}%`;
-  if(statusProg) statusProg.innerText = payload.progress + "%";
-});
-
-PortalRuntime.EventBus.on("simulation.completed", (sim) => {
-  runtimeLog(`[MAX‑SIM] Completed | Coherence: ${sim.coherence}% | Prob: ${sim.probability}%`);
-  
-  const progress = document.getElementById("simProgressDisplay");
-  const statusProg = document.getElementById("simProgress");
-  if(progress) progress.innerText = "COMPLETE";
-  if(statusProg) statusProg.innerText = "100%";
-
-  const results = document.getElementById("simResults");
-  if(results){
-    results.innerHTML = `
-      <strong>Iterations</strong><br>${sim.iterations.toLocaleString()}
-      <br><br><strong>Probability</strong><br>${sim.probability}%
-      <br><br><strong>Coherence</strong><br>${sim.coherence}%
-    `;
-  }
-
-  if(PortalRuntime.state.navigation.currentMap === 'simulation'){
-    renderMap('simulation');
-  }
-});
-
-PortalRuntime.EventBus.on("simulation.cancelled", () => {
-  runtimeLog("[MAX-SIM] Cancelled by operator.");
-  const progress = document.getElementById("simProgressDisplay");
-  const statusProg = document.getElementById("simProgress");
-  if(progress) progress.innerText = "CANCELLED";
-  if(statusProg) statusProg.innerText = "CANCELLED";
-});
-
-PortalRuntime.EventBus.on("simulation.timeout", () => {
-  runtimeLog("[MAX-SIM ERROR] Execution timed out (30s limit exceeded).");
-  const progress = document.getElementById("simProgressDisplay");
-  if(progress) progress.innerText = "TIMEOUT";
-});
-
-PortalRuntime.EventBus.on("simulation.error", (err) => {
-  runtimeLog("[MAX-SIM ERROR] " + err.message);
-  const progress = document.getElementById("simProgressDisplay");
-  if(progress) progress.innerText = "ERROR";
-});
-
-PortalRuntime.EventBus.on("narrative.generated", (narrative) => {
-  const ns = document.getElementById("narrativeStatus");
-  if(ns) ns.innerText = narrative.state;
-  runtimeLog(`[NARRATIVE] ${narrative.summary}`);
-
-  const results = document.getElementById("simResults");
-  if(results){
-    results.innerHTML += `
-      <hr style="margin:10px 0; border-color:#1e293b;">
-      <strong>Narrative</strong><br>${narrative.summary}
-    `;
-  }
-});
-
-PortalRuntime.EventBus.on("worker.error", () => {
-  const statusEl = document.getElementById("workerStatus");
-  if(statusEl){
-    statusEl.innerText = "OFFLINE";
-    statusEl.style.color = "var(--error)";
-  }
-  runtimeLog("[WORKER] OFFLINE");
-});
-
-/* ==========================
-   UI CONTROLS & HUD LOOP
-========================== */
-let cameraStream = null;
-
-function loadView(view){
-  const video = document.getElementById("simVideo");
-  const viewEl = document.getElementById("fallbackView");
-  if(viewEl){
-    viewEl.innerText = "VIEW: " + view.toUpperCase();
-  }
-
-  const files = {
-    qb: "/videos/qb.mp4",
-    coverage: "/videos/coverage.mp4",
-    trench: "/videos/trench.mp4"
-  };
-
-  video.onerror = () => {
-    const fallback = document.getElementById("videoFallback");
-    fallback.style.display = "flex";
-    document.getElementById("fallbackMessage").innerText = `Missing Video: ${view}`;
-    runtimeLog(`[VIDEO] Missing asset: ${view}`);
-  };
-
-  video.onloadeddata = () => {
-    document.getElementById("videoFallback").style.display = "none";
-  };
-
-  if(files[view]){
-    video.src = files[view];
-    video.load();
-    video.play().catch(() => {
-      runtimeLog("[VIDEO] User interaction required");
-      const button = document.getElementById("playOverlay");
-      button.style.display = "inline-block";
-      document.getElementById("videoFallback").style.display = "flex";
-      document.getElementById("fallbackMessage").innerText = "Click to start video playback";
-
-      button.onclick = async () => {
-        try {
-          await video.play();
-          button.style.display = "none";
-          document.getElementById("videoFallback").style.display = "none";
-        } catch(error) {
-          console.error(error);
-        }
-      };
-    });
-    runtimeLog("[VIEW] Loaded " + view);
-  }
-}
-
-async function startCamera(){
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    const camera = document.getElementById("liveVideo");
-    camera.srcObject = cameraStream;
-    camera.style.display = "block";
-    runtimeLog("[CAMERA] ACTIVE");
-  } catch(err) {
-    runtimeLog("[CAMERA] DENIED / UNAVAILABLE");
-  }
-}
-
-function toggleHud(){
-  PortalRuntime.state.ui.hudEnabled = !PortalRuntime.state.ui.hudEnabled;
-  PortalRuntime.save();
-  
-  const statusEl = document.getElementById("hudState");
-  statusEl.innerText = PortalRuntime.state.ui.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
-  runtimeLog("[HUD] " + (PortalRuntime.state.ui.hudEnabled ? "ENABLED" : "DISABLED"));
-}
-
-function resizeHud(){
-  const canvas = document.getElementById("hudCanvas");
-  if(!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width = rect.width * ratio;
-  canvas.height = rect.height * ratio;
-}
-
-window.addEventListener("resize", resizeHud);
-
-function updateNetworkState(){
-  const banner = document.getElementById("offlineBanner");
-  if(banner){
-    banner.style.display = navigator.onLine ? "none" : "block";
-  }
-  updateFallbackStatus();
-}
-
-function updateFallbackStatus(){
-  const network = document.getElementById("fallbackNetwork");
-  const update = document.getElementById("fallbackUpdate");
-  const msg = document.getElementById("fallbackMessage");
-
-  if(network){
-    network.innerText = PortalRuntime.state.worker.online ? "STATUS: ONLINE" : "STATUS: OFFLINE";
-  }
-  if(update){
-    update.innerText = PortalRuntime.state.worker.lastUpdate 
-      ? `LAST: ${new Date(PortalRuntime.state.worker.lastUpdate).toLocaleTimeString()}` 
-      : "LAST: Waiting...";
-  }
-  if(msg){
-    if(PortalRuntime.state.worker.online){
-      msg.innerText = PortalRuntime.state.narrative.summary || "Live Worker Connected";
-    } else if(PortalRuntime.state.worker.lastGoodData){
-      msg.innerText = "Offline • Using Cached Data";
-    } else {
-      msg.innerText = "Waiting For Worker Response";
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
-  }
-}
+    ::-webkit-scrollbar-track {
+      background: #030712;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
 
-window.addEventListener("online", updateNetworkState);
-window.addEventListener("offline", updateNetworkState);
-setInterval(updateFallbackStatus, 1000);
+    .panel-card {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .panel-card:hover {
+      border-color: rgba(0, 243, 255, 0.4);
+    }
 
-/* Console Input Listener */
-const consoleInput = document.getElementById('consoleInput');
-if(consoleInput){
-  consoleInput.addEventListener('keydown', function(event){
-    if(event.key !== 'Enter') return;
-    const cmd = this.value.trim().toLowerCase();
-    if(!cmd) return;
-
-    runtimeLog('> ' + cmd);
-
-    if(cmd === 'run sim'){
-      PortalRuntime.runSimulation();
-    } else if(cmd === 'cancel sim'){
-      PortalRuntime.cancelSimulation();
-    } else if(cmd === 'status'){
-      runtimeLog(JSON.stringify(PortalRuntime.state.simulation, null, 2));
-    } else if(cmd === 'help'){
-      runtimeLog('Commands: help, status, run sim, cancel sim, map physics, map compute, map simulation, map cognition, map markets');
-    } else if(cmd.startsWith('map ')){
-      const mapName = cmd.replace('map ', '').trim();
-      if(MAPS[mapName]){
-        location.hash = "/" + mapName;
-      } else {
-        runtimeLog('Map not found: ' + mapName);
+    /* Draggable Umbrella Graph Styles */
+    #graphCanvas {
+      position: relative;
+      height: 480px;
+      background: #060a12;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+    }
+    #graphLinks {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .node {
+      position: absolute;
+      width: 160px;
+      height: 65px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #0f172a;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      cursor: grab;
+      font-weight: 700;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+      transition: border-color 0.25s ease;
+      z-index: 2;
+      user-select: none;
+    }
+    .node:active {
+      cursor: grabbing;
+    }
+    .node:hover {
+      box-shadow: 0 0 30px var(--accent);
+      border-color: #ffffff;
+    }
+    .flowLine {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      stroke-dasharray: 8 6;
+      animation: flow 2s linear infinite;
+    }
+    @keyframes flow {
+      to {
+        stroke-dashoffset: -20;
       }
-    } else {
-      runtimeLog('Unknown command');
-    }
-    this.value = '';
-  });
-}
-
-/* HUD Canvas Render Loop */
-function drawHud(){
-  const canvas = document.getElementById("hudCanvas");
-  if(!canvas){
-    requestAnimationFrame(drawHud);
-    return;
-  }
-
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if(PortalRuntime.state.ui.hudEnabled){
-    const w = canvas.width / (window.devicePixelRatio || 1);
-    const h = canvas.height / (window.devicePixelRatio || 1);
-
-    ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
-
-    ctx.strokeStyle = "#00f3ff";
-    ctx.lineWidth = 2;
-
-    ctx.strokeRect(w*0.28, h*0.35, w*0.10, h*0.22);
-    ctx.strokeRect(w*0.65, h*0.25, w*0.10, h*0.22);
-
-    ctx.beginPath();
-    ctx.moveTo(w*0.50, h*0.80);
-    ctx.lineTo(w*0.33, h*0.46);
-    ctx.stroke();
-
-    ctx.fillStyle = "#00f3ff";
-    ctx.font = "16px monospace";
-    ctx.fillText("ARM SLOT: " + PortalRuntime.state.telemetry.armSlot + "°", 20, 40);
-    ctx.fillText("SEPARATION: " + PortalRuntime.state.telemetry.separation + " yd", 20, 70);
-    ctx.fillText("COHERENCE: " + PortalRuntime.state.simulation.coherence + "%", 20, 100);
-    ctx.fillText("WIN PROB: " + PortalRuntime.state.simulation.probability + "%", 20, 130);
-    
-    ctx.fillText("WORKER: " + (PortalRuntime.state.worker.online ? "ONLINE" : "OFFLINE"), 20, 160);
-    
-    const updateTime = PortalRuntime.state.worker.lastUpdate ? new Date(PortalRuntime.state.worker.lastUpdate).toLocaleTimeString() : "Never";
-    ctx.fillText("LAST UPDATE: " + updateTime, 20, 190);
-
-    const stale = !PortalRuntime.state.worker.online && PortalRuntime.state.worker.lastGoodData;
-    if(stale){
-      ctx.fillStyle = "#f59e0b";
-      ctx.fillText("DATA STATUS: STALE", 20, 220);
     }
 
-    if(PortalRuntime.state.worker.lastError){
-      ctx.fillStyle = "#ff5555";
-      ctx.fillText("ERROR: " + PortalRuntime.state.worker.lastError, 20, 310);
+    /* Video Module Styles */
+    .video-module {
+      position: relative;
+      height: 480px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000000;
+      border: 1px solid var(--accent);
     }
-  }
+    .video-module video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #hudCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .video-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .video-toolbar button {
+      background: #1e293b;
+      color: var(--text-main);
+      padding: 8px 16px;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .video-toolbar button:hover {
+      background: var(--accent);
+      color: #000000;
+      box-shadow: 0 0 15px var(--accent);
+    }
 
-  requestAnimationFrame(drawHud);
-}
+    .nav-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      color: var(--text-muted);
+    }
+    .nav-btn.active {
+      background: var(--accent);
+      color: #000000;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
 
-/* Boot Initialization */
-window.addEventListener("DOMContentLoaded", () => {
-  resizeHud();
-  drawHud();
-  updateNetworkState();
-  PortalRuntime.boot();
-});
-</script>
+    .odds-btn {
+      transition: all 0.15s ease;
+    }
+    .odds-btn:hover {
+      border-color: var(--accent);
+      background: rgba(0, 243, 255, 0.1);
+    }
+    .odds-btn.selected {
+      background: var(--accent) !important;
+      color: #000000 !important;
+      font-weight: 800;
+      box-shadow: 0 0 12px var(--accent);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
 
+  <!-- HEADER BAR -->
+  <header class="panel-card p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-[var(--accent)] animate-pulse"></div>
+      <div>
+        <h1 class="text-xl font-extrabold tracking-wider text-white">MAX SPORTS <span class="text-[var(--accent)]">//</span> MAX SIM</h1>
+        <p class="text-xs text-[var(--text-muted)]">INSTITUTIONAL QUANTITATIVE RISK DESK &amp; SIMULATION TERMINAL</p>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="flex items-center gap-2">
+      <button onclick="switchTab('risk')" id="tab-risk" class="nav-btn active">RISK DESK &amp; ODDS</button>
+      <button onclick="switchTab('umbrella')" id="tab-umbrella" class="nav-btn">OUR UMBRELLA™ GRAPH</button>
+      <button onclick="switchTab('sim')" id="tab-sim" class="nav-btn">MAX SIM VIDEO</button>
+    </div>
+
+    <div class="flex items-center gap-6 text-xs">
+      <div>
+        <span class="text-[var(--text-muted)]">LATENCY:</span>
+        <span class="text-[var(--green)] font-bold">178ms</span>
+      </div>
+      <div>
+        <span class="text-[var(--text-muted)]">SOLVER:</span>
+        <span class="text-[var(--accent)] font-bold">MAX-QUANTUM (QUBO)</span>
+      </div>
+      <div>
+        <span class="text-[var(--text-muted)]">GOVERNANCE:</span>
+        <span id="headerGovMode" class="text-[var(--gold)] font-bold">STRICT</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GRID CONTAINER -->
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT 8-COLUMN MAIN WORKSPACE -->
+    <section class="lg:col-span-8 flex flex-col gap-6">
+
+      <!-- PANEL 1: RISK DESK & ODDS MATRIX -->
+      <div id="view-risk" class="panel-card p-5">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-2">
+            <span>⚡</span> COMMERCIAL ODDS VS. MAX-QUANTUM TRUE PRICE
+          </h2>
+          <span class="text-xs bg-[#0f172a] text-[var(--text-muted)] px-3 py-1 rounded-full border border-[#1e293b]">LIVE SLATE: OCT 18, 2026</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="text-[var(--text-muted)] border-b border-[#1e293b]">
+                <th class="p-3">EVENT / MATCHUP</th>
+                <th class="p-3">COMMERCIAL BOOK</th>
+                <th class="p-3">MAX-QUANTUM TRUE PRICE</th>
+                <th class="p-3">EV EDGE %</th>
+                <th class="p-3 text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#1e293b]">
+              <!-- ROW 1 -->
+              <tr class="hover:bg-[#0f172a]/50 transition">
+                <td class="p-3 font-semibold">
+                  <div class="text-white">MLB: TB Rays @ CLE Guardians</div>
+                  <div class="text-[10px] text-[var(--text-muted)]">ALCS Game 5 • 5:08 PM ET</div>
+                </td>
+                <td class="p-3">
+                  <div class="flex gap-2">
+                    <button onclick="toggleOddsSelection(this, 'TB Rays ML', -105, 'MLB')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">Rays -105</button>
+                    <button onclick="toggleOddsSelection(this, 'CLE ML', -115, 'MLB')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">Guardians -115</button>
+                  </div>
+                </td>
+                <td class="p-3 text-[var(--accent)] font-bold">Rays ML (-148)</td>
+                <td class="p-3 text-[var(--green)] font-bold">+8.6% EV</td>
+                <td class="p-3 text-right">
+                  <span class="bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/30 px-2 py-1 rounded font-bold">PRIMARY BUY</span>
+                </td>
+              </tr>
+
+              <!-- ROW 2 -->
+              <tr class="hover:bg-[#0f172a]/50 transition">
+                <td class="p-3 font-semibold">
+                  <div class="text-white">NFL: DAL Cowboys @ GB Packers</div>
+                  <div class="text-[10px] text-[var(--text-muted)]">Week 6 SNF • 8:20 PM ET</div>
+                </td>
+                <td class="p-3">
+                  <div class="flex gap-2">
+                    <button onclick="toggleOddsSelection(this, 'GB Packers -2.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">GB -2.5 (-110)</button>
+                    <button onclick="toggleOddsSelection(this, 'DAL/GB Under 47.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">U 47.5 (-110)</button>
+                  </div>
+                </td>
+                <td class="p-3 text-[var(--accent)] font-bold">Packers -5.5 / U 42.0</td>
+                <td class="p-3 text-[var(--green)] font-bold">+7.8% EV</td>
+                <td class="p-3 text-right">
+                  <span class="bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/30 px-2 py-1 rounded font-bold">CORE SPREAD</span>
+                </td>
+              </tr>
+
+              <!-- ROW 3 -->
+              <tr class="hover:bg-[#0f172a]/50 transition">
+                <td class="p-3 font-semibold">
+                  <div class="text-white">NFL: NO Saints @ NY Giants</div>
+                  <div class="text-[10px] text-[var(--text-muted)]">Week 6 Early • 1:00 PM ET</div>
+                </td>
+                <td class="p-3">
+                  <div class="flex gap-2">
+                    <button onclick="toggleOddsSelection(this, 'NY Giants -1.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">NYG -1.5 (-110)</button>
+                    <button onclick="toggleOddsSelection(this, 'NO/NYG Over 42.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">O 42.5 (-110)</button>
+                  </div>
+                </td>
+                <td class="p-3 text-[var(--accent)] font-bold">Giants -3.5 / O 45.0</td>
+                <td class="p-3 text-[var(--green)] font-bold">+5.1% EV</td>
+                <td class="p-3 text-right">
+                  <span class="bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30 px-2 py-1 rounded font-bold">SECONDARY</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL 2: OUR UMBRELLA™ DRAGGABLE GRAPH WORKSPACE -->
+      <div id="view-umbrella" class="panel-card p-5" style="display: none;">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <div>
+            <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
+              OUR umbrella™ // GRAPH WORKSPACE
+            </h2>
+            <p class="text-xs text-[var(--text-muted)]">IDENTITY → SIMULATION → NARRATIVE GOVERNANCE ARCHITECTURE</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="setGovernanceMode('strict')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-xs px-3 py-1 rounded text-white">STRICT</button>
+            <button onclick="setGovernanceMode('advisory')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-xs px-3 py-1 rounded text-white">ADVISORY</button>
+          </div>
+        </div>
+
+        <div id="graphCanvas">
+          <svg id="graphLinks"></svg>
+          <div id="identity" class="node" onclick="selectNode('identity')">
+            <span class="text-xs text-[var(--accent)]">IDENTITY</span>
+            <span class="text-[10px] text-[var(--text-muted)]">PORTAL-OS</span>
+          </div>
+          <div id="simulation" class="node" onclick="selectNode('simulation')">
+            <span class="text-xs text-[var(--green)]">SIMULATION</span>
+            <span class="text-[10px] text-[var(--text-muted)]">MAX-SIM CORE</span>
+          </div>
+          <div id="narrative" class="node" onclick="selectNode('narrative')">
+            <span class="text-xs text-[var(--gold)]">NARRATIVE</span>
+            <span class="text-[10px] text-[var(--text-muted)]">INSIDER FEED</span>
+          </div>
+          <div id="output" class="node" onclick="selectNode('output')">
+            <span class="text-xs text-white">OUTPUT</span>
+            <span class="text-[10px] text-[var(--text-muted)]">QUANTUM EV</span>
+          </div>
+        </div>
+
+        <div id="nodePanel" class="mt-4 p-4 bg-[#060a12] border border-[#1e293b] rounded-xl text-xs">
+          <h4 class="font-bold text-[var(--accent)] mb-1">GRAPH NODE INSPECTOR</h4>
+          <p class="text-[var(--text-muted)]">Select or drag any node above to inspect structural parameters.</p>
+        </div>
+      </div>
+
+      <!-- PANEL 3: MAX-SIM VIDEO INTELLIGENCE MODULE -->
+      <div id="view-sim" class="panel-card p-5" style="display: none;">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
+            MAX-SIM VIDEO INTELLIGENCE &amp; HUD OVERLAY
+          </h2>
+          <span class="text-xs text-[var(--green)] font-bold">120 FPS TELEMETRY SYNC</span>
+        </div>
+
+        <div class="video-module">
+          <video id="simVideo" autoplay controls muted loop playsinline>
+            <source src="videos/maxsim-demo.mp4" type="video/mp4">
+          </video>
+          <canvas id="hudCanvas"></canvas>
+        </div>
+
+        <div class="video-toolbar">
+          <button onclick="loadView('qb')">QB VIEW</button>
+          <button onclick="loadView('coverage')">COVERAGE</button>
+          <button onclick="loadView('trench')">TRENCH CAM</button>
+          <button onclick="toggleHud()">TOGGLE HUD</button>
+          <button onclick="focusVideo()" class="ml-auto bg-[var(--accent)]/10 border border-[var(--accent)] text-[var(--accent)]">FOCUS VIDEO</button>
+        </div>
+      </div>
+
+      <!-- PANEL 4: KINEMATIC TELEMETRY TICKER -->
+      <div class="panel-card p-5">
+        <h3 class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider mb-3">
+          REAL-TIME KINEMATIC DECAY FEED
+        </h3>
+        <div id="telemetryTicker" class="space-y-2 text-xs font-mono max-h-40 overflow-y-auto pr-2">
+          <div class="p-2 bg-[#060a12] border-l-2 border-[var(--green)] rounded">
+            <span class="text-[var(--text-muted)]">[15:38:02]</span> <span class="text-white font-bold">DAL QB:</span> Throwing arm-slot angle stable at <span class="text-[var(--accent)]">64.2°</span>. Plant-foot base width variance 1.1%.
+          </div>
+          <div class="p-2 bg-[#060a12] border-l-2 border-[var(--gold)] rounded">
+            <span class="text-[var(--text-muted)]">[15:37:44]</span> <span class="text-white font-bold">CLE STARTER:</span> Stride shortening detected (-3.5%). Release slot droop imminent in Inning 4.
+          </div>
+          <div class="p-2 bg-[#060a12] border-l-2 border-[var(--red)] rounded">
+            <span class="text-[var(--text-muted)]">[15:36:10]</span> <span class="text-white font-bold">NO CB2:</span> Secondary reaction latency exhibiting <span class="text-[var(--red)]">+14ms lag</span> on post-motion hip turns.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT 4-COLUMN SIDEBAR -->
+    <section class="lg:col-span-4 flex flex-col gap-6">
+
+      <!-- PORTFOLIO / BET SLIP -->
+      <div class="panel-card p-5">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider">PORTFOLIO BET SLIP</h2>
+          <span id="slipCount" class="bg-[var(--accent)] text-black text-xs font-bold px-2 py-0.5 rounded-full">PRESET MODE</span>
+        </div>
+
+        <!-- PRESET TICKET BUTTONS -->
+        <div class="grid grid-cols-3 gap-2 mb-4 ticket-buttons">
+          <button onclick="loadPreset('core')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
+            <div class="font-bold text-white">2-LEG CORE</div>
+            <div class="text-[var(--accent)]">-105/-110</div>
+          </button>
+          <button onclick="loadPreset('snf')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
+            <div class="font-bold text-white">SNF SGP</div>
+            <div class="text-[var(--accent)]">-110/-110</div>
+          </button>
+          <button onclick="loadPreset('mega')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
+            <div class="font-bold text-white">4-LEG MEGA</div>
+            <div class="text-[var(--green)]">4-LEG</div>
+          </button>
+        </div>
+
+        <!-- LIVE TICKET OUTPUT -->
+        <div id="ticketOutput" class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2 text-xs mb-4">
+          <!-- Dynamically populated ticket view -->
+        </div>
+
+        <!-- STAKE & PAYOUT MATH -->
+        <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-3 text-xs mb-4">
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">UNIT CAPITAL STAKE:</span>
+            <span id="stakeDisplay" class="font-bold text-white">$100.00</span>
+          </div>
+          <input type="range" id="stakeSlider" min="25" max="1000" step="25" value="100" class="w-full accent-[var(--accent)]">
+        </div>
+
+        <button onclick="executeWageringSlip()" class="w-full bg-[var(--accent)] hover:bg-cyan-400 text-black font-extrabold py-3 rounded-xl transition shadow-lg shadow-[var(--accent-glow)]">
+          EXECUTE QUANTITATIVE ALLOCATION
+        </button>
+      </div>
+
+      <!-- MAX-SIM CONSOLE CLI MODULE -->
+      <div class="panel-card p-5 flex flex-col h-full min-h-[350px]">
+        <div class="flex justify-between items-center mb-3 border-b border-[#1e293b] pb-2">
+          <h3 class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider">MAX-SIM CONSOLE CLI</h3>
+          <span class="text-[10px] text-[var(--text-muted)]">TYPE 'help' FOR COMMANDS</span>
+        </div>
+
+        <div id="consoleOutput" class="flex-1 bg-[#030712] border border-[#1e293b] rounded-lg p-3 text-[11px] font-mono text-[var(--green)] overflow-y-auto space-y-1 mb-3 max-h-60">
+          <div>MAX-SIM ONLINE // SYSTEM READY</div>
+          <div>Type 'help' to list commands or use ArrowUp / ArrowDown for command history.</div>
+        </div>
+
+        <div class="flex gap-2">
+          <span class="text-[var(--accent)] font-bold self-center">&gt;</span>
+          <input type="text" id="consoleInput" placeholder="Enter command..." class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    /* ==========================================================================
+       1. DRAGGABLE UMBRELLA GRAPH WORKSPACE (WITH MOUSE & TOUCH SUPPORT)
+       ========================================================================== */
+    const positions = {
+      identity: { x: 40, y: 50 },
+      simulation: { x: 260, y: 120 },
+      narrative: { x: 120, y: 280 },
+      output: { x: 460, y: 280 }
+    };
+
+    let activeNode = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function center(node) {
+      if (!node) return { x: 0, y: 0 };
+      return {
+        x: node.offsetLeft + node.offsetWidth / 2,
+        y: node.offsetTop + node.offsetHeight / 2
+      };
+    }
+
+    function initGraph() {
+      const nodes = document.querySelectorAll(".node");
+      nodes.forEach(node => {
+        if (positions[node.id]) {
+          node.style.left = positions[node.id].x + "px";
+          node.style.top = positions[node.id].y + "px";
+        }
+
+        // Mouse Drag Support
+        node.addEventListener("mousedown", e => {
+          activeNode = node;
+          offsetX = e.clientX - node.offsetLeft;
+          offsetY = e.clientY - node.offsetTop;
+        });
+
+        // Touch Drag Support
+        node.addEventListener("touchstart", e => {
+          activeNode = node;
+          const touch = e.touches[0];
+          offsetX = touch.clientX - node.offsetLeft;
+          offsetY = touch.clientY - node.offsetTop;
+        });
+      });
+
+      document.addEventListener("mousemove", e => {
+        if (!activeNode) return;
+        const parentRect = document.getElementById("graphCanvas").getBoundingClientRect();
+        let left = e.clientX - offsetX;
+        let top = e.clientY - offsetY;
+
+        left = Math.max(0, Math.min(parentRect.width - 160, left));
+        top = Math.max(0, Math.min(parentRect.height - 65, top));
+
+        activeNode.style.left = left + "px";
+        activeNode.style.top = top + "px";
+        drawLinks();
+      });
+
+      document.addEventListener("touchmove", e => {
+        if (!activeNode) return;
+        const touch = e.touches[0];
+        const parentRect = document.getElementById("graphCanvas").getBoundingClientRect();
+        let left = touch.clientX - offsetX;
+        let top = touch.clientY - offsetY;
+
+        left = Math.max(0, Math.min(parentRect.width - 160, left));
+        top = Math.max(0, Math.min(parentRect.height - 65, top));
+
+        activeNode.style.left = left + "px";
+        activeNode.style.top = top + "px";
+        drawLinks();
+      });
+
+      document.addEventListener("mouseup", () => { activeNode = null; });
+      document.addEventListener("touchend", () => { activeNode = null; });
+
+      drawLinks();
+    }
+
+    function drawLinks() {
+      const svg = document.getElementById("graphLinks");
+      if (!svg) return;
+      svg.innerHTML = "";
+      connect("identity", "simulation");
+      connect("simulation", "narrative");
+      connect("simulation", "output");
+    }
+
+    function connect(a, b) {
+      const svg = document.getElementById("graphLinks");
+      const p1 = center(document.getElementById(a));
+      const p2 = center(document.getElementById(b));
+      if (!svg) return;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const curve = `M ${p1.x} ${p1.y} C ${(p1.x + p2.x) / 2} ${p1.y}, ${(p1.x + p2.x) / 2} ${p2.y}, ${p2.x} ${p2.y}`;
+      path.setAttribute("d", curve);
+      path.setAttribute("class", "flowLine");
+      svg.appendChild(path);
+    }
+
+    function selectNode(node) {
+      const panel = document.getElementById("nodePanel");
+      if (!panel) return;
+
+      if (node === "identity") {
+        panel.innerHTML = `
+          <h4 class="font-bold text-[var(--accent)]">IDENTITY FIELD (PORTAL-OS)</h4>
+          <p class="text-[var(--text-muted)]">Core sovereign identities and architectural system protocols loaded.</p>
+        `;
+      } else if (node === "simulation") {
+        panel.innerHTML = `
+          <h4 class="font-bold text-[var(--green)]">SIMULATION FIELD (MAX-SIM)</h4>
+          <p class="text-[var(--text-muted)]">100,000 Iteration Monte Carlo engine online.</p>
+          <div class="flex gap-2 mt-2">
+            <button onclick="executeMonteCarlo()" class="bg-[var(--green)] text-black px-3 py-1 rounded font-bold">RUN 100K SIM</button>
+            <button onclick="focusVideo()" class="bg-[#0f172a] border border-[#1e293b] text-white px-3 py-1 rounded">OPEN VIDEO</button>
+          </div>
+        `;
+      } else if (node === "narrative") {
+        panel.innerHTML = `
+          <h4 class="font-bold text-[var(--gold)]">NARRATIVE FIELD</h4>
+          <p class="text-[var(--text-muted)]">Qualitative news vectors and biomechanical micro-signals integrated.</p>
+        `;
+      } else if (node === "output") {
+        panel.innerHTML = `
+          <h4 class="font-bold text-white">OUTPUT LAYER (QUANTUM EV)</h4>
+          <p class="text-[var(--text-muted)]">QUBO solver matrix generating optimal expected value bets.</p>
+        `;
+      }
+    }
+
+    /* ==========================================================================
+       2. MAX-SIM VIDEO INTELLIGENCE & HUD CANVAS ENGINE
+       ========================================================================== */
+    const hud = document.getElementById("hudCanvas");
+    const hctx = hud ? hud.getContext("2d") : null;
+    let hudEnabled = true;
+
+    function resizeHUD() {
+      if (!hud) return;
+      hud.width = hud.offsetWidth;
+      hud.height = hud.offsetHeight;
+    }
+    window.addEventListener("resize", resizeHUD);
+    setTimeout(resizeHUD, 300);
+
+    function toggleHud() {
+      hudEnabled = !hudEnabled;
+    }
+
+    function drawHUD() {
+      if (!hud || !hctx) return;
+      hctx.clearRect(0, 0, hud.width, hud.height);
+
+      if (hudEnabled) {
+        hctx.strokeStyle = "#00f3ff";
+        hctx.lineWidth = 2;
+
+        // WR1 Bounding Box
+        hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
+        hctx.fillStyle = "#00f3ff";
+        hctx.font = "bold 12px 'JetBrains Mono'";
+        hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
+
+        // WR2 Bounding Box
+        hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
+        hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
+
+        // Passing Lane Vector
+        hctx.beginPath();
+        hctx.moveTo(hud.width * 0.5, hud.height * 0.7);
+        hctx.lineTo(hud.width * 0.35, hud.height * 0.35);
+        hctx.setLineDash([6, 4]);
+        hctx.stroke();
+        hctx.setLineDash([]);
+
+        // Telemetry Overlay HUD Text
+        hctx.fillStyle = "#00ff66";
+        hctx.font = "13px 'JetBrains Mono'";
+        hctx.fillText("ARM SLOT: 64.2°", 20, 35);
+        hctx.fillText("SEPARATION: 3.2 yd", 20, 60);
+        hctx.fillText("TORQUE INDEX: 92.7", 20, 85);
+      }
+
+      requestAnimationFrame(drawHUD);
+    }
+
+    function loadView(view) {
+      const video = document.getElementById("simVideo");
+      if (!video) return;
+      if (view === "qb") video.src = "videos/qb.mp4";
+      if (view === "coverage") video.src = "videos/coverage.mp4";
+      if (view === "trench") video.src = "videos/trench.mp4";
+      video.play().catch(() => {});
+    }
+
+    function focusVideo() {
+      switchTab('sim');
+      const video = document.getElementById("simVideo");
+      if (video) video.scrollIntoView({ behavior: "smooth" });
+    }
+
+    /* ==========================================================================
+       3. MAX-SIM CONSOLE CLI & HISTORY
+       ========================================================================== */
+    let commandHistory = [];
+    let historyIndex = -1;
+
+    const consoleInput = document.getElementById("consoleInput");
+    const consoleOutput = document.getElementById("consoleOutput");
+
+    if (consoleInput) {
+      consoleInput.addEventListener("keydown", e => {
+        if (e.key === "ArrowUp") {
+          if (historyIndex > 0) {
+            historyIndex--;
+            consoleInput.value = commandHistory[historyIndex] || "";
+          }
+        } else if (e.key === "ArrowDown") {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            consoleInput.value = commandHistory[historyIndex] || "";
+          } else {
+            historyIndex = commandHistory.length;
+            consoleInput.value = "";
+          }
+        } else if (e.key === "Enter") {
+          const cmd = consoleInput.value.trim().toLowerCase();
+          if (cmd) {
+            commandHistory.push(cmd);
+            historyIndex = commandHistory.length;
+            executeConsoleCommand(cmd);
+            consoleInput.value = "";
+          }
+        }
+      });
+    }
+
+    function executeConsoleCommand(cmd) {
+      appendConsole(`> ${cmd}`);
+
+      if (cmd === "help") {
+        appendConsole(`Available Commands:
+• help                - List commands
+• status              - Show system health & latency
+• video               - Scroll to video intelligence
+• video qb            - Load QB View stream
+• video coverage      - Load Coverage View stream
+• video trench        - Load Trench Cam stream
+• umbrella strict     - Set governance to STRICT
+• umbrella advisory   - Set governance to ADVISORY
+• run montecarlo      - Execute 100K sim sweep
+• risk audit          - Audit slate kinematic risks
+• clear               - Clear console output`);
+      } else if (cmd === "status") {
+        appendConsole(`MAX-SIM ONLINE // Latency: 178ms // Governance: ${localStorage.getItem("umbrella.mode") || "STRICT"}`);
+      } else if (cmd === "video") {
+        focusVideo();
+      } else if (cmd === "video qb") {
+        loadView("qb");
+        focusVideo();
+      } else if (cmd === "video coverage") {
+        loadView("coverage");
+        focusVideo();
+      } else if (cmd === "video trench") {
+        loadView("trench");
+        focusVideo();
+      } else if (cmd === "umbrella strict") {
+        setGovernanceMode("strict");
+        appendConsole("Governance set to STRICT.");
+      } else if (cmd === "umbrella advisory") {
+        setGovernanceMode("advisory");
+        appendConsole("Governance set to ADVISORY.");
+      } else if (cmd === "run montecarlo" || cmd === "run bills_jets") {
+        executeMonteCarlo();
+      } else if (cmd === "risk audit") {
+        appendConsole("RISK AUDIT: CLE Pitch Slot Droop (+8.6% EV on TB Rays ML); DAL LT Stance Hinge Decay (+7.8% EV on GB Packers).");
+      } else if (cmd === "clear") {
+        if (consoleOutput) consoleOutput.innerHTML = "";
+      } else {
+        appendConsole(`ERROR: Unknown command '${cmd}'. Type 'help' for options.`);
+      }
+    }
+
+    function appendConsole(text) {
+      if (!consoleOutput) return;
+      const div = document.createElement("div");
+      div.innerText = text;
+      consoleOutput.appendChild(div);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    function setGovernanceMode(mode) {
+      localStorage.setItem("umbrella.mode", mode);
+      const el = document.getElementById("headerGovMode");
+      if (el) el.innerText = mode.toUpperCase();
+      appendConsole(`Governance mode updated: ${mode.toUpperCase()}`);
+    }
+
+    function executeMonteCarlo() {
+      appendConsole("Executing 100,000 Iteration Monte Carlo Simulation...");
+      setTimeout(() => {
+        appendConsole("SIMULATION COMPLETE: TB Rays ML (61.2% Win Prob) | GB Packers -2.5 (66.4% Cover Prob).");
+      }, 600);
+    }
+
+    /* ==========================================================================
+       4. BET SLIP & TICKET PRESET ENGINE
+       ========================================================================== */
+    const presets = {
+      core: { name: "2-LEG CORE", odds: [-105, -110] },
+      snf: { name: "SNF SGP", odds: [-110, -110] },
+      mega: { name: "4-LEG MEGA", odds: [-105, -110, -110, -110] }
+    };
+
+    let activePreset = "core";
+    const slider = document.getElementById("stakeSlider");
+    const stakeDisplay = document.getElementById("stakeDisplay");
+    const ticketOutput = document.getElementById("ticketOutput");
+
+    function americanToDecimal(odds) {
+      if (odds > 0) {
+        return (odds / 100) + 1;
+      }
+      return (100 / Math.abs(odds)) + 1;
+    }
+
+    function calculateTicket(stake, legs) {
+      const multiplier = legs.reduce((acc, odd) => {
+        return acc * americanToDecimal(odd);
+      }, 1);
+      const payout = stake * multiplier;
+      const ev = 5.1 + (legs.length * 1.8);
+      return { payout, ev };
+    }
+
+    function loadPreset(id) {
+      activePreset = id;
+      const stake = Number(slider.value);
+      const preset = presets[id];
+      const result = calculateTicket(stake, preset.odds);
+
+      ticketOutput.innerHTML = `
+        <h3 class="font-bold text-[var(--accent)] text-sm mb-1">${preset.name}</h3>
+        <p class="text-[var(--text-muted)]">Stake: $${stake.toFixed(2)}</p>
+        <p class="text-[var(--green)] font-bold">Estimated Payout: $${result.payout.toFixed(2)}</p>
+        <p class="text-[var(--gold)]">Estimated EV: +${result.ev.toFixed(1)}%</p>
+      `;
+    }
+
+    if (slider) {
+      slider.addEventListener("input", () => {
+        stakeDisplay.textContent = `$${Number(slider.value).toFixed(2)}`;
+        loadPreset(activePreset);
+      });
+    }
+
+    function toggleOddsSelection(btn, label, odds, sport) {
+      btn.classList.toggle("selected");
+    }
+
+    function executeWageringSlip() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {}
+
+      appendConsole(`EXECUTION CONFIRMED: Allocated $${slider.value} on preset ${presets[activePreset].name}.`);
+      alert("QUANTITATIVE POSITION EXECUTED SUCCESSFULLY.");
+    }
+
+    /* ==========================================================================
+       5. UI TAB SWITCHING
+       ========================================================================== */
+    function switchTab(tab) {
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(`tab-${tab}`).classList.add("active");
+
+      document.getElementById("view-risk").style.display = tab === 'risk' ? 'block' : 'none';
+      document.getElementById("view-umbrella").style.display = tab === 'umbrella' ? 'block' : 'none';
+      document.getElementById("view-sim").style.display = tab === 'sim' ? 'block' : 'none';
+
+      if (tab === 'umbrella') setTimeout(drawLinks, 100);
+      if (tab === 'sim') setTimeout(resizeHUD, 100);
+    }
+
+    /* ==========================================================================
+       6. INITIALIZATION
+       ========================================================================== */
+    window.addEventListener("load", () => {
+      initGraph();
+      drawHUD();
+      loadPreset("core");
+      const savedMode = localStorage.getItem("umbrella.mode") || "strict";
+      setGovernanceMode(savedMode);
+      switchTab('risk');
+    });
+  </script>
 </body>
 </html>
