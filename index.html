@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- HLS.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js"></script>
 
   <style>
     :root {
@@ -91,6 +93,53 @@
       font-weight: 800;
       box-shadow: 0 0 12px var(--accent);
     }
+
+    /* Video Module Styles */
+    .video-module {
+      position: relative;
+      height: 480px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000000;
+      border: 1px solid var(--accent);
+    }
+    .video-module video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #hudCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .video-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .video-toolbar button {
+      background: #1e293b;
+      color: var(--text-main);
+      padding: 8px 14px;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .video-toolbar button:hover {
+      background: var(--accent);
+      color: #000000;
+      box-shadow: 0 0 15px var(--accent);
+    }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -109,6 +158,7 @@
     <div class="flex items-center gap-2">
       <button onclick="switchTab('risk')" id="tab-risk" class="nav-btn active">RISK DESK &amp; ODDS</button>
       <button onclick="switchTab('sim')" id="tab-sim" class="nav-btn">MAX SIM ENGINE</button>
+      <button onclick="switchTab('video')" id="tab-video" class="nav-btn">VIDEO INTELLIGENCE</button>
       <button onclick="switchTab('telemetry')" id="tab-telemetry" class="nav-btn">KINEMATIC FEED</button>
       <button onclick="switchTab('analytics')" id="tab-analytics" class="nav-btn">PORTFOLIO ANALYTICS</button>
     </div>
@@ -124,7 +174,7 @@
       </div>
       <div>
         <span class="text-[var(--text-muted)]">SYSTEM TIME:</span>
-        <span class="text-[var(--gold)] font-bold">OCT 18, 20:52 EDT</span>
+        <span class="text-[var(--gold)] font-bold">OCT 18, 20:59 EDT</span>
       </div>
     </div>
   </header>
@@ -260,7 +310,39 @@
         </div>
       </div>
 
-      <!-- TAB 3: KINEMATIC TELEMETRY FEED -->
+      <!-- TAB 3: VIDEO INTELLIGENCE MODULE WITH HLS, WEBCAM & SCREEN SHARE -->
+      <div id="view-video" class="panel-card p-5" style="display: none;">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
+            MAX-SIM VIDEO INTELLIGENCE &amp; HUD OVERLAY
+          </h2>
+          <span class="text-xs text-[var(--green)] font-bold">120 FPS TELEMETRY SYNC</span>
+        </div>
+
+        <div class="video-module">
+          <video id="simVideo" autoplay muted controls playsinline></video>
+          <canvas id="hudCanvas"></canvas>
+        </div>
+
+        <!-- Video Toolbar Controls -->
+        <div class="video-toolbar">
+          <button onclick="startCamera()">Camera</button>
+          <button onclick="startScreenShare()">Screen</button>
+          <button onclick="loadQBFeed()">QB Feed</button>
+          <button onclick="loadCoverageFeed()">Coverage</button>
+          <button onclick="loadTrenchFeed()">Trench</button>
+          <button onclick="pauseFeed()">Pause</button>
+          <button onclick="playFeed()">Play</button>
+          <button onclick="toggleHud()" class="bg-[var(--accent)]/10 border border-[var(--accent)] text-[var(--accent)]">TOGGLE HUD</button>
+        </div>
+
+        <div class="flex gap-2 mt-3">
+          <input id="hlsUrl" type="text" placeholder="Paste .m3u8 stream URL" class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
+          <button onclick="loadCustomHLS()" class="bg-[#1e293b] border border-[#1e293b] hover:border-[var(--accent)] text-white px-4 py-2 rounded text-xs font-bold transition">Connect HLS</button>
+        </div>
+      </div>
+
+      <!-- TAB 4: KINEMATIC TELEMETRY FEED -->
       <div id="view-telemetry" class="panel-card p-5" style="display: none;">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
@@ -300,7 +382,7 @@
         </div>
       </div>
 
-      <!-- TAB 4: PORTFOLIO ANALYTICS -->
+      <!-- TAB 5: PORTFOLIO ANALYTICS -->
       <div id="view-analytics" class="panel-card p-5" style="display: none;">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
@@ -433,7 +515,138 @@
     }
 
     /* ==========================================================================
-       2. MAX-SIM CONSOLE CLI & HISTORY (WITH FIXED CAPTURE CLV)
+       2. VIDEO INTELLIGENCE, HLS & HUD CANVAS ENGINE
+       ========================================================================== */
+    const video = document.getElementById("simVideo");
+    let currentHls = null;
+    const hud = document.getElementById("hudCanvas");
+    const hctx = hud ? hud.getContext("2d") : null;
+    let hudEnabled = true;
+
+    function resizeHUD() {
+      if (!hud) return;
+      hud.width = hud.offsetWidth;
+      hud.height = hud.offsetHeight;
+    }
+    window.addEventListener("resize", resizeHUD);
+    setTimeout(resizeHUD, 300);
+
+    function toggleHud() {
+      hudEnabled = !hudEnabled;
+    }
+
+    function drawHUD() {
+      if (!hud || !hctx) return;
+      hctx.clearRect(0, 0, hud.width, hud.height);
+
+      if (hudEnabled) {
+        hctx.strokeStyle = "#00f3ff";
+        hctx.lineWidth = 2;
+
+        // WR1 Bounding Box
+        hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
+        hctx.fillStyle = "#00f3ff";
+        hctx.font = "bold 12px 'JetBrains Mono'";
+        hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
+
+        // WR2 Bounding Box
+        hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
+        hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
+
+        // Passing Lane Vector
+        hctx.beginPath();
+        hctx.moveTo(hud.width * 0.5, hud.height * 0.7);
+        hctx.lineTo(hud.width * 0.35, hud.height * 0.35);
+        hctx.setLineDash([6, 4]);
+        hctx.stroke();
+        hctx.setLineDash([]);
+
+        // Telemetry Overlay HUD Text
+        hctx.fillStyle = "#00ff66";
+        hctx.font = "13px 'JetBrains Mono'";
+        hctx.fillText("ARM SLOT: 64.2°", 20, 35);
+        hctx.fillText("SEPARATION: 3.2 yd", 20, 60);
+        hctx.fillText("TORQUE INDEX: 92.7", 20, 85);
+      }
+
+      requestAnimationFrame(drawHUD);
+    }
+    drawHUD();
+
+    function destroyFeed() {
+      if (currentHls) {
+        currentHls.destroy();
+        currentHls = null;
+      }
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+    }
+
+    async function startCamera() {
+      destroyFeed();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+        appendConsole("VIDEO: Webcam feed successfully attached.");
+      } catch (err) {
+        appendConsole("VIDEO ERROR: Unable to access camera.");
+      }
+    }
+
+    async function startScreenShare() {
+      destroyFeed();
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        video.srcObject = stream;
+        appendConsole("VIDEO: Screen share feed successfully attached.");
+      } catch (err) {
+        appendConsole("VIDEO ERROR: Screen share cancelled or unavailable.");
+      }
+    }
+
+    function attachHLS(url) {
+      destroyFeed();
+      if (Hls.isSupported()) {
+        currentHls = new Hls();
+        currentHls.loadSource(url);
+        currentHls.attachMedia(video);
+        appendConsole(`VIDEO: Attached HLS stream -> ${url}`);
+      } else {
+        video.src = url;
+        appendConsole(`VIDEO: Native HLS fallback -> ${url}`);
+      }
+    }
+
+    function loadCustomHLS() {
+      const url = document.getElementById("hlsUrl").value.trim();
+      if (url) {
+        attachHLS(url);
+      }
+    }
+
+    function loadQBFeed() { attachHLS("streams/qb.m3u8"); }
+    function loadCoverageFeed() { attachHLS("streams/coverage.m3u8"); }
+    function loadTrenchFeed() { attachHLS("streams/trench.m3u8"); }
+
+    function playFeed() { video.play(); }
+    function pauseFeed() { video.pause(); }
+    function muteFeed() { video.muted = true; }
+    function unmuteFeed() { video.muted = false; }
+
+    // Keyboard Shortcuts
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (video.paused) { video.play(); } else { video.pause(); }
+      }
+      if (e.key === "m") { video.muted = !video.muted; }
+      if (e.key === "f") { video.requestFullscreen(); }
+    });
+
+    /* ==========================================================================
+       3. MAX-SIM CONSOLE CLI & HISTORY
        ========================================================================== */
     let commandHistory = [];
     let historyIndex = -1;
@@ -509,7 +722,7 @@
     }
 
     /* ==========================================================================
-       3. BET SLIP & TICKET PRESET ENGINE
+       4. BET SLIP & TICKET PRESET ENGINE
        ========================================================================== */
     const presets = {
       core: { name: "2-LEG CORE", odds: [-105, -110] },
@@ -582,7 +795,7 @@
     }
 
     /* ==========================================================================
-       4. UI TAB SWITCHING
+       5. UI TAB SWITCHING
        ========================================================================== */
     function switchTab(tab) {
       document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -590,12 +803,15 @@
 
       document.getElementById("view-risk").style.display = tab === 'risk' ? 'block' : 'none';
       document.getElementById("view-sim").style.display = tab === 'sim' ? 'block' : 'none';
+      document.getElementById("view-video").style.display = tab === 'video' ? 'block' : 'none';
       document.getElementById("view-telemetry").style.display = tab === 'telemetry' ? 'block' : 'none';
       document.getElementById("view-analytics").style.display = tab === 'analytics' ? 'block' : 'none';
+
+      if (tab === 'video') setTimeout(resizeHUD, 100);
     }
 
     /* ==========================================================================
-       5. INITIALIZATION
+       6. INITIALIZATION
        ========================================================================== */
     window.addEventListener("load", () => {
       loadPreset("core");
