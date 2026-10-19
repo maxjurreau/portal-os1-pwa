@@ -211,10 +211,6 @@ z-index:10;
 <h1>PORTAL‑OS‑1 <span style="font-size:14px; color:var(--accent);">v0.2</span></h1>
 <div class="subtitle">MAX‑SIM • Five Great Maps • Umbrella • Identity → Simulation → Narrative</div>
 </div>
-<div style="display:flex; gap:10px;">
-<button class="portal-btn" onclick="PortalRuntime.runSimulation()">RUN SIM</button>
-<button class="portal-btn" style="background:#ef4444; color:white;" onclick="PortalRuntime.cancelSimulation()">CANCEL</button>
-</div>
 </div>
 
 <div class="grid">
@@ -261,6 +257,19 @@ z-index:10;
 </div>
 </div>
 
+<!-- MAX-SIM CONTROL PANEL -->
+<div class="card" style="margin-top:20px;">
+  <h2>MAX‑SIM Control Panel</h2>
+  <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+    <button id="runSimBtn" class="portal-btn">RUN MAX‑SIM</button>
+    <button id="cancelSimBtn" class="portal-btn" style="background:#ef4444; color:white;">CANCEL</button>
+  </div>
+  <div id="simProgressDisplay" style="margin-top:12px; color:#00f3ff; font-weight:bold;">READY</div>
+  <div id="simResults" style="margin-top:12px; padding:12px; border:1px solid #1e293b; border-radius:10px; background:#08111f; min-height:80px;">
+    No simulation results.
+  </div>
+</div>
+
 <!-- VIDEO PANEL -->
 <div class="card video-panel">
 <h2 style="margin-bottom:10px;">MAX‑SIM VIDEO HUD</h2>
@@ -278,35 +287,13 @@ z-index:10;
 <canvas id="hudCanvas"></canvas>
 
 <!-- SMART VIDEO FALLBACK OVERLAY -->
-<div id="videoFallback" style="
-position:absolute;
-inset:0;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-background:#050b15;
-color:#00f3ff;
-z-index:5;
-text-align:center;
-padding: 20px;
-">
+<div id="videoFallback" style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#050b15; color:#00f3ff; z-index:5; text-align:center; padding:20px;">
 <h2>MAX‑SIM HUD</h2>
 <div id="fallbackView" style="margin-top:6px; font-size:14px; color:#94a3b8;">VIEW: PHYSICS</div>
 <div id="fallbackNetwork" style="margin-top:4px; font-size:12px; color:#22c55e;">STATUS: ONLINE</div>
 <div id="fallbackUpdate" style="margin-top:2px; font-size:12px; color:#94a3b8;">LAST: Waiting...</div>
 <div id="fallbackMessage" style="margin-top:12px;">Waiting For First Worker Response</div>
-<button id="playOverlay" style="
-display:none;
-margin-top:15px;
-padding:12px 18px;
-background:#00f3ff;
-color:black;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-">CLICK TO START</button>
+<button id="playOverlay" style="display:none; margin-top:15px; padding:12px 18px; background:#00f3ff; color:black; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">CLICK TO START</button>
 </div>
 
 </div>
@@ -386,46 +373,121 @@ function renderMap(name){
 }
 
 /* ==========================
+   SAFE LOGGER
+========================== */
+function runtimeLog(msg){
+  if(window.PortalRuntime && typeof PortalRuntime.log === "function"){
+    PortalRuntime.log(msg);
+  } else {
+    const el = document.getElementById("console");
+    if(el){
+      el.innerHTML += "<br>" + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+}
+
+/* ==========================
+   BUTTON WIRING
+========================== */
+(function(){
+  const runBtn = document.getElementById("runSimBtn");
+  const cancelBtn = document.getElementById("cancelSimBtn");
+
+  if(runBtn){
+    runBtn.onclick = () => {
+      PortalRuntime.runSimulation(100000);
+    };
+  }
+
+  if(cancelBtn){
+    cancelBtn.onclick = () => {
+      PortalRuntime.cancelSimulation();
+    };
+  }
+})();
+
+/* ==========================
    EVENT SUBSCRIBERS
 ========================== */
 PortalRuntime.EventBus.on("portal.ready", () => {
-  PortalRuntime.log("[BOOT] PORTAL RUNTIME v0.2.1 ACTIVE");
+  runtimeLog("[BOOT] PORTAL RUNTIME v0.2.1 ACTIVE");
 });
 
 PortalRuntime.EventBus.on("route.changed", (route) => {
   renderMap(route);
-  PortalRuntime.log("[MAP] " + route);
+  runtimeLog("[MAP] " + route);
 });
 
 PortalRuntime.EventBus.on("simulation.started", (payload) => {
-  PortalRuntime.log(`[MAX‑SIM] Starting execution (${payload.iterations} iterations)...`);
+  runtimeLog(`[MAX‑SIM] Started (${payload.iterations.toLocaleString()} iterations)`);
+  const progress = document.getElementById("simProgressDisplay");
+  const statusProg = document.getElementById("simProgress");
+  if(progress) progress.innerText = "RUNNING 0%";
+  if(statusProg) statusProg.innerText = "0%";
+});
+
+PortalRuntime.EventBus.on("simulation.progress", (payload) => {
+  const progress = document.getElementById("simProgressDisplay");
+  const statusProg = document.getElementById("simProgress");
+  if(progress) progress.innerText = `RUNNING ${payload.progress}%`;
+  if(statusProg) statusProg.innerText = payload.progress + "%";
 });
 
 PortalRuntime.EventBus.on("simulation.completed", (sim) => {
-  PortalRuntime.log(`[COMPLETE] Iterations: ${sim.iterations.toLocaleString()} | Coherence: ${sim.coherence}% | Prob: ${sim.probability}%`);
+  runtimeLog(`[MAX‑SIM] Completed | Coherence: ${sim.coherence}% | Prob: ${sim.probability}%`);
+  
+  const progress = document.getElementById("simProgressDisplay");
+  const statusProg = document.getElementById("simProgress");
+  if(progress) progress.innerText = "COMPLETE";
+  if(statusProg) statusProg.innerText = "100%";
+
+  const results = document.getElementById("simResults");
+  if(results){
+    results.innerHTML = `
+      <strong>Iterations</strong><br>${sim.iterations.toLocaleString()}
+      <br><br><strong>Probability</strong><br>${sim.probability}%
+      <br><br><strong>Coherence</strong><br>${sim.coherence}%
+    `;
+  }
+
   if(PortalRuntime.state.navigation.currentMap === 'simulation'){
     renderMap('simulation');
   }
 });
 
 PortalRuntime.EventBus.on("simulation.cancelled", () => {
-  PortalRuntime.log("[MAX-SIM] Execution cancelled by operator.");
-  const prog = document.getElementById("simProgress");
-  if(prog) prog.innerText = "CANCELLED";
+  runtimeLog("[MAX-SIM] Cancelled by operator.");
+  const progress = document.getElementById("simProgressDisplay");
+  const statusProg = document.getElementById("simProgress");
+  if(progress) progress.innerText = "CANCELLED";
+  if(statusProg) statusProg.innerText = "CANCELLED";
 });
 
 PortalRuntime.EventBus.on("simulation.timeout", () => {
-  PortalRuntime.log("[MAX-SIM ERROR] Execution timed out (30s limit exceeded).");
+  runtimeLog("[MAX-SIM ERROR] Execution timed out (30s limit exceeded).");
+  const progress = document.getElementById("simProgressDisplay");
+  if(progress) progress.innerText = "TIMEOUT";
 });
 
 PortalRuntime.EventBus.on("simulation.error", (err) => {
-  PortalRuntime.log("[MAX-SIM ERROR] " + err.message);
+  runtimeLog("[MAX-SIM ERROR] " + err.message);
+  const progress = document.getElementById("simProgressDisplay");
+  if(progress) progress.innerText = "ERROR";
 });
 
 PortalRuntime.EventBus.on("narrative.generated", (narrative) => {
   const ns = document.getElementById("narrativeStatus");
   if(ns) ns.innerText = narrative.state;
-  PortalRuntime.log(`[NARRATIVE] ${narrative.summary}`);
+  runtimeLog(`[NARRATIVE] ${narrative.summary}`);
+
+  const results = document.getElementById("simResults");
+  if(results){
+    results.innerHTML += `
+      <hr style="margin:10px 0; border-color:#1e293b;">
+      <strong>Narrative</strong><br>${narrative.summary}
+    `;
+  }
 });
 
 PortalRuntime.EventBus.on("worker.error", () => {
@@ -434,7 +496,7 @@ PortalRuntime.EventBus.on("worker.error", () => {
     statusEl.innerText = "OFFLINE";
     statusEl.style.color = "var(--error)";
   }
-  PortalRuntime.log("[WORKER] OFFLINE");
+  runtimeLog("[WORKER] OFFLINE");
 });
 
 /* ==========================
@@ -459,7 +521,7 @@ function loadView(view){
     const fallback = document.getElementById("videoFallback");
     fallback.style.display = "flex";
     document.getElementById("fallbackMessage").innerText = `Missing Video: ${view}`;
-    PortalRuntime.log(`[VIDEO] Missing asset: ${view}`);
+    runtimeLog(`[VIDEO] Missing asset: ${view}`);
   };
 
   video.onloadeddata = () => {
@@ -470,7 +532,7 @@ function loadView(view){
     video.src = files[view];
     video.load();
     video.play().catch(() => {
-      PortalRuntime.log("[VIDEO] User interaction required");
+      runtimeLog("[VIDEO] User interaction required");
       const button = document.getElementById("playOverlay");
       button.style.display = "inline-block";
       document.getElementById("videoFallback").style.display = "flex";
@@ -486,7 +548,7 @@ function loadView(view){
         }
       };
     });
-    PortalRuntime.log("[VIEW] Loaded " + view);
+    runtimeLog("[VIEW] Loaded " + view);
   }
 }
 
@@ -496,9 +558,9 @@ async function startCamera(){
     const camera = document.getElementById("liveVideo");
     camera.srcObject = cameraStream;
     camera.style.display = "block";
-    PortalRuntime.log("[CAMERA] ACTIVE");
+    runtimeLog("[CAMERA] ACTIVE");
   } catch(err) {
-    PortalRuntime.log("[CAMERA] DENIED / UNAVAILABLE");
+    runtimeLog("[CAMERA] DENIED / UNAVAILABLE");
   }
 }
 
@@ -508,7 +570,7 @@ function toggleHud(){
   
   const statusEl = document.getElementById("hudState");
   statusEl.innerText = PortalRuntime.state.ui.hudEnabled ? "HUD ACTIVE" : "HUD OFF";
-  PortalRuntime.log("[HUD] " + (PortalRuntime.state.ui.hudEnabled ? "ENABLED" : "DISABLED"));
+  runtimeLog("[HUD] " + (PortalRuntime.state.ui.hudEnabled ? "ENABLED" : "DISABLED"));
 }
 
 function resizeHud(){
@@ -559,33 +621,36 @@ window.addEventListener("offline", updateNetworkState);
 setInterval(updateFallbackStatus, 1000);
 
 /* Console Input Listener */
-document.getElementById('consoleInput').addEventListener('keydown', function(event){
-  if(event.key !== 'Enter') return;
-  const cmd = this.value.trim().toLowerCase();
-  if(!cmd) return;
+const consoleInput = document.getElementById('consoleInput');
+if(consoleInput){
+  consoleInput.addEventListener('keydown', function(event){
+    if(event.key !== 'Enter') return;
+    const cmd = this.value.trim().toLowerCase();
+    if(!cmd) return;
 
-  PortalRuntime.log('> ' + cmd);
+    runtimeLog('> ' + cmd);
 
-  if(cmd === 'run sim'){
-    PortalRuntime.runSimulation();
-  } else if(cmd === 'cancel sim'){
-    PortalRuntime.cancelSimulation();
-  } else if(cmd === 'status'){
-    PortalRuntime.log('PORTAL‑OS RUNTIME v0.2 ONLINE');
-  } else if(cmd === 'help'){
-    PortalRuntime.log('Commands: help, status, run sim, cancel sim, map physics, map compute, map simulation, map cognition, map markets');
-  } else if(cmd.startsWith('map ')){
-    const mapName = cmd.replace('map ', '').trim();
-    if(MAPS[mapName]){
-      location.hash = "/" + mapName;
+    if(cmd === 'run sim'){
+      PortalRuntime.runSimulation();
+    } else if(cmd === 'cancel sim'){
+      PortalRuntime.cancelSimulation();
+    } else if(cmd === 'status'){
+      runtimeLog(JSON.stringify(PortalRuntime.state.simulation, null, 2));
+    } else if(cmd === 'help'){
+      runtimeLog('Commands: help, status, run sim, cancel sim, map physics, map compute, map simulation, map cognition, map markets');
+    } else if(cmd.startsWith('map ')){
+      const mapName = cmd.replace('map ', '').trim();
+      if(MAPS[mapName]){
+        location.hash = "/" + mapName;
+      } else {
+        runtimeLog('Map not found: ' + mapName);
+      }
     } else {
-      PortalRuntime.log('Map not found: ' + mapName);
+      runtimeLog('Unknown command');
     }
-  } else {
-    PortalRuntime.log('Unknown command');
-  }
-  this.value = '';
-});
+    this.value = '';
+  });
+}
 
 /* HUD Canvas Render Loop */
 function drawHud(){
