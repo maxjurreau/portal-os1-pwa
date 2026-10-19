@@ -1,5 +1,5 @@
 /* ==========================================
-   PORTAL RUNTIME KERNEL v0.2
+   PORTAL RUNTIME KERNEL v0.2.1
    Operating Layer: Portal-OS
    Simulation Architecture: MAX-SIM
    Governance Flow: Identity -> Simulation -> Narrative
@@ -85,7 +85,29 @@ const PortalRuntime = (() => {
   };
 
   /* ==========================================
-     3. SCHEMA MIGRATION ENGINE
+     3. CONSOLE & LOGGING (FIXED)
+  ========================================== */
+  function log(message){
+    state.console.push({
+      timestamp: Date.now(),
+      message
+    });
+    if(state.console.length > 200){
+      state.console.shift();
+    }
+    EventBus.emit("console.message", message);
+    save();
+  }
+
+  EventBus.on("console.message", (message) => {
+    const consoleEl = document.getElementById("console");
+    if(!consoleEl) return;
+    consoleEl.innerHTML += `<br>${message}`;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  });
+
+  /* ==========================================
+     4. SCHEMA MIGRATION ENGINE
   ========================================== */
   function migrateState(incoming){
     if(!incoming){
@@ -110,7 +132,7 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     4. PERSISTENCE LAYER (STORAGE ABSTRACTION)
+     5. PERSISTENCE LAYER (STORAGE ABSTRACTION)
   ========================================== */
   let storageProvider = localStorage;
 
@@ -151,7 +173,7 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     5. ROUTER & MAP VALIDATION
+     6. ROUTER & MAP VALIDATION
   ========================================== */
   const VALID_MAPS = ["physics", "compute", "simulation", "cognition", "markets"];
 
@@ -174,7 +196,7 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     6. SIMULATION RUNNER (CENTRALIZED CLEANUP & FINISHED LOCK)
+     7. SIMULATION RUNNER (UNIFIED CLEANUP & LOCK)
   ========================================== */
   let activeSimulation = null;
   let simulationTimeout = null;
@@ -185,7 +207,7 @@ const PortalRuntime = (() => {
     SIM_TIMEOUT_MS = ms;
   }
 
-  function clearSimulationTimers(){
+  function cleanupSimulation(){
     if(activeSimulation){
       clearInterval(activeSimulation);
       activeSimulation = null;
@@ -219,7 +241,7 @@ const PortalRuntime = (() => {
     activeSimulation = setInterval(() => {
       try {
         if(simulationFinished || !state.simulation.running || state.simulation.cancelled){
-          clearSimulationTimers();
+          cleanupSimulation();
           return;
         }
 
@@ -230,7 +252,7 @@ const PortalRuntime = (() => {
           if(simulationFinished) return;
           simulationFinished = true;
 
-          clearSimulationTimers();
+          cleanupSimulation();
 
           state.simulation.running = false;
           state.simulation.iterations += iterations;
@@ -245,7 +267,7 @@ const PortalRuntime = (() => {
         if(simulationFinished) return;
         simulationFinished = true;
 
-        clearSimulationTimers();
+        cleanupSimulation();
         state.simulation.running = false;
         EventBus.emit("simulation.error", { message: error.message });
       }
@@ -255,14 +277,14 @@ const PortalRuntime = (() => {
   function cancelSimulation(){
     if(simulationFinished && !state.simulation.running) return;
     simulationFinished = true;
-    clearSimulationTimers();
+    cleanupSimulation();
     state.simulation.cancelled = true;
     state.simulation.running = false;
     EventBus.emit("simulation.cancelled");
   }
 
   /* ==========================================
-     7. NARRATIVE ENGINE (IDENTITY → SIM → NARRATIVE)
+     8. NARRATIVE ENGINE (IDENTITY → SIM → NARRATIVE)
   ========================================== */
   let generatingNarrative = false;
 
@@ -304,7 +326,7 @@ const PortalRuntime = (() => {
   });
 
   /* ==========================================
-     8. WORKER POLLING (OVERLAP-LOCKED & JSON SAFE)
+     9. WORKER POLLING (OVERLAP-LOCKED & JSON SAFE)
   ========================================== */
   let workerPollRunning = false;
 
@@ -372,7 +394,7 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     9. BOOT SEQUENCE
+     10. BOOT SEQUENCE
   ========================================== */
   function boot(){
     load();
@@ -392,6 +414,9 @@ const PortalRuntime = (() => {
     cancelSimulation,
     save,
     load,
+    route,
+    pollWorker,
+    log,
     state,
     EventBus,
     setStorageProvider,
