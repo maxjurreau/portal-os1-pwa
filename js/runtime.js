@@ -1,5 +1,5 @@
 /* ==========================================
-   PORTAL RUNTIME KERNEL v0.2.1
+   PORTAL RUNTIME KERNEL v0.2.1 (AUDITED)
    Operating Layer: Portal-OS
    Simulation Architecture: MAX-SIM
    Governance Flow: Identity -> Simulation -> Narrative
@@ -56,9 +56,14 @@ const PortalRuntime = (() => {
   ========================================== */
   const state = structuredClone(DEFAULT_STATE);
 
-  function replaceState(migrated){
-    Object.keys(state).forEach(k => delete state[k]);
-    Object.assign(state, migrated);
+  function replaceState(next){
+    Object.keys(state).forEach(key => {
+      delete state[key];
+    });
+    Object.assign(
+      state,
+      next
+    );
   }
 
   /* ==========================================
@@ -85,7 +90,7 @@ const PortalRuntime = (() => {
   };
 
   /* ==========================================
-     3. CONSOLE & LOGGING (FIXED)
+     3. CONSOLE & LOGGING (EXPOSED API)
   ========================================== */
   function log(message){
     state.console.push({
@@ -99,9 +104,11 @@ const PortalRuntime = (() => {
     save();
   }
 
-  EventBus.on("console.message", (message) => {
+  EventBus.on("console.message", message => {
     const consoleEl = document.getElementById("console");
-    if(!consoleEl) return;
+    if(!consoleEl){
+      return;
+    }
     consoleEl.innerHTML += `<br>${message}`;
     consoleEl.scrollTop = consoleEl.scrollHeight;
   });
@@ -196,16 +203,15 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     7. SIMULATION RUNNER (UNIFIED CLEANUP & LOCK)
+     7. SIMULATION RUNNER (RACE-SAFE TIMERS)
   ========================================== */
   let activeSimulation = null;
   let simulationTimeout = null;
   let simulationFinished = false;
-  let SIM_TIMEOUT_MS = 30000;
-
-  function setSimulationTimeout(ms){
-    SIM_TIMEOUT_MS = ms;
-  }
+  
+  const config = {
+    timeout: 30000
+  };
 
   function cleanupSimulation(){
     if(activeSimulation){
@@ -232,11 +238,13 @@ const PortalRuntime = (() => {
     EventBus.emit("simulation.started", { iterations });
 
     simulationTimeout = setTimeout(() => {
-      if(simulationFinished) return;
+      if(simulationFinished){
+        return;
+      }
       simulationFinished = true;
       EventBus.emit("simulation.timeout");
       cancelSimulation();
-    }, SIM_TIMEOUT_MS);
+    }, config.timeout);
 
     activeSimulation = setInterval(() => {
       try {
@@ -249,7 +257,9 @@ const PortalRuntime = (() => {
         EventBus.emit("simulation.progress", { progress: state.simulation.progress });
 
         if(state.simulation.progress >= 100){
-          if(simulationFinished) return;
+          if(simulationFinished){
+            return;
+          }
           simulationFinished = true;
 
           cleanupSimulation();
@@ -264,7 +274,9 @@ const PortalRuntime = (() => {
         }
       }
       catch(error){
-        if(simulationFinished) return;
+        if(simulationFinished){
+          return;
+        }
         simulationFinished = true;
 
         cleanupSimulation();
@@ -275,8 +287,11 @@ const PortalRuntime = (() => {
   }
 
   function cancelSimulation(){
-    if(simulationFinished && !state.simulation.running) return;
+    if(simulationFinished){
+      return;
+    }
     simulationFinished = true;
+
     cleanupSimulation();
     state.simulation.cancelled = true;
     state.simulation.running = false;
@@ -326,7 +341,7 @@ const PortalRuntime = (() => {
   });
 
   /* ==========================================
-     9. WORKER POLLING (OVERLAP-LOCKED & JSON SAFE)
+     9. WORKER POLLING (OVERLAP-LOCKED & SAFE JSON)
   ========================================== */
   let workerPollRunning = false;
 
@@ -419,8 +434,8 @@ const PortalRuntime = (() => {
     log,
     state,
     EventBus,
+    config,
     setStorageProvider,
-    setSimulationTimeout,
     migrateState
   };
 
