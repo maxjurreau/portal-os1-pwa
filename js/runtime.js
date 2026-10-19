@@ -110,11 +110,17 @@ const PortalRuntime = (() => {
   }
 
   /* ==========================================
-     4. PERSISTENCE LAYER
+     4. PERSISTENCE LAYER (STORAGE ABSTRACTION)
   ========================================== */
+  let storageProvider = localStorage;
+
+  function setStorageProvider(provider){
+    storageProvider = provider;
+  }
+
   function save(){
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      storageProvider.setItem(STORAGE_KEY, JSON.stringify(state));
       EventBus.emit("state.saved", state);
     }
     catch(error){
@@ -124,7 +130,7 @@ const PortalRuntime = (() => {
 
   function load(){
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = storageProvider.getItem(STORAGE_KEY);
       if(saved){
         const parsed = JSON.parse(saved);
         const migrated = migrateState(parsed);
@@ -173,7 +179,11 @@ const PortalRuntime = (() => {
   let activeSimulation = null;
   let simulationTimeout = null;
   let simulationFinished = false;
-  const SIM_TIMEOUT_MS = 30000;
+  let SIM_TIMEOUT_MS = 30000;
+
+  function setSimulationTimeout(ms){
+    SIM_TIMEOUT_MS = ms;
+  }
 
   function clearSimulationTimers(){
     if(activeSimulation){
@@ -383,7 +393,10 @@ const PortalRuntime = (() => {
     save,
     load,
     state,
-    EventBus
+    EventBus,
+    setStorageProvider,
+    setSimulationTimeout,
+    migrateState
   };
 
 })();
