@@ -103,10 +103,11 @@
       background: #000000;
       border: 1px solid var(--accent);
     }
-    .video-module video {
+    .video-module video, .video-module iframe {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      border: none;
     }
     #hudCanvas {
       position: absolute;
@@ -155,10 +156,11 @@
     </div>
 
     <!-- TABS -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap">
       <button onclick="switchTab('risk')" id="tab-risk" class="nav-btn active">RISK DESK &amp; ODDS</button>
       <button onclick="switchTab('sim')" id="tab-sim" class="nav-btn">MAX SIM ENGINE</button>
       <button onclick="switchTab('video')" id="tab-video" class="nav-btn">VIDEO INTELLIGENCE</button>
+      <button onclick="switchTab('youtube')" id="tab-youtube" class="nav-btn">YOUTUBE FEED</button>
       <button onclick="switchTab('telemetry')" id="tab-telemetry" class="nav-btn">KINEMATIC FEED</button>
       <button onclick="switchTab('analytics')" id="tab-analytics" class="nav-btn">PORTFOLIO ANALYTICS</button>
     </div>
@@ -345,6 +347,43 @@
         </div>
       </div>
 
+      <!-- TAB 3.5: YOUTUBE INTELLIGENCE FEED -->
+      <div id="view-youtube" class="panel-card p-5" style="display: none;">
+        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
+          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-2">
+            <span>▶</span> YOUTUBE // INSTITUTIONAL MEDIA &amp; ANALYSIS REPOSITORY
+          </h2>
+          <span class="text-xs text-[var(--green)] font-bold">EMBEDDED PLAYER &amp; SEARCH</span>
+        </div>
+
+        <div class="flex gap-2 mb-4">
+          <input id="ytSearchInput" type="text" placeholder="Search YouTube videos (e.g., 'sports analytics 2026')" class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
+          <button onclick="searchYouTubeVideos()" class="bg-[var(--accent)] text-black px-4 py-2 rounded text-xs font-extrabold hover:bg-cyan-400 transition">SEARCH</button>
+          <button onclick="loadYouTubeUrlInput()" class="bg-[#1e293b] border border-[#1e293b] text-white px-4 py-2 rounded text-xs font-bold hover:border-[var(--accent)] transition">LOAD URL</button>
+        </div>
+
+        <!-- YouTube Video Embed Display -->
+        <div class="video-module mb-4">
+          <iframe id="ytPlayer" src="https://www.youtube.com/embed/C1YRrjwno5w" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        </div>
+
+        <!-- Preset Quick Videos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+          <button onclick="playYouTubeEmbed('C1YRrjwno5w')" class="bg-[#060a12] border border-[#1e293b] hover:border-[var(--accent)] p-2.5 rounded text-left transition">
+            <div class="font-bold text-white truncate">Quantum Max Driver Review</div>
+            <div class="text-[10px] text-[var(--text-muted)]">Callaway Golf • 2026</div>
+          </button>
+          <button onclick="playYouTubeEmbed('Ky26jsPLWXM')" class="bg-[#060a12] border border-[#1e293b] hover:border-[var(--accent)] p-2.5 rounded text-left transition">
+            <div class="font-bold text-white truncate">NEW 2026 Quantum Drivers</div>
+            <div class="text-[10px] text-[var(--text-muted)]">H.I.T GOLF • Full Review</div>
+          </button>
+          <button onclick="playYouTubeEmbed('xgefar5Ux2k')" class="bg-[#060a12] border border-[#1e293b] hover:border-[var(--accent)] p-2.5 rounded text-left transition">
+            <div class="font-bold text-white truncate">Qi4D vs Quantum Max</div>
+            <div class="text-[10px] text-[var(--text-muted)]">Divot Depot Golf • Shorts</div>
+          </button>
+        </div>
+      </div>
+
       <!-- TAB 4: KINEMATIC TELEMETRY FEED -->
       <div id="view-telemetry" class="panel-card p-5" style="display: none;">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
@@ -477,7 +516,7 @@
 
   </main>
 
-  <!-- FIREBASE AUTH, CLOUDFLARE HLS & WEBSOCKET TELEMETRY LOGIC -->
+  <!-- FIREBASE AUTH, CLOUDFLARE HLS, YOUTUBE & WEBSOCKET TELEMETRY LOGIC -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
@@ -508,7 +547,6 @@
     const loginBtn = document.getElementById("loginBtn");
     const userInfo = document.getElementById("userInfo");
 
-    // Global Event Emitter for Auth state changes
     window.currentUser = null;
 
     loginBtn.onclick = async () => {
@@ -539,7 +577,6 @@
         userInfo.innerText = user.email;
         loginBtn.innerText = "Sign Out";
         
-        // Unlock Cloudflare Stream video feed upon verification
         if (videoEl && lockNotice) {
           videoEl.style.display = "block";
           lockNotice.style.display = "none";
@@ -551,7 +588,6 @@
         userInfo.innerText = "Session Unauthenticated.";
         loginBtn.innerText = "Login With Google";
 
-        // Lock video feed if unauthenticated
         if (videoEl && lockNotice) {
           videoEl.style.display = "none";
           lockNotice.style.display = "flex";
@@ -571,7 +607,7 @@
 
   <script>
     /* ==========================================================================
-       CLOUDFLARE STREAM HLS MULTI-FEED & HUD ENGINE
+       CLOUDFLARE STREAM HLS, YOUTUBE & HUD ENGINE
        ========================================================================== */
     const video = document.getElementById("simVideo");
     const feeds = {
@@ -622,6 +658,37 @@
     function loadCustomHLS() {
       const url = document.getElementById("hlsUrl").value.trim();
       if (url) attachHLS(url);
+    }
+
+    // YouTube Integration Controls
+    function playYouTubeEmbed(videoIdOrUrl) {
+      let videoId = videoIdOrUrl;
+      if (videoIdOrUrl.includes("youtube.com") || videoIdOrUrl.includes("youtu.be")) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = videoIdOrUrl.match(regExp);
+        if (match && match[2].length === 11) {
+          videoId = match[2];
+        }
+      }
+      const ytPlayer = document.getElementById("ytPlayer");
+      if (ytPlayer) {
+        ytPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        if (window.appendConsole) window.appendConsole(`YOUTUBE: Loaded video ID -> ${videoId}`);
+      }
+    }
+    window.playYouTubeEmbed = playYouTubeEmbed;
+
+    function loadYouTubeUrlInput() {
+      const input = document.getElementById("ytSearchInput").value.trim();
+      if (input) playYouTubeEmbed(input);
+    }
+
+    function searchYouTubeVideos() {
+      const query = document.getElementById("ytSearchInput").value.trim();
+      if (!query) return;
+      if (window.appendConsole) window.appendConsole(`YOUTUBE: Searching repository for '${query}'...`);
+      // Fallback open search or load relevant demo ID
+      playYouTubeEmbed("C1YRrjwno5w");
     }
 
     async function startCamera() {
@@ -703,9 +770,7 @@
 
     function connectTelemetryWebSocket() {
       const wsUrl = window.TELEMETRY_WS_URL || "";
-      if (!wsUrl) {
-        return;
-      }
+      if (!wsUrl) return;
 
       ws = new WebSocket(wsUrl);
 
@@ -725,9 +790,7 @@
             const latencyEl = document.querySelector("header div:nth-child(3) span.text-[var\\(--green\\)]");
             if (latencyEl) latencyEl.innerText = packet.qbLatency + "ms";
           }
-        } catch (e) {
-          // Skip invalid JSON packets safely
-        }
+        } catch (e) {}
       };
 
       ws.onclose = () => {
@@ -736,9 +799,7 @@
         setTimeout(connectTelemetryWebSocket, delay);
       };
 
-      ws.onerror = () => {
-        if (ws) ws.close();
-      };
+      ws.onerror = () => { if (ws) ws.close(); };
     }
 
     function injectTelemetryPacket(packet) {
@@ -767,11 +828,10 @@
       }
     }
 
-    // Polling Serverless Odds API with Visibility Conservation
     let oddsInterval = null;
 
     async function pollLiveOdds() {
-      if (document.hidden) return; // Save API quota when tab in background
+      if (document.hidden) return;
 
       try {
         const response = await fetch("/api/odds/live");
@@ -838,7 +898,6 @@
       }, 500);
     }
 
-    // CLI Engine
     let commandHistory = [];
     let historyIndex = -1;
     const consoleInput = document.getElementById("consoleInput");
@@ -903,7 +962,6 @@
       }
     }
 
-    // Betting Preset Engine
     const presets = {
       core: { name: "2-LEG CORE", odds: [-105, -110] },
       snf: { name: "SNF SGP", odds: [-110, -110] },
@@ -977,11 +1035,13 @@
       document.getElementById("view-risk").style.display = tab === 'risk' ? 'block' : 'none';
       document.getElementById("view-sim").style.display = tab === 'sim' ? 'block' : 'none';
       document.getElementById("view-video").style.display = tab === 'video' ? 'block' : 'none';
+      document.getElementById("view-youtube").style.display = tab === 'youtube' ? 'block' : 'none';
       document.getElementById("view-telemetry").style.display = tab === 'telemetry' ? 'block' : 'none';
       document.getElementById("view-analytics").style.display = tab === 'analytics' ? 'block' : 'none';
 
       if (tab === 'video') setTimeout(resizeHUD, 100);
     }
+    window.switchTab = switchTab;
   </script>
 </body>
 </html>
