@@ -163,7 +163,11 @@
       <button onclick="switchTab('analytics')" id="tab-analytics" class="nav-btn">PORTFOLIO ANALYTICS</button>
     </div>
 
-    <div class="flex items-center gap-6 text-xs">
+    <!-- AUTH & SYSTEM STATUS -->
+    <div class="flex items-center gap-4 text-xs">
+      <div id="authStatusBadge" class="text-[var(--red)] font-bold text-xs bg-[var(--red)]/10 px-3 py-1 rounded-full border border-[var(--red)]/30">
+        PORTAL-OS: UNVERIFIED
+      </div>
       <div>
         <span class="text-[var(--text-muted)]">LATENCY:</span>
         <span class="text-[var(--green)] font-bold">178ms</span>
@@ -171,10 +175,6 @@
       <div>
         <span class="text-[var(--text-muted)]">SOLVER:</span>
         <span class="text-[var(--accent)] font-bold">MAX-QUANTUM (QUBO)</span>
-      </div>
-      <div>
-        <span class="text-[var(--text-muted)]">SYSTEM TIME:</span>
-        <span class="text-[var(--gold)] font-bold">OCT 18, 21:09 EDT</span>
       </div>
     </div>
   </header>
@@ -310,7 +310,7 @@
         </div>
       </div>
 
-      <!-- TAB 3: VIDEO INTELLIGENCE MODULE WITH HLS, WEBCAM & SCREEN SHARE -->
+      <!-- TAB 3: VIDEO INTELLIGENCE MODULE -->
       <div id="view-video" class="panel-card p-5" style="display: none;">
         <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
           <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
@@ -468,14 +468,18 @@
         </button>
       </div>
 
-      <!-- MAX-SIM CONSOLE CLI MODULE -->
+      <!-- AUTH & CONSOLE CLI MODULE -->
       <div class="panel-card p-5 flex flex-col h-full min-h-[350px]">
         <div class="flex justify-between items-center mb-3 border-b border-[#1e293b] pb-2">
-          <h3 class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider">MAX-SIM CONSOLE CLI</h3>
-          <span class="text-[10px] text-[var(--text-muted)]">TYPE 'help' FOR COMMANDS</span>
+          <h3 class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider">PORTAL-OS // AUTH &amp; CLI</h3>
+          <button id="loginBtn" class="bg-[var(--accent)] text-black text-[10px] font-bold px-3 py-1 rounded hover:bg-cyan-400 transition">
+            Login With Google
+          </button>
         </div>
 
-        <div id="consoleOutput" class="flex-1 bg-[#030712] border border-[#1e293b] rounded-lg p-3 text-[11px] font-mono text-[var(--green)] overflow-y-auto space-y-1 mb-3 max-h-60">
+        <div id="userInfo" class="mb-3 text-[11px] text-[var(--gold)]">Session Unauthenticated.</div>
+
+        <div id="consoleOutput" class="flex-1 bg-[#030712] border border-[#1e293b] rounded-lg p-3 text-[11px] font-mono text-[var(--green)] overflow-y-auto space-y-1 mb-3 max-h-48">
           <div>MAX-SIM ONLINE // SYSTEM READY</div>
           <div>Type 'help' to list commands or use ArrowUp / ArrowDown for command history.</div>
         </div>
@@ -490,10 +494,81 @@
 
   </main>
 
-  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <!-- FIREBASE & DASHBOARD JAVASCRIPT LOGIC ENGINE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { 
+        getAuth, 
+        GoogleAuthProvider, 
+        signInWithPopup, 
+        signOut,
+        onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBclZf1gFpY4FS-dDRLbgqB-9_wmZ9l200",
+      authDomain: "max-quantum.firebaseapp.com",
+      projectId: "max-quantum",
+      storageBucket: "max-quantum.firebasestorage.app",
+      messagingSenderId: "216973268331",
+      appId: "1:216973268331:web:2e7a4031c76a063be8282e",
+      measurementId: "G-7F7Y6PG55E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const authStatusBadge = document.getElementById("authStatusBadge");
+    const loginBtn = document.getElementById("loginBtn");
+    const userInfo = document.getElementById("userInfo");
+
+    // Google Sign-In Integration
+    loginBtn.onclick = async () => {
+      try {
+        if (auth.currentUser) {
+          await signOut(auth);
+          if (window.appendConsole) window.appendConsole("AUTH: Signed out successfully.");
+        } else {
+          const result = await signInWithPopup(auth, provider);
+          const user = result.user;
+          userInfo.innerText = user.email;
+          if (window.appendConsole) window.appendConsole(`AUTH SUCCESS: Verified ${user.email} [Portal-OS]`);
+        }
+      } catch (error) {
+        console.error("Auth Error:", error);
+        if (window.appendConsole) window.appendConsole(`AUTH ERROR: ${error.message}`);
+      }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authStatusBadge.innerText = `PORTAL-OS: ${user.email}`;
+        authStatusBadge.className = "text-[var(--green)] font-bold text-xs bg-[var(--green)]/10 px-3 py-1 rounded-full border border-[var(--green)]/30";
+        userInfo.innerText = user.email;
+        loginBtn.innerText = "Sign Out";
+      } else {
+        authStatusBadge.innerText = "PORTAL-OS: UNVERIFIED";
+        authStatusBadge.className = "text-[var(--red)] font-bold text-xs bg-[var(--red)]/10 px-3 py-1 rounded-full border border-[var(--red)]/30";
+        userInfo.innerText = "Session Unauthenticated.";
+        loginBtn.innerText = "Login With Google";
+      }
+    });
+
+    // Make appendConsole globally accessible
+    window.appendConsole = function(text) {
+      const consoleOutput = document.getElementById("consoleOutput");
+      if (!consoleOutput) return;
+      const div = document.createElement("div");
+      div.innerText = text;
+      consoleOutput.appendChild(div);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    };
+  </script>
+
   <script>
     /* ==========================================================================
-       1. MAX-SIM MONTE CARLO PARAMETER CONTROLS
+       DASHBOARD & SIMULATION LOGIC
        ========================================================================== */
     function updateSimParams(type, val) {
       if (type === 'Fatigue') document.getElementById('valFatigue').innerText = val + 'x';
@@ -502,7 +577,7 @@
     }
 
     function executeMonteCarlo() {
-      appendConsole("Executing 100,000 Iteration Monte Carlo Re-calibration...");
+      if (window.appendConsole) window.appendConsole("Executing 100,000 Iteration Monte Carlo Re-calibration...");
       setTimeout(() => {
         const randRays = (60 + Math.random() * 4).toFixed(1);
         const randCle = (100 - randRays).toFixed(1);
@@ -510,13 +585,11 @@
         document.getElementById('txtCleProb').innerText = randCle + '%';
         document.getElementById('simBarRays').style.width = randRays + '%';
         document.getElementById('simBarCle').style.width = randCle + '%';
-        appendConsole(`RE-CALIBRATION COMPLETE: TB Rays Win Prob: ${randRays}% | CLE Guardians Win Prob: ${randCle}%`);
+        if (window.appendConsole) window.appendConsole(`RE-CALIBRATION COMPLETE: TB Rays Win Prob: ${randRays}% | CLE Guardians Win Prob: ${randCle}%`);
       }, 500);
     }
 
-    /* ==========================================================================
-       2. VIDEO INTELLIGENCE, HLS & HUD CANVAS ENGINE
-       ========================================================================== */
+    // Video Engine
     const video = document.getElementById("simVideo");
     let currentHls = null;
     const hud = document.getElementById("hudCanvas");
@@ -543,17 +616,14 @@
         hctx.strokeStyle = "#00f3ff";
         hctx.lineWidth = 2;
 
-        // WR1 Bounding Box
         hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
         hctx.fillStyle = "#00f3ff";
         hctx.font = "bold 12px 'JetBrains Mono'";
         hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
 
-        // WR2 Bounding Box
         hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
         hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
 
-        // Passing Lane Vector
         hctx.beginPath();
         hctx.moveTo(hud.width * 0.5, hud.height * 0.7);
         hctx.lineTo(hud.width * 0.35, hud.height * 0.35);
@@ -561,7 +631,6 @@
         hctx.stroke();
         hctx.setLineDash([]);
 
-        // Telemetry Overlay HUD Text
         hctx.fillStyle = "#00ff66";
         hctx.font = "13px 'JetBrains Mono'";
         hctx.fillText("ARM SLOT: 64.2°", 20, 35);
@@ -589,9 +658,9 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         video.srcObject = stream;
-        appendConsole("VIDEO: Webcam feed successfully attached.");
+        if (window.appendConsole) window.appendConsole("VIDEO: Webcam feed successfully attached.");
       } catch (err) {
-        appendConsole("VIDEO ERROR: Unable to access camera.");
+        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Unable to access camera.");
       }
     }
 
@@ -600,9 +669,9 @@
       try {
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         video.srcObject = stream;
-        appendConsole("VIDEO: Screen share feed successfully attached.");
+        if (window.appendConsole) window.appendConsole("VIDEO: Screen share feed successfully attached.");
       } catch (err) {
-        appendConsole("VIDEO ERROR: Screen share cancelled or unavailable.");
+        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Screen share cancelled or unavailable.");
       }
     }
 
@@ -612,18 +681,16 @@
         currentHls = new Hls();
         currentHls.loadSource(url);
         currentHls.attachMedia(video);
-        appendConsole(`VIDEO: Attached HLS stream -> ${url}`);
+        if (window.appendConsole) window.appendConsole(`VIDEO: Attached HLS stream -> ${url}`);
       } else {
         video.src = url;
-        appendConsole(`VIDEO: Native HLS fallback -> ${url}`);
+        if (window.appendConsole) window.appendConsole(`VIDEO: Native HLS fallback -> ${url}`);
       }
     }
 
     function loadCustomHLS() {
       const url = document.getElementById("hlsUrl").value.trim();
-      if (url) {
-        attachHLS(url);
-      }
+      if (url) attachHLS(url);
     }
 
     function loadQBFeed() { attachHLS("streams/qb.m3u8"); }
@@ -632,27 +699,20 @@
 
     function playFeed() { video.play(); }
     function pauseFeed() { video.pause(); }
-    function muteFeed() { video.muted = true; }
-    function unmuteFeed() { video.muted = false; }
 
-    // Keyboard Shortcuts
     document.addEventListener("keydown", e => {
       if (e.code === "Space") {
         e.preventDefault();
-        if (video.paused) { video.play(); } else { video.pause(); }
+        if (video.paused) video.play(); else video.pause();
       }
-      if (e.key === "m") { video.muted = !video.muted; }
-      if (e.key === "f") { video.requestFullscreen(); }
+      if (e.key === "m") video.muted = !video.muted;
+      if (e.key === "f") video.requestFullscreen();
     });
 
-    /* ==========================================================================
-       3. MAX-SIM CONSOLE CLI & HISTORY
-       ========================================================================== */
+    // CLI Engine
     let commandHistory = [];
     let historyIndex = -1;
-
     const consoleInput = document.getElementById("consoleInput");
-    const consoleOutput = document.getElementById("consoleOutput");
 
     if (consoleInput) {
       consoleInput.addEventListener("keydown", e => {
@@ -682,10 +742,10 @@
     }
 
     function executeConsoleCommand(cmd) {
-      appendConsole(`> ${cmd}`);
+      if (window.appendConsole) window.appendConsole(`> ${cmd}`);
 
       if (cmd === "help") {
-        appendConsole(`Available Terminal Directives & System Macros:
+        if (window.appendConsole) window.appendConsole(`Available Terminal Directives & System Macros:
 • help                - List available command macros
 • status              - Show system health, latency, & QUBO solver state
 • run sim             - Execute 100K Monte Carlo iteration sweep
@@ -695,35 +755,26 @@
 • quantum sync        - Re-calibrate QUBO true-price matrix with live odds
 • clear               - Clear console output buffer`);
       } else if (cmd === "status") {
-        appendConsole(`MAX-SIM ONLINE // Latency: 178ms // Solver: MAX-QUANTUM (QUBO) // Governance: STRICT`);
+        if (window.appendConsole) window.appendConsole("MAX-SIM ONLINE // Latency: 178ms // Solver: MAX-QUANTUM (QUBO) // Governance: STRICT");
       } else if (cmd === "run sim" || cmd === "run montecarlo") {
         executeMonteCarlo();
       } else if (cmd === "decay audit" || cmd === "risk audit") {
-        appendConsole("DECAY AUDIT: CLE Pitch Slot Droop detected (+8.6% EV on TB Rays ML); DAL LT Stance Hinge Decay (+7.8% EV on GB Packers).");
+        if (window.appendConsole) window.appendConsole("DECAY AUDIT: CLE Pitch Slot Droop detected (+8.6% EV on TB Rays ML); DAL LT Stance Hinge Decay (+7.8% EV on GB Packers).");
       } else if (cmd === "trench check") {
-        appendConsole("TRENCH CHECK: GB O-Line push index stable at 94.2. DAL defensive front reaction latency +12ms. Advantage: Packers.");
+        if (window.appendConsole) window.appendConsole("TRENCH CHECK: GB O-Line push index stable at 94.2. DAL defensive front reaction latency +12ms. Advantage: Packers.");
       } else if (cmd === "capture clv") {
-        appendConsole("CAPTURE CLV AUDIT: Current portfolio beating closing numbers by an average of +4.2% across active NFL/MLB positions. CLV Efficiency: 96.4%.");
+        if (window.appendConsole) window.appendConsole("CAPTURE CLV AUDIT: Current portfolio beating closing numbers by an average of +4.2% across active NFL/MLB positions. CLV Efficiency: 96.4%.");
       } else if (cmd === "quantum sync") {
-        appendConsole("QUANTUM SYNC: QUBO true-price matrix successfully re-calibrated against live exchange feeds. Zero structural drift.");
+        if (window.appendConsole) window.appendConsole("QUANTUM SYNC: QUBO true-price matrix successfully re-calibrated against live exchange feeds. Zero structural drift.");
       } else if (cmd === "clear") {
+        const consoleOutput = document.getElementById("consoleOutput");
         if (consoleOutput) consoleOutput.innerHTML = "";
       } else {
-        appendConsole(`ERROR: Unknown command '${cmd}'. Type 'help' for options.`);
+        if (window.appendConsole) window.appendConsole(`ERROR: Unknown command '${cmd}'. Type 'help' for options.`);
       }
     }
 
-    function appendConsole(text) {
-      if (!consoleOutput) return;
-      const div = document.createElement("div");
-      div.innerText = text;
-      consoleOutput.appendChild(div);
-      consoleOutput.scrollTop = consoleOutput.scrollHeight;
-    }
-
-    /* ==========================================================================
-       4. BET SLIP & TICKET PRESET ENGINE
-       ========================================================================== */
+    // Betting Preset Engine
     const presets = {
       core: { name: "2-LEG CORE", odds: [-105, -110] },
       snf: { name: "SNF SGP", odds: [-110, -110] },
@@ -736,16 +787,12 @@
     const ticketOutput = document.getElementById("ticketOutput");
 
     function americanToDecimal(odds) {
-      if (odds > 0) {
-        return (odds / 100) + 1;
-      }
+      if (odds > 0) return (odds / 100) + 1;
       return (100 / Math.abs(odds)) + 1;
     }
 
     function calculateTicket(stake, legs) {
-      const multiplier = legs.reduce((acc, odd) => {
-        return acc * americanToDecimal(odd);
-      }, 1);
+      const multiplier = legs.reduce((acc, odd) => acc * americanToDecimal(odd), 1);
       const payout = stake * multiplier;
       const ev = 5.1 + (legs.length * 1.8);
       return { payout, ev };
@@ -790,13 +837,10 @@
         osc.stop(audioCtx.currentTime + 0.15);
       } catch (e) {}
 
-      appendConsole(`EXECUTION CONFIRMED: Allocated $${slider.value} on preset ${presets[activePreset].name}.`);
+      if (window.appendConsole) window.appendConsole(`EXECUTION CONFIRMED: Allocated $${slider.value} on preset ${presets[activePreset].name}.`);
       alert("QUANTITATIVE POSITION EXECUTED SUCCESSFULLY.");
     }
 
-    /* ==========================================================================
-       5. UI TAB SWITCHING
-       ========================================================================== */
     function switchTab(tab) {
       document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
       document.getElementById(`tab-${tab}`).classList.add("active");
@@ -810,9 +854,6 @@
       if (tab === 'video') setTimeout(resizeHUD, 100);
     }
 
-    /* ==========================================================================
-       6. INITIALIZATION
-       ========================================================================== */
     window.addEventListener("load", () => {
       loadPreset("core");
       switchTab('risk');
