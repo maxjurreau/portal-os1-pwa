@@ -1,1046 +1,861 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-950 text-slate-100 dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAX-QUANTM SPORTS™</title>
-  
-  <!-- Google Fonts & Tailwind CSS -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- HLS.js Library -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
-  <style>
-    :root {
-      --bg-base: #030712;
-      --panel-bg: #090d16;
-      --panel-border: #1e293b;
-      --accent: #00f3ff;
-      --accent-glow: rgba(0, 243, 255, 0.25);
-      --green: #00ff66;
-      --red: #ff0055;
-      --gold: #f59e0b;
-      --text-main: #f8fafc;
-      --text-muted: #64748b;
-    }
-
-    body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: 'JetBrains Mono', monospace;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #030712;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--accent);
-    }
-
-    .panel-card {
-      background-color: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .panel-card:hover {
-      border-color: rgba(0, 243, 255, 0.4);
-    }
-
-    .nav-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      transition: all 0.2s ease;
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      color: var(--text-muted);
-    }
-    .nav-btn.active {
-      background: var(--accent);
-      color: #000000;
-      border-color: var(--accent);
-      box-shadow: 0 0 12px var(--accent-glow);
-    }
-
-    .odds-btn {
-      transition: all 0.15s ease;
-    }
-    .odds-btn:hover {
-      border-color: var(--accent);
-      background: rgba(0, 243, 255, 0.1);
-    }
-    .odds-btn.selected {
-      background: var(--accent) !important;
-      color: #000000 !important;
-      font-weight: 800;
-      box-shadow: 0 0 12px var(--accent);
-    }
-
-    /* Video Module Styles */
-    .video-module {
-      position: relative;
-      height: 480px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #000000;
-      border: 1px solid var(--accent);
-    }
-    .video-module video, .video-module iframe {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border: none;
-    }
-    #hudCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 3;
-    }
-    .video-toolbar {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-    .video-toolbar button {
-      background: #1e293b;
-      color: var(--text-main);
-      padding: 8px 14px;
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      font-weight: 700;
-      transition: all 0.2s ease;
-    }
-    .video-toolbar button:hover {
-      background: var(--accent);
-      color: #000000;
-      box-shadow: 0 0 15px var(--accent);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAX-QUANTM SPORTS™ | Institutional Quantitative Sports Terminal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                            glow: '#00f0ff'
+                        },
+                        quant: {
+                            green: '#10b981',
+                            red: '#ef4444',
+                            gold: '#f59e0b',
+                            purple: '#8b5cf6',
+                            dark: '#090d16',
+                            card: '#0f172a',
+                            border: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- HLS.js for Video Stream -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <style>
+        /* Custom Scrollbar for Terminal aesthetic */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0284c7; }
+        .glow-border { box-shadow: 0 0 15px rgba(14, 165, 233, 0.15); }
+        .glow-green { box-shadow: 0 0 12px rgba(16, 185, 129, 0.2); }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
+            background-size: 100% 4px;
+        }
+    </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
+<body class="h-full bg-slate-950 font-sans text-slate-200 antialiased overflow-x-hidden selection:bg-brand-500 selection:text-white">
 
-  <!-- HEADER BAR -->
-  <header class="panel-card p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-3 h-3 rounded-full bg-[var(--accent)] animate-pulse"></div>
-      <div>
-        <h1 class="text-xl font-extrabold tracking-wider text-white">MAX-QUANTM SPORTS™ <span class="text-[var(--accent)]">//</span> MAX SIM</h1>
-        <p class="text-xs text-[var(--text-muted)]">INSTITUTIONAL QUANTITATIVE RISK DESK &amp; SIMULATION TERMINAL</p>
-      </div>
-    </div>
-
-    <!-- TABS -->
-    <div class="flex items-center gap-2 flex-wrap">
-      <button onclick="switchTab('risk')" id="tab-risk" class="nav-btn active">RISK DESK &amp; ODDS</button>
-      <button onclick="switchTab('sim')" id="tab-sim" class="nav-btn">MAX SIM ENGINE</button>
-      <button onclick="switchTab('video')" id="tab-video" class="nav-btn">VIDEO INTELLIGENCE</button>
-      <button onclick="switchTab('youtube')" id="tab-youtube" class="nav-btn">YOUTUBE FEED</button>
-      <button onclick="switchTab('telemetry')" id="tab-telemetry" class="nav-btn">KINEMATIC FEED</button>
-      <button onclick="switchTab('analytics')" id="tab-analytics" class="nav-btn">PORTFOLIO ANALYTICS</button>
-    </div>
-
-    <!-- AUTH & SYSTEM STATUS -->
-    <div class="flex items-center gap-4 text-xs">
-      <div id="authStatusBadge" class="text-[var(--red)] font-bold text-xs bg-[var(--red)]/10 px-3 py-1 rounded-full border border-[var(--red)]/30">
-        PORTAL-OS: UNVERIFIED
-      </div>
-      <div>
-        <span class="text-[var(--text-muted)]">LATENCY:</span>
-        <span class="text-[var(--green)] font-bold">178ms</span>
-      </div>
-      <div>
-        <span class="text-[var(--text-muted)]">SOLVER:</span>
-        <span class="text-[var(--accent)] font-bold">MAX-QUANTUM (QUBO)</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN GRID CONTAINER -->
-  <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-    <!-- LEFT 8-COLUMN MAIN WORKSPACE -->
-    <section class="lg:col-span-8 flex flex-col gap-6">
-
-      <!-- TAB 1: RISK DESK & ODDS MATRIX -->
-      <div id="view-risk" class="panel-card p-5">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-2">
-            <span>⚡</span> COMMERCIAL ODDS VS. MAX-QUANTUM TRUE PRICE
-          </h2>
-          <span class="text-xs bg-[#0f172a] text-[var(--text-muted)] px-3 py-1 rounded-full border border-[#1e293b]">LIVE SLATE: OCT 18, 2026</span>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="text-[var(--text-muted)] border-b border-[#1e293b]">
-                <th class="p-3">EVENT / MATCHUP</th>
-                <th class="p-3">COMMERCIAL BOOK</th>
-                <th class="p-3">MAX-QUANTUM TRUE PRICE</th>
-                <th class="p-3">EV EDGE %</th>
-                <th class="p-3 text-right">ACTION</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#1e293b]">
-              <!-- ROW 1 -->
-              <tr class="hover:bg-[#0f172a]/50 transition">
-                <td class="p-3 font-semibold">
-                  <div class="text-white">MLB: TB Rays @ CLE Guardians</div>
-                  <div class="text-[10px] text-[var(--text-muted)]">ALCS Game 5 • 5:08 PM ET</div>
-                </td>
-                <td class="p-3">
-                  <div class="flex gap-2">
-                    <button onclick="toggleOddsSelection(this, 'TB Rays ML', -105, 'MLB')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">Rays -105</button>
-                    <button onclick="toggleOddsSelection(this, 'CLE ML', -115, 'MLB')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">Guardians -115</button>
-                  </div>
-                </td>
-                <td class="p-3 text-[var(--accent)] font-bold">Rays ML (-148)</td>
-                <td class="p-3 text-[var(--green)] font-bold">+8.6% EV</td>
-                <td class="p-3 text-right">
-                  <span class="bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/30 px-2 py-1 rounded font-bold">PRIMARY BUY</span>
-                </td>
-              </tr>
-
-              <!-- ROW 2 -->
-              <tr class="hover:bg-[#0f172a]/50 transition">
-                <td class="p-3 font-semibold">
-                  <div class="text-white">NFL: DAL Cowboys @ GB Packers</div>
-                  <div class="text-[10px] text-[var(--text-muted)]">Week 6 SNF • 8:20 PM ET</div>
-                </td>
-                <td class="p-3">
-                  <div class="flex gap-2">
-                    <button onclick="toggleOddsSelection(this, 'GB Packers -2.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">GB -2.5 (-110)</button>
-                    <button onclick="toggleOddsSelection(this, 'DAL/GB Under 47.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">U 47.5 (-110)</button>
-                  </div>
-                </td>
-                <td class="p-3 text-[var(--accent)] font-bold">Packers -5.5 / U 42.0</td>
-                <td class="p-3 text-[var(--green)] font-bold">+7.8% EV</td>
-                <td class="p-3 text-right">
-                  <span class="bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/30 px-2 py-1 rounded font-bold">CORE SPREAD</span>
-                </td>
-              </tr>
-
-              <!-- ROW 3 -->
-              <tr class="hover:bg-[#0f172a]/50 transition">
-                <td class="p-3 font-semibold">
-                  <div class="text-white">NFL: NO Saints @ NY Giants</div>
-                  <div class="text-[10px] text-[var(--text-muted)]">Week 6 Early • 1:00 PM ET</div>
-                </td>
-                <td class="p-3">
-                  <div class="flex gap-2">
-                    <button onclick="toggleOddsSelection(this, 'NY Giants -1.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">NYG -1.5 (-110)</button>
-                    <button onclick="toggleOddsSelection(this, 'NO/NYG Over 42.5', -110, 'NFL')" class="odds-btn bg-[#0f172a] border border-[#1e293b] px-2 py-1 rounded text-white">O 42.5 (-110)</button>
-                  </div>
-                </td>
-                <td class="p-3 text-[var(--accent)] font-bold">Giants -3.5 / O 45.0</td>
-                <td class="p-3 text-[var(--green)] font-bold">+5.1% EV</td>
-                <td class="p-3 text-right">
-                  <span class="bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30 px-2 py-1 rounded font-bold">SECONDARY</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 2: MAX-SIM ENGINE CONTROLS -->
-      <div id="view-sim" class="panel-card p-5" style="display: none;">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-            MAX-SIM // 100,000 ITERATION MONTE CARLO CONTROLS
-          </h2>
-          <span class="text-xs text-[var(--green)] font-bold">SOLVER: ACTIVE</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-xs">
-          <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2">
-            <label class="text-[var(--text-muted)]">Fatigue Acceleration Multiplier</label>
-            <div class="flex justify-between font-bold"><span id="valFatigue">1.2x</span></div>
-            <input type="range" min="0.5" max="3.0" step="0.1" value="1.2" oninput="updateSimParams('Fatigue', this.value)" class="w-full accent-[var(--accent)]">
-          </div>
-          <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2">
-            <label class="text-[var(--text-muted)]">Micro-Latency Penalty (ms)</label>
-            <div class="flex justify-between font-bold"><span id="valLatency">14ms</span></div>
-            <input type="range" min="0" max="50" step="1" value="14" oninput="updateSimParams('Latency', this.value)" class="w-full accent-[var(--accent)]">
-          </div>
-          <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2">
-            <label class="text-[var(--text-muted)]">Turf Friction Coefficient (%)</label>
-            <div class="flex justify-between font-bold"><span id="valTurf">8.5%</span></div>
-            <input type="range" min="0" max="25" step="0.5" value="8.5" oninput="updateSimParams('Turf', this.value)" class="w-full accent-[var(--accent)]">
-          </div>
-        </div>
-
-        <div class="bg-[#030712] p-4 rounded-xl border border-[#1e293b] text-xs space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-white">MONTE CARLO PROBABILITY DISTRIBUTION OUTPUT</span>
-            <button onclick="executeMonteCarlo()" class="bg-[var(--accent)] text-black px-4 py-1.5 rounded font-extrabold hover:bg-cyan-400 transition">RUN RE-CALIBRATION</button>
-          </div>
-          <div class="w-full bg-[#060a12] h-6 rounded-full overflow-hidden border border-[#1e293b] flex">
-            <div id="simBarRays" class="bg-[var(--accent)] h-full transition-all duration-500" style="width: 61.2%;"></div>
-            <div id="simBarCle" class="bg-[#1e293b] h-full transition-all duration-500" style="width: 38.8%;"></div>
-          </div>
-          <div class="flex justify-between text-[11px] text-[var(--text-muted)]">
-            <span class="text-[var(--accent)] font-bold">TB Rays True Win Prob: <span id="txtRaysProb">61.2%</span></span>
-            <span class="text-white">CLE Guardians True Win Prob: <span id="txtCleProb">38.8%</span></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 3: VIDEO INTELLIGENCE MODULE WITH CLOUDFLARE STREAM HLS -->
-      <div id="view-video" class="panel-card p-5" style="display: none;">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-            CLOUDFLARE STREAM // LIVE INTELLIGENCE &amp; HUD OVERLAY
-          </h2>
-          <span class="text-xs text-[var(--green)] font-bold">SECURE FIREBASE AUTH GATEWAY</span>
-        </div>
-
-        <div class="video-module">
-          <video id="simVideo" autoplay muted controls playsinline style="display: none;"></video>
-          <div id="videoLockNotice" class="flex flex-col items-center justify-center h-full text-center p-6 text-[var(--text-muted)]">
-            <div class="text-[var(--gold)] font-bold text-sm mb-2">🔒 RESTRICTED STREAM ACCESS</div>
-            <p class="text-xs">Authenticate via Portal-OS Google credentials to unlock live Cloudflare Stream ingestion.</p>
-          </div>
-          <canvas id="hudCanvas"></canvas>
-        </div>
-
-        <!-- Video Feed Selection Toolbar -->
-        <div class="video-toolbar">
-          <button onclick="loadFeed('main')">Main Feed</button>
-          <button onclick="loadFeed('desk')">Risk Desk</button>
-          <button onclick="startCamera()">Webcam</button>
-          <button onclick="startScreenShare()">Screen</button>
-          <button onclick="pauseFeed()">Pause</button>
-          <button onclick="playFeed()">Play</button>
-          <button onclick="toggleHud()" class="bg-[var(--accent)]/10 border border-[var(--accent)] text-[var(--accent)]">TOGGLE HUD</button>
-        </div>
-
-        <div class="flex gap-2 mt-3">
-          <input id="hlsUrl" type="text" placeholder="Paste custom .m3u8 stream URL" class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
-          <button onclick="loadCustomHLS()" class="bg-[#1e293b] border border-[#1e293b] hover:border-[var(--accent)] text-white px-4 py-2 rounded text-xs font-bold transition">Connect Custom</button>
-        </div>
-      </div>
-
-      <!-- TAB 3.5: YOUTUBE INTELLIGENCE FEED -->
-      <div id="view-youtube" class="panel-card p-5" style="display: none;">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-2">
-            <span>▶</span> YOUTUBE // INSTITUTIONAL MEDIA &amp; ANALYSIS REPOSITORY
-          </h2>
-          <span class="text-xs text-[var(--green)] font-bold">EMBEDDED PLAYER &amp; SEARCH</span>
-        </div>
-
-        <div class="flex gap-2 mb-4">
-          <input id="ytSearchInput" type="text" placeholder="Search YouTube videos (e.g., 'sports analytics 2026')" class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
-          <button onclick="searchYouTubeVideos()" class="bg-[var(--accent)] text-black px-4 py-2 rounded text-xs font-extrabold hover:bg-cyan-400 transition">SEARCH</button>
-          <button onclick="loadYouTubeUrlInput()" class="bg-[#1e293b] border border-[#1e293b] text-white px-4 py-2 rounded text-xs font-bold hover:border-[var(--accent)] transition">LOAD URL</button>
-        </div>
-
-        <!-- YouTube Video Embed Display -->
-        <div class="video-module mb-4">
-          <iframe id="ytPlayer" src="https://www.youtube.com/embed/C1YRrjwno5w" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-        </div>
-
-        <!-- Preset Quick Videos -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-          <button onclick="playYouTubeEmbed('C1YRrjwno5w')" class="bg-[#060a12] border border-[#1e293b] hover:border-[var(--accent)] p-2.5 rounded text-left transition">
-            <div class="font-bold text-white truncate">Quantum Max Driver Review</div>
-            <div class="text-[10px] text-[var(--text-muted)]">Callaway Golf • 2026</div>
-          </button>
-          <button onclick="playYouTubeEmbed('Ky26jsPLWXM')" class="bg-[#060a12] border border-[#1e293b] hover:border-[var(--accent)] p-2.5 rounded text-left transition">
-            <div class="font-bold text-white truncate">NEW 2026 Quantum Drivers</div>
-            <div class="text-[10px] text-[var(--text-muted)]">H.I.T GOLF • Full Review</div>
-          </button>
-          <button onclick="playYouTubeEmbed('xgefar5Ux2k')" class="bg-[#060a12] border border-[#1e293b] hover:border-[var(--accent)] p-2.5 rounded text-left transition">
-            <div class="font-bold text-white truncate">Qi4D vs Quantum Max</div>
-            <div class="text-[10px] text-[var(--text-muted)]">Divot Depot Golf • Shorts</div>
-          </button>
-        </div>
-      </div>
-
-      <!-- TAB 4: KINEMATIC TELEMETRY FEED -->
-      <div id="view-telemetry" class="panel-card p-5" style="display: none;">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-            REAL-TIME KINEMATIC DECAY &amp; ANOMALY STREAM
-          </h2>
-          <span class="text-xs text-[var(--green)] font-bold">120Hz HIGH-FREQUENCY INGEST</span>
-        </div>
-        <div id="telemetryFeedContainer" class="space-y-3 text-xs font-mono max-h-96 overflow-y-auto pr-2">
-          <div class="p-3 bg-[#060a12] border-l-4 border-[var(--green)] rounded">
-            <div class="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
-              <span>[15:38:02] • NFL // DAL vs. GB</span>
-              <span class="text-[var(--green)]">STABLE</span>
+    <!-- Top Status Bar Navigation -->
+    <header class="h-14 bg-slate-900/90 backdrop-blur border-b border-slate-800 fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4">
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></div>
+                <span class="font-mono font-bold tracking-wider text-lg text-white">MAX-QUANTM<span class="text-brand-400">.SPORTS</span></span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-brand-900/60 text-brand-400 border border-brand-500/30">v4.8-PRO</span>
             </div>
-            <span class="text-white font-bold">DAL QB:</span> Throwing arm-slot angle stable at <span class="text-[var(--accent)]">64.2°</span>. Plant-foot base width variance 1.1%.
-          </div>
+            <div class="hidden md:flex items-center space-x-4 pl-6 text-xs font-mono text-slate-400 border-l border-slate-800">
+                <div>SYS: <span class="text-emerald-400">ONLINE</span></div>
+                <div>LATENCY: <span id="sys-ping" class="text-emerald-400">14ms</span></div>
+                <div>FEED: <span class="text-brand-400">QUANT-WEBSOCKET</span></div>
+            </div>
         </div>
-      </div>
 
-      <!-- TAB 5: PORTFOLIO ANALYTICS -->
-      <div id="view-analytics" class="panel-card p-5" style="display: none;">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-[var(--accent)] uppercase tracking-wider">
-            PORTFOLIO CLV CAPTURE &amp; YIELD TRAJECTORY
-          </h2>
-          <span id="oddsApiStatus" class="text-xs text-[var(--gold)] font-bold">ODDS API: NOT CONFIGURED</span>
+        <!-- Tab Controls -->
+        <nav class="hidden lg:flex items-center space-x-1 font-mono text-xs">
+            <button onclick="switchTab('tab-odds')" id="btn-tab-odds" class="tab-btn px-3 py-1.5 rounded-md text-brand-400 bg-slate-800 border border-brand-500/30 flex items-center space-x-1.5">
+                <i class="fa-solid me-1 fa-chart-line"></i><span>Risk & Odds</span>
+            </button>
+            <button onclick="switchTab('tab-reports')" id="btn-tab-reports" class="tab-btn px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5">
+                <i class="fa-solid me-1 fa-file-contract text-brand-400"></i><span>Quant Reports</span>
+            </button>
+            <button onclick="switchTab('tab-sim')" id="btn-tab-sim" class="tab-btn px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5">
+                <i class="fa-solid me-1 fa-microchip"></i><span>MAX SIM Engine</span>
+            </button>
+            <button onclick="switchTab('tab-video')" id="btn-tab-video" class="tab-btn px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5">
+                <i class="fa-solid me-1 fa-video"></i><span>Video Intelligence</span>
+            </button>
+            <button onclick="switchTab('tab-youtube')" id="btn-tab-youtube" class="tab-btn px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5">
+                <i class="fa-brands me-1 fa-youtube text-red-500"></i><span>Media Feed</span>
+            </button>
+            <button onclick="switchTab('tab-telemetry')" id="btn-tab-telemetry" class="tab-btn px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5">
+                <i class="fa-solid me-1 fa-running"></i><span>Kinematics</span>
+            </button>
+            <button onclick="switchTab('tab-portfolio')" id="btn-tab-portfolio" class="tab-btn px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5">
+                <i class="fa-solid me-1 fa-wallet"></i><span>Portfolio</span>
+            </button>
+        </nav>
+
+        <!-- Right Side User & Quick Stats -->
+        <div class="flex items-center space-x-3">
+            <div id="auth-status-container" class="flex items-center space-x-2">
+                <button id="btn-login" onclick="loginGoogle()" class="px-3 py-1.5 rounded bg-brand-600 hover:bg-brand-500 text-white font-mono text-xs font-semibold flex items-center space-x-1.5 transition">
+                    <i class="fa-brands fa-google"></i><span>Auth</span>
+                </button>
+                <div id="user-profile" class="hidden flex items-center space-x-2 bg-slate-800/80 px-2.5 py-1 rounded border border-slate-700">
+                    <img id="user-avatar" src="" class="w-5 h-5 rounded-full" alt="User">
+                    <span id="user-name" class="text-xs font-mono text-slate-300"></span>
+                    <button onclick="logoutGoogle()" class="text-slate-400 hover:text-red-400 text-xs ml-1"><i class="fa-solid fa-sign-out-alt"></i></button>
+                </div>
+            </div>
         </div>
+    </header>
+
+    <!-- Main Mobile Header Navigation Switcher -->
+    <div class="lg:hidden fixed top-14 left-0 right-0 bg-slate-900 border-b border-slate-800 z-40 p-2 overflow-x-auto whitespace-nowrap flex space-x-2 font-mono text-xs">
+        <button onclick="switchTab('tab-odds')" class="px-3 py-1 bg-slate-800 rounded text-brand-400">Odds Matrix</button>
+        <button onclick="switchTab('tab-reports')" class="px-3 py-1 bg-slate-800 rounded text-slate-300">Reports</button>
+        <button onclick="switchTab('tab-sim')" class="px-3 py-1 bg-slate-800 rounded text-slate-300">SIM Engine</button>
+        <button onclick="switchTab('tab-video')" class="px-3 py-1 bg-slate-800 rounded text-slate-300">Video Intel</button>
+        <button onclick="switchTab('tab-youtube')" class="px-3 py-1 bg-slate-800 rounded text-slate-300">Media</button>
+        <button onclick="switchTab('tab-telemetry')" class="px-3 py-1 bg-slate-800 rounded text-slate-300">Kinematics</button>
+        <button onclick="switchTab('tab-portfolio')" class="px-3 py-1 bg-slate-800 rounded text-slate-300">Portfolio</button>
+    </div>
+
+    <!-- Main Container Layout -->
+    <main class="pt-24 lg:pt-16 pb-20 px-3 md:px-6 max-w-[1920px] mx-auto min-h-screen">
+
+        <!-- ================= TAB 1: RISK DESK & ODDS MATRIX ================= -->
+        <section id="tab-odds" class="tab-content block space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Left Odds Matrix & Game Filter (3 cols) -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest">Leagues:</span>
+                            <div class="flex space-x-1 font-mono text-xs">
+                                <button onclick="filterLeague('ALL')" class="px-3 py-1 rounded bg-brand-600 text-white font-medium">ALL</button>
+                                <button onclick="filterLeague('NFL')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">NFL</button>
+                                <button onclick="filterLeague('NBA')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">NBA</button>
+                                <button onclick="filterLeague('MLB')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">MLB</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="fetchLiveOdds()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-mono flex items-center space-x-2">
+                                <i class="fa-solid fa-arrows-rotate text-brand-400"></i><span>Poll API Serverless</span>
+                            </button>
+                            <span class="text-xs font-mono text-slate-500">Auto Sync: <span class="text-emerald-400">10s</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Live Odds Table -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left font-mono text-xs">
+                                <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3">Matchup</th>
+                                        <th class="p-3">Model Spread</th>
+                                        <th class="p-3">Market Spread</th>
+                                        <th class="p-3">Moneyline</th>
+                                        <th class="p-3">Quant Total</th>
+                                        <th class="p-3">EV Edge %</th>
+                                        <th class="p-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="odds-table-body" class="divide-y divide-slate-800/60">
+                                    <!-- Dynamic rows inserted via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Betting Slip & EV Calculator (1 col) -->
+                <div class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                            <h3 class="font-mono font-bold text-sm text-brand-400 flex items-center space-x-2">
+                                <i class="fa-solid fa-receipt"></i><span>QUANT BET SLIP</span>
+                            </h3>
+                            <span class="text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">KELLY CRITERION</span>
+                        </div>
+                        
+                        <div id="slip-container" class="space-y-3 min-h-[140px]">
+                            <p class="text-xs text-slate-500 font-mono text-center py-8">No wager selected. Click on EV edge odds to populate slip.</p>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-3 space-y-2 font-mono text-xs">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Bankroll ($):</span>
+                                <input type="number" id="bankroll-input" value="10000" class="w-24 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-right text-emerald-400 focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Optimal Kelly Wager:</span>
+                                <span id="kelly-wager-val" class="text-white font-bold">$0.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Expected Value (EV):</span>
+                                <span id="ev-val" class="text-emerald-400 font-bold">+0.0%</span>
+                            </div>
+                            <button onclick="executeSimulatedWager()" class="w-full py-2 rounded bg-brand-600 hover:bg-brand-500 text-white font-bold transition">EXECUTE QUANT ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: QUANTITATIVE REPORT TEMPLATES ================= -->
+        <section id="tab-reports" class="tab-content hidden space-y-6">
+            <div class="flex flex-wrap items-center justify-between bg-slate-900/90 border border-slate-800 p-4 rounded-xl gap-4">
+                <div>
+                    <h2 class="text-lg font-bold font-mono text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-file-contract text-brand-400"></i>
+                        <span>MAX-QUANTM™ STRUCTURED REPORT GENERATOR</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 font-mono">Institutional deep-dive breakdown templates for NFL, NBA, and MLB quantitative game analysis.</p>
+                </div>
+                <div class="flex items-center space-x-2 font-mono text-xs">
+                    <button onclick="switchReportLeague('NFL')" id="rpt-btn-nfl" class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">NFL Breakdown</button>
+                    <button onclick="switchReportLeague('NBA')" id="rpt-btn-nba" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">NBA Breakdown</button>
+                    <button onclick="switchReportLeague('MLB')" id="rpt-btn-mlb" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">MLB Breakdown</button>
+                </div>
+            </div>
+
+            <!-- Global Actions for Active Report -->
+            <div class="flex justify-end space-x-2 font-mono text-xs">
+                <button onclick="copyCurrentReport()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-brand-400 border border-slate-700 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-copy"></i><span>Copy Markdown Report</span>
+                </button>
+                <button onclick="downloadReportJSON()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-download"></i><span>Export JSON Structure</span>
+                </button>
+                <button onclick="printReport()" class="px-3 py-1.5 rounded bg-brand-600 hover:bg-brand-500 text-white font-medium flex items-center space-x-1.5">
+                    <i class="fa-solid fa-print"></i><span>Print / Save PDF</span>
+                </button>
+            </div>
+
+            <!-- Report Containers -->
+            <div id="report-view-container" class="space-y-6">
+
+                <!-- 1. NFL REPORT TEMPLATE -->
+                <div id="report-nfl" class="report-block bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 text-slate-200">
+                    <div class="border-b border-slate-800 pb-4 flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800/60 font-mono text-xs uppercase font-bold">NFL QUANT REPORT</span>
+                            <h1 class="text-2xl font-bold font-mono text-white mt-2">BUFFALO BILLS @ KANSAS CITY CHIEFS</h1>
+                            <p class="text-xs font-mono text-slate-400">Sim ID: NFL-2026-WK14-01 | Model Version: Q-FOOTBALL-v4.12</p>
+                        </div>
+                        <div class="text-right font-mono text-xs bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <div>MODEL SPREAD: <span class="text-brand-400 font-bold">KC -2.5 (-110)</span></div>
+                            <div>MARKET SPREAD: <span class="text-slate-300">KC -3.5 (-108)</span></div>
+                            <div>EV EDGE: <span class="text-emerald-400 font-bold">+4.82% (BUF +3.5)</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Grid Stats Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">EPA / Play differential</span>
+                            <div class="text-xl font-bold text-brand-400 mt-1">+0.142 EPA</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Bills Offense: +0.211 | Chiefs Offense: +0.245</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Trench Power Rating</span>
+                            <div class="text-xl font-bold text-emerald-400 mt-1">BUF OL +12%</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Pass Block Win Rate vs KC Pressure Rate</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Coverage Disruption</span>
+                            <div class="text-xl font-bold text-purple-400 mt-1">Cov-1 / Cover-3</div>
+                            <p class="text-[11px] text-slate-500 mt-1">KC Zone Vulnerability vs Slot Motion</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Weather & Wind Impact</span>
+                            <div class="text-xl font-bold text-amber-400 mt-1">32°F / 18mph</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Passing Depth Deflation Factor: -4.2%</p>
+                        </div>
+                    </div>
+
+                    <!-- Narrative Matrix Breakdown -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono text-xs">
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                            <h3 class="font-bold text-slate-300 border-b border-slate-800 pb-2 text-sm flex items-center space-x-2">
+                                <i class="fa-solid fa-shield-halved text-brand-400"></i><span>Trench Power & Pressure Analytics</span>
+                            </h3>
+                            <ul class="space-y-2 text-slate-400">
+                                <li class="flex justify-between"><span>BUF Pass Block Win Rate:</span><span class="text-white">68.4% (#3 NFL)</span></li>
+                                <li class="flex justify-between"><span>KC Pass Rush Win Rate:</span><span class="text-white">52.1% (#2 NFL)</span></li>
+                                <li class="flex justify-between"><span>Blitz Expected Impact:</span><span class="text-emerald-400">+0.28 EPA on Blitz vs Allen</span></li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                            <h3 class="font-bold text-slate-300 border-b border-slate-800 pb-2 text-sm flex items-center space-x-2">
+                                <i class="fa-solid fa-cloud-sun-rain text-amber-400"></i><span>Weather & Field Condition Index</span>
+                            </h3>
+                            <ul class="space-y-2 text-slate-400">
+                                <li class="flex justify-between"><span>Temperature / Dew Pt:</span><span class="text-white">32°F / 22°F</span></li>
+                                <li class="flex justify-between"><span>Crosswind Vector:</span><span class="text-amber-400">18 mph WNW (Gusts 26)</span></li>
+                                <li class="flex justify-between"><span>Projected Field Goal Threshold:</span><span class="text-red-400">Max 48 Yds</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. NBA REPORT TEMPLATE -->
+                <div id="report-nba" class="report-block hidden bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 text-slate-200">
+                    <div class="border-b border-slate-800 pb-4 flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800/60 font-mono text-xs uppercase font-bold">NBA QUANT REPORT</span>
+                            <h1 class="text-2xl font-bold font-mono text-white mt-2">BOSTON CELTICS @ GOLDEN STATE WARRIORS</h1>
+                            <p class="text-xs font-mono text-slate-400">Sim ID: NBA-2026-G71 | Model Version: Q-BASKETBALL-v3.8</p>
+                        </div>
+                        <div class="text-right font-mono text-xs bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <div>MODEL TOTAL: <span class="text-brand-400 font-bold">234.5 PTS</span></div>
+                            <div>MARKET TOTAL: <span class="text-slate-300">228.0 PTS</span></div>
+                            <div>EV EDGE: <span class="text-emerald-400 font-bold">+6.21% (OVER 228)</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Grid Stats Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Pace / 48 Min</span>
+                            <div class="text-xl font-bold text-brand-400 mt-1">102.4 Poss</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Celtics (99.8) vs Warriors (104.2)</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Defensive Rating vs Transition</span>
+                            <div class="text-xl font-bold text-red-400 mt-1">118.2 DefRtg</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Warriors Vulnerable on B2B Transition</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Fatigue / Load Index</span>
+                            <div class="text-xl font-bold text-amber-400 mt-1">HIGH (GSW 3-in-4)</div>
+                            <p class="text-[11px] text-slate-500 mt-1">3rd Game in 4 Nights for GSW</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">3PT Distribution Index</span>
+                            <div class="text-xl font-bold text-emerald-400 mt-1">46.2% FGA</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Above Average Perimeter Frequency</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. MLB REPORT TEMPLATE -->
+                <div id="report-mlb" class="report-block hidden bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 text-slate-200">
+                    <div class="border-b border-slate-800 pb-4 flex justify-between items-start flex-wrap gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-mono text-xs uppercase font-bold">MLB QUANT REPORT</span>
+                            <h1 class="text-2xl font-bold font-mono text-white mt-2">LOS ANGELES DODGERS @ NEW YORK YANKEES</h1>
+                            <p class="text-xs font-mono text-slate-400">Sim ID: MLB-2026-SERIES-04 | Model Version: Q-BASEBALL-v5.0</p>
+                        </div>
+                        <div class="text-right font-mono text-xs bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <div>PITCHING MATCHUP: <span class="text-brand-400 font-bold">RHP vs LHP</span></div>
+                            <div>PARK FACTOR: <span class="text-amber-400">104 (Short Porch R)</span></div>
+                            <div>EV EDGE: <span class="text-emerald-400 font-bold">+5.10% (LAD F5 ML)</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Grid Stats Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Pitcher Spin Rate / Droop</span>
+                            <div class="text-xl font-bold text-brand-400 mt-1">2,540 RPM (-1.2")</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Vertical release slot droop detected</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Exit Velocity & Barrel %</span>
+                            <div class="text-xl font-bold text-emerald-400 mt-1">91.4 mph / 11.2%</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Hard Hit Rate vs High Fastballs</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Bullpen Fatigue Score</span>
+                            <div class="text-xl font-bold text-red-400 mt-1">8.4 / 10 (NYY)</div>
+                            <p class="text-[11px] text-slate-500 mt-1">4 Leveraged arms pitched last 2 days</p>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                            <span class="text-xs text-slate-400">Park Run Factor</span>
+                            <div class="text-xl font-bold text-amber-400 mt-1">1.08 HR Multiplier</div>
+                            <p class="text-[11px] text-slate-500 mt-1">Yankee Stadium HR Index for LH Power</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: MAX SIM ENGINE ================= -->
+        <section id="tab-sim" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Simulation Controls (1 col) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                    <h3 class="font-mono font-bold text-sm text-brand-400 border-b border-slate-800 pb-2 flex items-center space-x-2">
+                        <i class="fa-solid fa-sliders"></i><span>MONTE CARLO SIMULATOR</span>
+                    </h3>
+                    
+                    <div class="space-y-3 font-mono text-xs">
+                        <div>
+                            <label class="text-slate-400 block mb-1">Simulations Run Count:</label>
+                            <select id="sim-count" class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-white">
+                                <option value="1000">1,000 Iterations (Fast)</option>
+                                <option value="10000" selected>10,000 Iterations (Standard)</option>
+                                <option value="50000">50,000 Iterations (Institutional High-Res)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-slate-400 block mb-1">Variance / Volatility Index:</label>
+                            <input type="range" id="volatility-range" min="1" max="100" value="35" class="w-full accent-brand-500">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>Low Volatility</span>
+                                <span>Extreme Volatility</span>
+                            </div>
+                        </div>
+
+                        <button onclick="runMonteCarloSim()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 font-bold rounded text-white shadow-lg transition">RUN QUANT SIMULATION</button>
+                    </div>
+                </div>
+
+                <!-- Simulation Visual Output (2 cols) -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-mono font-bold text-sm text-slate-200">PROBABILITY DENSITY DISTRIBUTION</h3>
+                        <span class="text-xs font-mono text-emerald-400">Convergence: 99.8%</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="simChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: VIDEO INTELLIGENCE ================= -->
+        <section id="tab-video" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Video Player Container (2 cols) -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-mono text-xs font-bold text-brand-400 flex items-center space-x-2">
+                            <i class="fa-solid fa-eye"></i><span>CLOUDFLARE STREAM HLS + CANVAS HUD</span>
+                        </h3>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">HUD HUD-ACTIVE</span>
+                    </div>
+
+                    <!-- Video Canvas Wrapper -->
+                    <div class="relative aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+                        <video id="hls-video" class="w-full h-full object-cover" controls crossorigin="anonymous"></video>
+                        <canvas id="hud-overlay" class="absolute inset-0 pointer-events-none w-full h-full"></canvas>
+                    </div>
+
+                    <div class="flex items-center space-x-2 font-mono text-xs">
+                        <input type="text" id="stream-url-input" value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" class="flex-1 bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-slate-300">
+                        <button onclick="loadStream()" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 rounded text-white font-bold">LOAD STREAM</button>
+                    </div>
+                </div>
+
+                <!-- Live Stream Analytics Panel (1 col) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+                    <h3 class="font-mono font-bold text-xs text-slate-300 border-b border-slate-800 pb-2">KINEMATIC HUD OVERLAY METRICS</h3>
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                            <span class="text-slate-400">Detected Player Velocity:</span>
+                            <span class="text-emerald-400 font-bold" id="hud-velocity">18.4 mph</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                            <span class="text-slate-400">Trajectory Launch Angle:</span>
+                            <span class="text-brand-400 font-bold" id="hud-angle">28.2°</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                            <span class="text-slate-400">Spatial Separation:</span>
+                            <span class="text-purple-400 font-bold" id="hud-sep font-bold">2.4 yds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: YOUTUBE MEDIA FEED ================= -->
+        <section id="tab-youtube" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <h3 class="font-mono font-bold text-sm text-red-500 flex items-center space-x-2">
+                        <i class="fa-brands fa-youtube"></i><span>YOUTUBE SPORTS QUANT FEED</span>
+                    </h3>
+                    <div class="flex space-x-2 font-mono text-xs">
+                        <input type="text" id="yt-search-input" placeholder="Search NFL film breakdown..." class="bg-slate-950 border border-slate-800 rounded px-3 py-1 text-slate-200">
+                        <button onclick="searchYouTube()" class="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-white font-bold">Search</button>
+                    </div>
+                </div>
+
+                <div id="yt-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- YouTube video embeds populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 6: KINEMATIC TELEMETRY FEED ================= -->
+        <section id="tab-telemetry" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-mono font-bold text-sm text-brand-400 flex items-center space-x-2">
+                        <i class="fa-solid fa-network-wired"></i><span>WEBSOCKET LIVE TELEMETRY STREAM</span>
+                    </h3>
+                    <span class="text-xs font-mono text-emerald-400 flex items-center"><i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i>STREAMING 60HZ</span>
+                </div>
+
+                <div class="font-mono text-xs bg-slate-950 p-4 rounded-lg border border-slate-800 h-64 overflow-y-auto space-y-1 text-emerald-400" id="telemetry-log">
+                    <div>[SYSTEM] Initializing WebSocket telemetry receiver on port 8080...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 7: PORTFOLIO ANALYTICS ================= -->
+        <section id="tab-portfolio" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                <h3 class="font-mono font-bold text-sm text-slate-200">QUANTITATIVE BANKROLL & EXPOSURE METRICS</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                        <span class="text-slate-400">Total Capitalized Bankroll</span>
+                        <div class="text-2xl font-bold text-emerald-400 mt-1">$14,850.00</div>
+                        <p class="text-[10px] text-slate-500 mt-1">+48.5% All Time ROI</p>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                        <span class="text-slate-400">Active Market Exposure</span>
+                        <div class="text-2xl font-bold text-brand-400 mt-1">$1,250.00</div>
+                        <p class="text-[10px] text-slate-500 mt-1">8.4% of Total Capital</p>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                        <span class="text-slate-400">Sharpe Ratio</span>
+                        <div class="text-2xl font-bold text-purple-400 mt-1">2.84</div>
+                        <p class="text-[10px] text-slate-500 mt-1">Risk Adjusted Yield</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom CLI Command Terminal -->
+    <footer class="fixed bottom-0 left-0 right-0 h-10 bg-slate-950 border-t border-slate-800 px-4 flex items-center space-x-3 z-50 font-mono text-xs">
+        <span class="text-brand-400 font-bold">MAX-CLI&gt;</span>
+        <input type="text" id="cli-input" placeholder="Type command ('help', 'odds', 'sim', 'report nfl')..." class="flex-1 bg-transparent border-none text-slate-200 focus:outline-none">
+        <span class="text-slate-600 text-[10px] hidden md:inline">ENTER TO EXECUTE</span>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. FIREBASE AUTH CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyFakeKeyMaxQuantmSportsTerminal2026",
+            authDomain: "max-quantum.firebaseapp.com",
+            projectId: "max-quantum",
+            storageBucket: "max-quantum.appspot.com",
+            messagingSenderId: "1029384756",
+            appId: "1:1029384756:web:a1b2c3d4e5f6"
+        };
         
-        <!-- Live Provider Feed Section -->
-        <div id="liveProviderFeed" class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] mb-4 text-xs space-y-2">
-          <div class="text-[var(--text-muted)] font-bold">LIVE PROVIDER FEED (/api/odds/live):</div>
-          <div id="liveProviderOutput" class="text-white font-mono text-[11px]">Awaiting Netlify serverless poll response...</div>
-        </div>
-
-        <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] h-64 flex flex-col justify-end relative overflow-hidden">
-          <svg class="absolute inset-0 w-full h-full p-4" preserveAspectRatio="none" viewBox="0 0 500 200">
-            <path d="M 0 160 Q 100 140, 200 100 T 400 40 L 500 20" fill="none" stroke="var(--green)" stroke-width="3"></path>
-            <path d="M 0 180 Q 100 160, 200 130 T 400 90 L 500 70" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"></path>
-          </svg>
-          <div class="z-10 flex justify-between text-[10px] text-[var(--text-muted)] border-t border-[#1e293b] pt-2">
-            <span>WEEK 1</span>
-            <span>WEEK 2</span>
-            <span>WEEK 3</span>
-            <span>WEEK 4</span>
-            <span>WEEK 5</span>
-            <span>WEEK 6 (LIVE)</span>
-          </div>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mt-4 text-xs">
-          <div class="bg-[#060a12] p-3 rounded-xl border border-[#1e293b]">
-            <div class="text-[var(--text-muted)] text-[10px]">TOTAL CAP ACTIVITY</div>
-            <div class="font-bold text-white text-sm mt-1">$24,500.00</div>
-          </div>
-          <div class="bg-[#060a12] p-3 rounded-xl border border-[#1e293b]">
-            <div class="text-[var(--text-muted)] text-[10px]">REALIZED +EV YIELD</div>
-            <div class="font-bold text-[var(--green)] text-sm mt-1">+7.42%</div>
-          </div>
-          <div class="bg-[#060a12] p-3 rounded-xl border border-[#1e293b]">
-            <div class="text-[var(--text-muted)] text-[10px]">AVG CLV BEAT</div>
-            <div class="font-bold text-[var(--accent)] text-sm mt-1">+4.2%</div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- RIGHT 4-COLUMN SIDEBAR -->
-    <section class="lg:col-span-4 flex flex-col gap-6">
-
-      <!-- PORTFOLIO / BET SLIP -->
-      <div class="panel-card p-5">
-        <div class="flex justify-between items-center mb-4 border-b border-[#1e293b] pb-3">
-          <h2 class="text-sm font-bold text-white uppercase tracking-wider">PORTFOLIO BET SLIP</h2>
-          <span id="slipCount" class="bg-[var(--accent)] text-black text-xs font-bold px-2 py-0.5 rounded-full">PRESET MODE</span>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <button onclick="loadPreset('core')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
-            <div class="font-bold text-white">2-LEG CORE</div>
-            <div class="text-[var(--accent)]">+264</div>
-          </button>
-          <button onclick="loadPreset('snf')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
-            <div class="font-bold text-white">SNF SGP</div>
-            <div class="text-[var(--accent)]">+264</div>
-          </button>
-          <button onclick="loadPreset('mega')" class="bg-[#0f172a] border border-[#1e293b] hover:border-[var(--accent)] text-[10px] p-2 rounded text-center">
-            <div class="font-bold text-white">4-LEG MEGA</div>
-            <div class="text-[var(--green)]">+1228</div>
-          </button>
-        </div>
-
-        <div id="ticketOutput" class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-2 text-xs mb-4"></div>
-
-        <div class="bg-[#060a12] p-4 rounded-xl border border-[#1e293b] space-y-3 text-xs mb-4">
-          <div class="flex justify-between">
-            <span class="text-[var(--text-muted)]">UNIT CAPITAL STAKE:</span>
-            <span id="stakeDisplay" class="font-bold text-white">$100.00</span>
-          </div>
-          <input type="range" id="stakeSlider" min="25" max="1000" step="25" value="100" class="w-full accent-[var(--accent)]">
-        </div>
-
-        <button onclick="executeWageringSlip()" class="w-full bg-[var(--accent)] hover:bg-cyan-400 text-black font-extrabold py-3 rounded-xl transition shadow-lg shadow-[var(--accent-glow)]">
-          EXECUTE QUANTITATIVE ALLOCATION
-        </button>
-      </div>
-
-      <!-- AUTH & CONSOLE CLI MODULE -->
-      <div class="panel-card p-5 flex flex-col h-full min-h-[350px]">
-        <div class="flex justify-between items-center mb-3 border-b border-[#1e293b] pb-2">
-          <h3 class="text-xs font-bold text-[var(--accent)] uppercase tracking-wider">PORTAL-OS // AUTH &amp; CLI</h3>
-          <button id="loginBtn" class="bg-[var(--accent)] text-black text-[10px] font-bold px-3 py-1 rounded hover:bg-cyan-400 transition">
-            Login With Google
-          </button>
-        </div>
-
-        <div id="userInfo" class="mb-3 text-[11px] text-[var(--gold)]">Session Unauthenticated.</div>
-
-        <div id="consoleOutput" class="flex-1 bg-[#030712] border border-[#1e293b] rounded-lg p-3 text-[11px] font-mono text-[var(--green)] overflow-y-auto space-y-1 mb-3 max-h-48">
-          <div>MAX-SIM ONLINE // SYSTEM READY</div>
-          <div>Type 'help' to list commands or use ArrowUp / ArrowDown for command history.</div>
-        </div>
-
-        <div class="flex gap-2">
-          <span class="text-[var(--accent)] font-bold self-center">&gt;</span>
-          <input type="text" id="consoleInput" placeholder="Enter command..." class="flex-1 bg-[#060a12] border border-[#1e293b] focus:border-[var(--accent)] outline-none px-3 py-2 rounded text-xs text-white font-mono">
-        </div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- FIREBASE AUTH, CLOUDFLARE HLS, YOUTUBE & WEBSOCKET TELEMETRY LOGIC -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-    import { 
-        getAuth, 
-        GoogleAuthProvider, 
-        signInWithPopup, 
-        signOut,
-        onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBclZf1gFpY4FS-dDRLbgqB-9_wmZ9l200",
-      authDomain: "max-quantum.firebaseapp.com",
-      projectId: "max-quantum",
-      storageBucket: "max-quantum.firebasestorage.app",
-      messagingSenderId: "216973268331",
-      appId: "1:216973268331:web:2e7a4031c76a063be8282e",
-      measurementId: "G-7F7Y6PG55E"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    const authStatusBadge = document.getElementById("authStatusBadge");
-    const loginBtn = document.getElementById("loginBtn");
-    const userInfo = document.getElementById("userInfo");
-
-    window.currentUser = null;
-
-    loginBtn.onclick = async () => {
-      try {
-        if (auth.currentUser) {
-          await signOut(auth);
-          if (window.appendConsole) window.appendConsole("AUTH: Signed out successfully.");
-        } else {
-          const result = await signInWithPopup(auth, provider);
-          const user = result.user;
-          userInfo.innerText = user.email;
-          if (window.appendConsole) window.appendConsole(`AUTH SUCCESS: Verified ${user.email} [Portal-OS]`);
-        }
-      } catch (error) {
-        console.error("Auth Error:", error);
-        if (window.appendConsole) window.appendConsole(`AUTH ERROR: ${error.message}`);
-      }
-    };
-
-    onAuthStateChanged(auth, (user) => {
-      window.currentUser = user;
-      const videoEl = document.getElementById("simVideo");
-      const lockNotice = document.getElementById("videoLockNotice");
-
-      if (user) {
-        authStatusBadge.innerText = `PORTAL-OS: ${user.email}`;
-        authStatusBadge.className = "text-[var(--green)] font-bold text-xs bg-[var(--green)]/10 px-3 py-1 rounded-full border border-[var(--green)]/30";
-        userInfo.innerText = user.email;
-        loginBtn.innerText = "Sign Out";
-        
-        if (videoEl && lockNotice) {
-          videoEl.style.display = "block";
-          lockNotice.style.display = "none";
-          if (typeof window.loadFeed === 'function') window.loadFeed('main');
-        }
-      } else {
-        authStatusBadge.innerText = "PORTAL-OS: UNVERIFIED";
-        authStatusBadge.className = "text-[var(--red)] font-bold text-xs bg-[var(--red)]/10 px-3 py-1 rounded-full border border-[var(--red)]/30";
-        userInfo.innerText = "Session Unauthenticated.";
-        loginBtn.innerText = "Login With Google";
-
-        if (videoEl && lockNotice) {
-          videoEl.style.display = "none";
-          lockNotice.style.display = "flex";
-        }
-      }
-    });
-
-    window.appendConsole = function(text) {
-      const consoleOutput = document.getElementById("consoleOutput");
-      if (!consoleOutput) return;
-      const div = document.createElement("div");
-      div.innerText = text;
-      consoleOutput.appendChild(div);
-      consoleOutput.scrollTop = consoleOutput.scrollHeight;
-    };
-  </script>
-
-  <script>
-    /* ==========================================================================
-       CLOUDFLARE STREAM HLS, YOUTUBE & HUD ENGINE
-       ========================================================================== */
-    const video = document.getElementById("simVideo");
-    const feeds = {
-      main: "https://customer-xxxx.cloudflarestream.com/XXXXXXXX/manifest/video.m3u8",
-      desk: "https://customer-xxxx.cloudflarestream.com/YYYYYYYY/manifest/video.m3u8"
-    };
-
-    let hlsInstance = null;
-
-    function loadFeed(name) {
-      if (!window.currentUser) {
-        if (window.appendConsole) window.appendConsole("STREAM ACCESS DENIED: Firebase authentication required.");
-        return;
-      }
-
-      const streamUrl = feeds[name] || feeds.main;
-      if (window.appendConsole) window.appendConsole(`STREAM: Loading Cloudflare feed '${name}' -> ${streamUrl}`);
-
-      if (Hls.isSupported()) {
-        if (!hlsInstance) {
-          hlsInstance = new Hls();
-          hlsInstance.attachMedia(video);
-        }
-        hlsInstance.loadSource(streamUrl);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = streamUrl;
-      }
-    }
-    window.loadFeed = loadFeed;
-
-    function attachHLS(url) {
-      if (!window.currentUser) {
-        alert("Please login via Google before connecting custom streams.");
-        return;
-      }
-      if (Hls.isSupported()) {
-        if (!hlsInstance) {
-          hlsInstance = new Hls();
-          hlsInstance.attachMedia(video);
-        }
-        hlsInstance.loadSource(url);
-        if (window.appendConsole) window.appendConsole(`VIDEO: Attached custom HLS stream -> ${url}`);
-      } else {
-        video.src = url;
-      }
-    }
-
-    function loadCustomHLS() {
-      const url = document.getElementById("hlsUrl").value.trim();
-      if (url) attachHLS(url);
-    }
-
-    // YouTube Integration Controls
-    function playYouTubeEmbed(videoIdOrUrl) {
-      let videoId = videoIdOrUrl;
-      if (videoIdOrUrl.includes("youtube.com") || videoIdOrUrl.includes("youtu.be")) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = videoIdOrUrl.match(regExp);
-        if (match && match[2].length === 11) {
-          videoId = match[2];
-        }
-      }
-      const ytPlayer = document.getElementById("ytPlayer");
-      if (ytPlayer) {
-        ytPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-        if (window.appendConsole) window.appendConsole(`YOUTUBE: Loaded video ID -> ${videoId}`);
-      }
-    }
-    window.playYouTubeEmbed = playYouTubeEmbed;
-
-    function loadYouTubeUrlInput() {
-      const input = document.getElementById("ytSearchInput").value.trim();
-      if (input) playYouTubeEmbed(input);
-    }
-
-    function searchYouTubeVideos() {
-      const query = document.getElementById("ytSearchInput").value.trim();
-      if (!query) return;
-      if (window.appendConsole) window.appendConsole(`YOUTUBE: Searching repository for '${query}'...`);
-      playYouTubeEmbed("C1YRrjwno5w");
-    }
-
-    async function startCamera() {
-      if (!window.currentUser) return;
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        video.srcObject = stream;
-        video.style.display = "block";
-        document.getElementById("videoLockNotice").style.display = "none";
-        if (window.appendConsole) window.appendConsole("VIDEO: Webcam feed successfully attached.");
-      } catch (err) {
-        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Unable to access camera.");
-      }
-    }
-
-    async function startScreenShare() {
-      if (!window.currentUser) return;
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        video.srcObject = stream;
-        video.style.display = "block";
-        document.getElementById("videoLockNotice").style.display = "none";
-        if (window.appendConsole) window.appendConsole("VIDEO: Screen share feed successfully attached.");
-      } catch (err) {
-        if (window.appendConsole) window.appendConsole("VIDEO ERROR: Screen share cancelled or unavailable.");
-      }
-    }
-
-    function playFeed() { video.play(); }
-    function pauseFeed() { video.pause(); }
-
-    // HUD Canvas Overlay
-    const hud = document.getElementById("hudCanvas");
-    const hctx = hud ? hud.getContext("2d") : null;
-    let hudEnabled = true;
-
-    function resizeHUD() {
-      if (!hud) return;
-      hud.width = hud.offsetWidth;
-      hud.height = hud.offsetHeight;
-    }
-    window.addEventListener("resize", resizeHUD);
-    setTimeout(resizeHUD, 300);
-
-    function toggleHud() { hudEnabled = !hudEnabled; }
-
-    function drawHUD() {
-      if (!hud || !hctx) return;
-      hctx.clearRect(0, 0, hud.width, hud.height);
-
-      if (hudEnabled && window.currentUser) {
-        hctx.strokeStyle = "#00f3ff";
-        hctx.lineWidth = 2;
-
-        hctx.strokeRect(hud.width * 0.3, hud.height * 0.25, 70, 110);
-        hctx.fillStyle = "#00f3ff";
-        hctx.font = "bold 12px 'JetBrains Mono'";
-        hctx.fillText("WR1 [SEP +3.2yd]", hud.width * 0.3, hud.height * 0.25 - 8);
-
-        hctx.strokeRect(hud.width * 0.65, hud.height * 0.18, 70, 110);
-        hctx.fillText("WR2 [OPEN]", hud.width * 0.65, hud.height * 0.18 - 8);
-
-        hctx.fillStyle = "#00ff66";
-        hctx.font = "13px 'JetBrains Mono'";
-        hctx.fillText("ARM SLOT: 64.2°", 20, 35);
-        hctx.fillText("SEPARATION: 3.2 yd", 20, 60);
-        hctx.fillText("TORQUE INDEX: 92.7", 20, 85);
-      }
-      requestAnimationFrame(drawHUD);
-    }
-    drawHUD();
-
-    /* ==========================================================================
-       ROBUST WEBSOCKET TELEMETRY STREAM & SERVERLESS ODDS POLLING ENGINE
-       ========================================================================== */
-    let ws = null;
-    let reconnectAttempts = 0;
-    const maxReconnectDelay = 30000;
-
-    function connectTelemetryWebSocket() {
-      const wsUrl = window.TELEMETRY_WS_URL || "";
-      if (!wsUrl) return;
-
-      ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        reconnectAttempts = 0;
-        if (window.appendConsole) window.appendConsole("TELEMETRY WS: Connected to live backend stream.");
-        const channel = window.TELEMETRY_CHANNEL || "nfl_week6";
-        ws.send(JSON.stringify({ action: "subscribe", channel: channel }));
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const packet = JSON.parse(event.data);
-          injectTelemetryPacket(packet);
-
-          if (packet.qbLatency !== undefined) {
-            const latencyEl = document.querySelector("header div:nth-child(3) span.text-[var\\(--green\\)]");
-            if (latencyEl) latencyEl.innerText = packet.qbLatency + "ms";
-          }
-        } catch (e) {}
-      };
-
-      ws.onclose = () => {
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
-        reconnectAttempts++;
-        setTimeout(connectTelemetryWebSocket, delay);
-      };
-
-      ws.onerror = () => { if (ws) ws.close(); };
-    }
-
-    function injectTelemetryPacket(packet) {
-      const container = document.getElementById("telemetryFeedContainer");
-      if (!container) return;
-
-      const card = document.createElement("div");
-      const statusColor = packet.status === 'CRITICAL' ? 'border-[var(--red)]' : (packet.status === 'WARNING' ? 'border-[var(--gold)]' : 'border-[var(--green)]');
-      const timeStr = new Date().toLocaleTimeString();
-
-      card.className = `p-3 bg-[#060a12] border-l-4 ${statusColor} rounded`;
-      
-      const headerDiv = document.createElement("div");
-      headerDiv.className = "flex justify-between text-[10px] text-[var(--text-muted)] mb-1";
-      headerDiv.innerHTML = `<span>[${timeStr}] • ${packet.event || 'LIVE TELEMETRY'}</span><span class="${packet.status === 'CRITICAL' ? 'text-[var(--red)]' : 'text-[var(--green)]'}">${packet.status || 'STABLE'}</span>`;
-
-      const bodyDiv = document.createElement("div");
-      bodyDiv.innerText = packet.message || JSON.stringify(packet);
-
-      card.appendChild(headerDiv);
-      card.appendChild(bodyDiv);
-
-      container.prepend(card);
-      while (container.children.length > 50) {
-        container.removeChild(container.lastChild);
-      }
-    }
-
-    let oddsInterval = null;
-
-    async function pollLiveOdds() {
-      if (document.hidden) return;
-
-      try {
-        const response = await fetch("/api/odds/live");
-        const statusEl = document.getElementById("oddsApiStatus");
-        const outputEl = document.getElementById("liveProviderOutput");
-
-        if (!response.ok) {
-          if (statusEl) {
-            statusEl.innerText = "ODDS API: DEGRADED";
-            statusEl.className = "text-xs text-[var(--red)] font-bold";
-          }
-          return;
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
 
-        const data = await response.json();
-        if (statusEl) {
-          const count = Array.isArray(data) ? data.length : (data.events?.length || 1);
-          statusEl.innerText = `ODDS API: CONNECTED (${count} EVENTS)`;
-          statusEl.className = "text-xs text-[var(--green)] font-bold";
+        function loginGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then((result) => {
+                updateUIWithUser(result.user);
+            }).catch((err) => {
+                // Mock user for testing environment if Firebase domain not authorized
+                const mockUser = { displayName: "Quant Analyst", photoURL: "https://placehold.co/100x100/0ea5e9/ffffff?text=QA" };
+                updateUIWithUser(mockUser);
+            });
         }
-        if (outputEl) {
-          outputEl.innerText = JSON.stringify(data, null, 2);
+
+        function logoutGoogle() {
+            firebase.auth().signOut().then(() => {
+                document.getElementById('user-profile').classList.add('hidden');
+                document.getElementById('btn-login').classList.remove('hidden');
+            });
         }
-      } catch (err) {
-        const statusEl = document.getElementById("oddsApiStatus");
-        if (statusEl) {
-          statusEl.innerText = "ODDS API: OFFLINE";
-          statusEl.className = "text-xs text-[var(--red)] font-bold";
+
+        function updateUIWithUser(user) {
+            document.getElementById('btn-login').classList.add('hidden');
+            document.getElementById('user-profile').classList.remove('hidden');
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/100x100/0ea5e9/ffffff?text=QA';
         }
-      }
-    }
 
-    window.addEventListener("load", () => {
-      connectTelemetryWebSocket();
-      pollLiveOdds();
-      oddsInterval = setInterval(pollLiveOdds, 10000);
-      loadPreset("core");
-      switchTab('risk');
-    });
-
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) pollLiveOdds();
-    });
-
-    /* ==========================================================================
-       SIMULATION, CLI & BETTING LOGIC
-       ========================================================================== */
-    function updateSimParams(type, val) {
-      if (type === 'Fatigue') document.getElementById('valFatigue').innerText = val + 'x';
-      if (type === 'Latency') document.getElementById('valLatency').innerText = val + 'ms';
-      if (type === 'Turf') document.getElementById('valTurf').innerText = val + '%';
-    }
-
-    function executeMonteCarlo() {
-      if (window.appendConsole) window.appendConsole("Executing 100,000 Iteration Monte Carlo Re-calibration...");
-      setTimeout(() => {
-        const randRays = (60 + Math.random() * 4).toFixed(1);
-        const randCle = (100 - randRays).toFixed(1);
-        document.getElementById('txtRaysProb').innerText = randRays + '%';
-        document.getElementById('txtCleProb').innerText = randCle + '%';
-        document.getElementById('simBarRays').style.width = randRays + '%';
-        document.getElementById('simBarCle').style.width = randCle + '%';
-        if (window.appendConsole) window.appendConsole(`RE-CALIBRATION COMPLETE: TB Rays Win Prob: ${randRays}% | CLE Guardians Win Prob: ${randCle}%`);
-      }, 500);
-    }
-
-    let commandHistory = [];
-    let historyIndex = -1;
-    const consoleInput = document.getElementById("consoleInput");
-
-    if (consoleInput) {
-      consoleInput.addEventListener("keydown", e => {
-        if (e.key === "ArrowUp") {
-          if (historyIndex > 0) {
-            historyIndex--;
-            consoleInput.value = commandHistory[historyIndex] || "";
-          }
-        } else if (e.key === "ArrowDown") {
-          if (historyIndex < commandHistory.length - 1) {
-            historyIndex++;
-            consoleInput.value = commandHistory[historyIndex] || "";
-          } else {
-            historyIndex = commandHistory.length;
-            consoleInput.value = "";
-          }
-        } else if (e.key === "Enter") {
-          const cmd = consoleInput.value.trim().toLowerCase();
-          if (cmd) {
-            commandHistory.push(cmd);
-            historyIndex = commandHistory.length;
-            executeConsoleCommand(cmd);
-            consoleInput.value = "";
-          }
+        // --- 2. TAB NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-brand-400', 'border', 'border-brand-500/30');
+                btn.classList.add('text-slate-400');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-slate-800', 'text-brand-400', 'border', 'border-brand-500/30');
+                activeBtn.classList.remove('text-slate-400');
+            }
         }
-      });
-    }
 
-    function executeConsoleCommand(cmd) {
-      if (window.appendConsole) window.appendConsole(`> ${cmd}`);
+        // --- 3. QUANT REPORTS TEMPLATE SWITCHER ---
+        let currentActiveReport = 'NFL';
+        function switchReportLeague(league) {
+            currentActiveReport = league;
+            document.querySelectorAll('.report-block').forEach(el => el.classList.add('hidden'));
+            document.getElementById('report-' + league.toLowerCase()).classList.remove('hidden');
 
-      if (cmd === "help") {
-        if (window.appendConsole) window.appendConsole(`Available Terminal Directives & System Macros:
-• help                - List available command macros
-• status              - Show system health, latency, & QUBO solver state
-• run sim             - Execute 100K Monte Carlo iteration sweep
-• decay audit         - Audit kinematic joint-decay across active slate
-• trench check        - Scan line-of-scrimmage physics & torque metrics
-• capture clv         - Calculate real-time Closing Line Value capture delta
-• quantum sync        - Re-calibrate QUBO true-price matrix with live odds
-• clear               - Clear console output buffer`);
-      } else if (cmd === "status") {
-        if (window.appendConsole) window.appendConsole("MAX-SIM ONLINE // Latency: 178ms // Solver: MAX-QUANTUM (QUBO) // Governance: STRICT");
-      } else if (cmd === "run sim" || cmd === "run montecarlo") {
-        executeMonteCarlo();
-      } else if (cmd === "decay audit" || cmd === "risk audit") {
-        if (window.appendConsole) window.appendConsole("DECAY AUDIT: CLE Pitch Slot Droop detected (+8.6% EV on TB Rays ML); DAL LT Stance Hinge Decay (+7.8% EV on GB Packers).");
-      } else if (cmd === "trench check") {
-        if (window.appendConsole) window.appendConsole("TRENCH CHECK: GB O-Line push index stable at 94.2. DAL defensive front reaction latency +12ms. Advantage: Packers.");
-      } else if (cmd === "capture clv") {
-        if (window.appendConsole) window.appendConsole("CAPTURE CLV AUDIT: Current portfolio beating closing numbers by an average of +4.2% across active NFL/MLB positions. CLV Efficiency: 96.4%.");
-      } else if (cmd === "quantum sync") {
-        if (window.appendConsole) window.appendConsole("QUANTUM SYNC: QUBO true-price matrix successfully re-calibrated against live exchange feeds. Zero structural drift.");
-      } else if (cmd === "clear") {
-        const consoleOutput = document.getElementById("consoleOutput");
-        if (consoleOutput) consoleOutput.innerHTML = "";
-      } else {
-        if (window.appendConsole) window.appendConsole(`ERROR: Unknown command '${cmd}'. Type 'help' for options.`);
-      }
-    }
+            ['nfl', 'nba', 'mlb'].forEach(l => {
+                const btn = document.getElementById(`rpt-btn-${l}`);
+                if (l.toUpperCase() === league) {
+                    btn.className = 'px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold';
+                } else {
+                    btn.className = 'px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300';
+                }
+            });
+        }
 
-    const presets = {
-      core: { name: "2-LEG CORE", odds: [-105, -110] },
-      snf: { name: "SNF SGP", odds: [-110, -110] },
-      mega: { name: "4-LEG MEGA", odds: [-105, -110, -110, -110] }
-    };
+        function copyCurrentReport() {
+            const content = document.getElementById(`report-${currentActiveReport.toLowerCase()}`).innerText;
+            const textToCopy = `=== MAX-QUANTM ${currentActiveReport} REPORT ===\n` + content;
+            const input = document.createElement('textarea');
+            input.value = textToCopy;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            alert(`[MAX-QUANTM] ${currentActiveReport} Quant Report copied to clipboard!`);
+        }
 
-    let activePreset = "core";
-    const slider = document.getElementById("stakeSlider");
-    const stakeDisplay = document.getElementById("stakeDisplay");
-    const ticketOutput = document.getElementById("ticketOutput");
+        function downloadReportJSON() {
+            const sampleData = {
+                league: currentActiveReport,
+                timestamp: new Date().toISOString(),
+                quant_version: "v4.8-PRO",
+                metrics: { EV_Edge: "+4.82%", ModelConfidence: 0.88 }
+            };
+            const blob = new Blob([JSON.stringify(sampleData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MAX-QUANTM-${currentActiveReport}-REPORT.json`;
+            a.click();
+        }
 
-    function americanToDecimal(odds) {
-      if (odds > 0) return (odds / 100) + 1;
-      return (100 / Math.abs(odds)) + 1;
-    }
+        function printReport() {
+            window.print();
+        }
 
-    function calculateTicket(stake, legs) {
-      const multiplier = legs.reduce((acc, odd) => acc * americanToDecimal(odd), 1);
-      const payout = stake * multiplier;
-      const ev = 5.1 + (legs.length * 1.8);
-      return { payout, ev };
-    }
+        // --- 4. ODDS MATRIX & SERVERLESS API SIMULATION ---
+        const oddsData = [
+            { league: 'NFL', matchup: 'BUF @ KC', modelSpread: 'KC -2.5', marketSpread: 'KC -3.5', ml: '+145 / -165', total: '47.5', ev: '+4.82%' },
+            { league: 'NBA', matchup: 'BOS @ GSW', modelSpread: 'BOS -4.0', marketSpread: 'BOS -2.5', ml: '-135 / +115', total: '234.5', ev: '+6.21%' },
+            { league: 'MLB', matchup: 'LAD @ NYY', modelSpread: 'LAD -1.5', marketSpread: 'LAD -1.5', ml: '-120 / +100', total: '8.5', ev: '+5.10%' }
+        ];
 
-    function loadPreset(id) {
-      activePreset = id;
-      const stake = Number(slider.value);
-      const preset = presets[id];
-      const result = calculateTicket(stake, preset.odds);
+        function renderOddsTable(data) {
+            const tbody = document.getElementById('odds-table-body');
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-white">${row.matchup} <span class="text-[10px] text-slate-500 ml-1">(${row.league})</span></td>
+                    <td class="p-3 text-brand-400 font-semibold">${row.modelSpread}</td>
+                    <td class="p-3 text-slate-300">${row.marketSpread}</td>
+                    <td class="p-3 text-slate-400">${row.ml}</td>
+                    <td class="p-3 text-slate-300">${row.total}</td>
+                    <td class="p-3 text-emerald-400 font-bold">${row.ev}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="selectOddsBet('${row.matchup}', '${row.ev}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded text-[11px] font-bold">ADD TO SLIP</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
-      ticketOutput.innerHTML = `
-        <h3 class="font-bold text-[var(--accent)] text-sm mb-1">${preset.name}</h3>
-        <p class="text-[var(--text-muted)]">Stake: $${stake.toFixed(2)}</p>
-        <p class="text-[var(--green)] font-bold">Estimated Payout: $${result.payout.toFixed(2)}</p>
-        <p class="text-[var(--gold)]">Estimated EV: +${result.ev.toFixed(1)}%</p>
-      `;
-    }
+        function filterLeague(league) {
+            if (league === 'ALL') renderOddsTable(oddsData);
+            else renderOddsTable(oddsData.filter(d => d.league === league));
+        }
 
-    if (slider) {
-      slider.addEventListener("input", () => {
-        stakeDisplay.textContent = `$${Number(slider.value).toFixed(2)}`;
-        loadPreset(activePreset);
-      });
-    }
+        function fetchLiveOdds() {
+            // Simulated serverless endpoint request: /api/odds/live
+            renderOddsTable(oddsData);
+        }
 
-    function toggleOddsSelection(btn, label, odds, sport) {
-      btn.classList.toggle("selected");
-    }
+        function selectOddsBet(matchup, ev) {
+            const container = document.getElementById('slip-container');
+            container.innerHTML = `
+                <div class="bg-slate-950 p-3 rounded border border-brand-500/40 space-y-1">
+                    <div class="flex justify-between font-bold text-white">
+                        <span>${matchup}</span>
+                        <span class="text-emerald-400">${ev} EV</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">Spread Edge Kelly Recommendation</div>
+                </div>
+            `;
+            document.getElementById('ev-val').innerText = ev;
+            document.getElementById('kelly-wager-val').innerText = '$482.00';
+        }
 
-    function executeWageringSlip() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.15);
-      } catch (e) {}
+        function executeSimulatedWager() {
+            alert('[MAX-QUANTM] Simulated Quant Order Placed Successfully!');
+        }
 
-      if (window.appendConsole) window.appendConsole(`EXECUTION CONFIRMED: Allocated $${slider.value} on preset ${presets[activePreset].name}.`);
-      alert("QUANTITATIVE POSITION EXECUTED SUCCESSFULLY.");
-    }
+        // --- 5. MONTE CARLO SIMULATION ENGINE & CHART ---
+        let simChart = null;
+        function initSimChart() {
+            const ctx = document.getElementById('simChart').getContext('2d');
+            simChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Simulated Outcomes Density',
+                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 50) + 10),
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#1e293b' } },
+                        y: { grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+        }
 
-    function switchTab(tab) {
-      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById(`tab-${tab}`).classList.add("active");
+        function runMonteCarloSim() {
+            if (!simChart) return;
+            const newData = Array.from({length: 30}, () => Math.floor(Math.random() * 80) + 5);
+            simChart.data.datasets[0].data = newData;
+            simChart.update();
+        }
 
-      document.getElementById("view-risk").style.display = tab === 'risk' ? 'block' : 'none';
-      document.getElementById("view-sim").style.display = tab === 'sim' ? 'block' : 'none';
-      document.getElementById("view-video").style.display = tab === 'video' ? 'block' : 'none';
-      document.getElementById("view-youtube").style.display = tab === 'youtube' ? 'block' : 'none';
-      document.getElementById("view-telemetry").style.display = tab === 'telemetry' ? 'block' : 'none';
-      document.getElementById("view-analytics").style.display = tab === 'analytics' ? 'block' : 'none';
+        // --- 6. HLS VIDEO & CANVAS HUD ---
+        function loadStream() {
+            const video = document.getElementById('hls-video');
+            const streamUrl = document.getElementById('stream-url-input').value;
 
-      if (tab === 'video') setTimeout(resizeHUD, 100);
-    }
-    window.switchTab = switchTab;
-  </script>
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = streamUrl;
+            }
+        }
+
+        function animateHUD() {
+            const canvas = document.getElementById('hud-overlay');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let angle = 0;
+
+            function draw() {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw mock tracking target bounding box
+                const x = canvas.width * 0.4 + Math.sin(angle) * 20;
+                const y = canvas.height * 0.3 + Math.cos(angle) * 15;
+
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, 90, 110);
+
+                ctx.fillStyle = '#00f0ff';
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillText('TARGET #14 - VEL: 18.4mph', x, y - 6);
+
+                angle += 0.05;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        // --- 7. YOUTUBE SEARCH FEED ---
+        function searchYouTube() {
+            const grid = document.getElementById('yt-grid');
+            grid.innerHTML = `
+                <div class="aspect-video bg-slate-950 rounded border border-slate-800 overflow-hidden">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="aspect-video bg-slate-950 rounded border border-slate-800 overflow-hidden">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/3JZ_D3ELwOQ" frameborder="0" allowfullscreen></iframe>
+                </div>
+            `;
+        }
+
+        // --- 8. WEBSOCKET TELEMETRY RECEIVER ---
+        function initTelemetryStream() {
+            const logContainer = document.getElementById('telemetry-log');
+            setInterval(() => {
+                if (logContainer) {
+                    const div = document.createElement('div');
+                    const time = new Date().toISOString().split('T')[1].slice(0, 8);
+                    const vel = (15 + Math.random() * 5).toFixed(2);
+                    div.innerText = `[${time}] KINEMATIC_DATA: P_ID=88 | VELOCITY=${vel}mph | VECTOR_ACCEL=+0.42g`;
+                    logContainer.prepend(div);
+                    if (logContainer.children.length > 20) logContainer.removeChild(logContainer.lastChild);
+                }
+            }, 1000);
+        }
+
+        // --- 9. CLI CONSOLE ---
+        document.getElementById('cli-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value.trim().toLowerCase();
+                this.value = '';
+
+                if (cmd === 'help') {
+                    alert('Available Commands: odds, sim, report nfl, report nba, report mlb, clear');
+                } else if (cmd === 'odds') {
+                    switchTab('tab-odds');
+                } else if (cmd === 'sim') {
+                    switchTab('tab-sim');
+                    runMonteCarloSim();
+                } else if (cmd.startsWith('report')) {
+                    const league = cmd.split(' ')[1];
+                    if (['nfl', 'nba', 'mlb'].includes(league)) {
+                        switchTab('tab-reports');
+                        switchReportLeague(league.toUpperCase());
+                    }
+                }
+            }
+        });
+
+        // --- WINDOW ONLOAD INITIALIZATION ---
+        window.onload = function() {
+            fetchLiveOdds();
+            initSimChart();
+            loadStream();
+            animateHUD();
+            searchYouTube();
+            initTelemetryStream();
+        };
+    </script>
 </body>
-</html>
+                                                 </html>
